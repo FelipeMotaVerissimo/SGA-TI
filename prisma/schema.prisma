@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  ADMINISTRADOR
+  ATENDENTE
+  TECNICO
+  VENDEDOR
+  FINANCEIRO
+  COMPRAS
+}
+
+enum StatusOS {
+  INICIAL
+  ORCAMENTO
+  AUTORIZADO
+  EM_ANDAMENTO
+  CANCELADO
+  FINALIZADO
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String   @db.VarChar(150)
+  email     String   @unique @db.VarChar(150)
+  senha     String   @db.VarChar(255)
+  perfil    Perfil   @default(ATENDENTE)
+  ativo     Boolean  @default(true)
+  criadoEm DateTime @default(now())
+  ordens    OrdemServico[]
+  @@map("usuarios")
+}
+
+model Cliente {
+  id             Int       @id @default(autoincrement())
+  nome           String    @db.VarChar(150)
+  cpfCnpj        String    @unique @db.VarChar(18)
+  rg             String?   @db.VarChar(20)
+  dataNascimento DateTime?
+  endereco       String?   @db.VarChar(200)
+  numero         String?   @db.VarChar(10)
+  cidade         String?   @db.VarChar(100)
+  estado         String?   @db.Char(2)
+  cep            String?   @db.VarChar(9)
+  telefone       String?   @db.VarChar(20)
+  celular        String?   @db.VarChar(20)
+  email          String?   @db.VarChar(150)
+  ativo          Boolean   @default(true)
+  criadoEm      DateTime  @default(now())
+  equipamentos   Equipamento[]
+  @@map("clientes")
+}
+
+model Equipamento {
+  id          Int      @id @default(autoincrement())
+  codigo      String   @unique @db.VarChar(50)
+  marca       String   @db.VarChar(100)
+  modelo      String   @db.VarChar(100)
+  numeroSerie String?  @db.VarChar(100)
+  defeito     String   @db.Text
+  clienteId   Int
+  cliente     Cliente  @relation(fields: [clienteId], references: [id])
+  ordens      OrdemServico[]
+  criadoEm   DateTime @default(now())
+  @@map("equipamentos")
+}
+
+model OrdemServico {
+  id              Int       @id @default(autoincrement())
+  numero          String    @unique @db.VarChar(20)
+  status          StatusOS  @default(INICIAL)
+  defeitoRelatado String    @db.Text
+  observacoes     String?   @db.Text
+  valorOrcamento  Decimal?  @db.Decimal(10, 2)
+  dataAprovacao   DateTime?
+  previsaoEntrega DateTime?
+  dataAbertura    DateTime  @default(now())
+  dataFechamento  DateTime?
+  equipamentoId   Int
+  equipamento     Equipamento  @relation(fields: [equipamentoId], references: [id])
+  usuarioId       Int
+  usuario         Usuario      @relation(fields: [usuarioId], references: [id])
+  servicos        ServicoExecutado[]
+  itens           ItemOrdem[]
+  @@map("ordens_servico")
+}
+
+model ServicoExecutado {
+  id           Int      @id @default(autoincrement())
+  descricao    String   @db.Text
+  observacoes  String?  @db.Text
+  garantiaDias Int?
+  executadoEm  DateTime @default(now())
+  ordemId      Int
+  ordem        OrdemServico @relation(fields: [ordemId], references: [id])
+  @@map("servicos_executados")
+}
+
+model Produto {
+  id         Int      @id @default(autoincrement())
+  nome       String   @db.VarChar(150)
+  descricao  String?  @db.Text
+  preco      Decimal  @db.Decimal(10, 2)
+  estoque    Int      @default(0)
+  ativo      Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+  itens      ItemOrdem[]
+  movimentos MovimentoEstoque[]
+  @@map("produtos")
+}
+
+model ItemOrdem {
+  id         Int     @id @default(autoincrement())
+  quantidade Int
+  valorUnit  Decimal @db.Decimal(10, 2)
+  ordemId    Int
+  ordem      OrdemServico @relation(fields: [ordemId], references: [id])
+  produtoId  Int
+  produto    Produto      @relation(fields: [produtoId], references: [id])
+  @@map("itens_ordem")
+}
+
+model MovimentoEstoque {
+  id         Int      @id @default(autoincrement())
+  tipo       String   @db.VarChar(10)
+  quantidade Int
+  descricao  String?  @db.VarChar(200)
+  produtoId  Int
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  criadoEm  DateTime @default(now())
+  @@map("movimentos_estoque")
+}
