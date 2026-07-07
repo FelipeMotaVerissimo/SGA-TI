@@ -1,0 +1,38 @@
+<div class="sidebar">
+  <div class="brand">
+    <h2>SGA TI</h2>
+    <p>Sistema de Gestão</p>
+  </div>
+
+  <nav>
+    <a href="/dashboard" class="<%= locals.path === '/dashboard' ? 'ativo' : '' %>">
+      📊 Dashboard
+    </a>
+    <a href="/clientes" class="<%= locals.path && locals.path.startsWith('/clientes') ? 'ativo' : '' %>">
+      👤 Clientes
+    </a>
+    <a href="/equipamentos" class="<%= locals.path && locals.path.startsWith('/equipamentos') ? 'ativo' : '' %>">
+      🔧 Equipamentos
+    </a>
+    <a href="/ordens" class="<%= locals.path && locals.path.startsWith('/ordens') ? 'ativo' : '' %>">
+      📋 Ordens de Serviço
+    </a>
+    <a href="/produtos" class="<%= locals.path && locals.path.startsWith('/produtos') ? 'ativo' : '' %>">
+      📦 Produtos
+    </a>
+    <a href="/relatorios" class="<%= locals.path && locals.path.startsWith('/relatorios') ? 'ativo' : '' %>">
+      📈 Relatórios
+    </a>
+    <% if (locals.usuario && locals.usuario.perfil === 'ADMINISTRADOR') { %>
+    <a href="/usuarios" class="<%= locals.path && locals.path.startsWith('/usuarios') ? 'ativo' : '' %>">
+      ⚙️ Usuários
+    </a>
+    <% } %>
+  </nav>
+
+  <div class="user-info">
+    <p><%= locals.usuario ? locals.usuario.nome : '' %></p>
+    <span><%= locals.usuario ? locals.usuario.perfil : '' %></span><br>
+    <a href="/logout">↩ Sair</a>
+  </div>
+</div>

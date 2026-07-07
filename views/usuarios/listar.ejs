@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuários — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/usuarios' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Usuários</h1>
+        <p>Gerencie os usuários do sistema</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Lista de Usuários</h2>
+          <a href="/usuarios/novo" class="btn btn-primary btn-sm">+ Novo Usuário</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Login</th>
+              <th>Perfil</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (usuarios.length === 0) { %>
+            <tr>
+              <td colspan="5" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum usuário cadastrado.
+              </td>
+            </tr>
+            <% } else { %>
+            <% usuarios.forEach(u => { %>
+            <tr>
+              <td><%= u.id %></td>
+              <td><%= u.nome %></td>
+              <td><%= u.login %></td>
+              <td><span class="badge badge-azul"><%= u.perfil.nomePerfil %></span></td>
+              <td>
+                <a href="/usuarios/<%= u.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

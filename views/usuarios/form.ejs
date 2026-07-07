@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/usuarios' }) %>
+
+    <div class="conteudo">
+      <a href="/usuarios" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= titulo %></h1>
+        <p>Preencha os dados do usuário</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="form-box">
+        <form action="<%= usuario ? '/usuarios/' + usuario.id : '/usuarios' %>" method="POST">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome Completo *</label>
+              <input type="text" name="nome" placeholder="Nome do usuário"
+                value="<%= usuario ? usuario.nome : '' %>" required>
+            </div>
+            <div class="form-group">
+              <label>Login *</label>
+              <input type="text" name="login" placeholder="Login de acesso"
+                value="<%= usuario ? usuario.login : '' %>" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Perfil *</label>
+              <select name="perfilId" required>
+                <option value="">Selecione o perfil</option>
+                <% perfis.forEach(p => { %>
+                <option value="<%= p.id %>"
+                  <%= usuario && usuario.perfilId === p.id ? 'selected' : '' %>>
+                  <%= p.nomePerfil %>
+                </option>
+                <% }) %>
+              </select>
+            </div>
+            <% if (!usuario) { %>
+            <div class="form-group">
+              <label>Senha *</label>
+              <input type="password" name="senha" placeholder="Senha de acesso" required>
+            </div>
+            <% } %>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">💾 Salvar Usuário</button>
+            <a href="/usuarios" class="btn btn-secondary">✕ Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

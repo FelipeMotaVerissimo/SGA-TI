@@ -7,15 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Perfil {
-  ADMINISTRADOR
-  ATENDENTE
-  TECNICO
-  VENDEDOR
-  FINANCEIRO
-  COMPRAS
-}
-
 enum StatusOS {
   INICIAL
   ORCAMENTO
@@ -26,15 +17,23 @@ enum StatusOS {
 }
 
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nome      String   @db.VarChar(150)
-  email     String   @unique @db.VarChar(150)
-  senha     String   @db.VarChar(255)
-  perfil    Perfil   @default(ATENDENTE)
-  ativo     Boolean  @default(true)
+  id       Int      @id @default(autoincrement())
+  nome     String   @db.VarChar(150)
+  login    String   @unique @db.VarChar(100)
+  senha    String   @db.VarChar(255)
+  ativo    Boolean  @default(true)
+  perfilId Int
+  perfil   Perfil   @relation(fields: [perfilId], references: [id])
   criadoEm DateTime @default(now())
-  ordens    OrdemServico[]
+  ordens   OrdemServico[]
   @@map("usuarios")
+}
+
+model Perfil {
+  id        Int       @id @default(autoincrement())
+  nomePerfil String   @db.VarChar(50)
+  usuarios  Usuario[]
+  @@map("perfis")
 }
 
 model Cliente {

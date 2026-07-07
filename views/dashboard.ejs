@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('partials/sidebar', { path: '/dashboard' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Bem-vindo ao Sistema de Gestão de Assistência Técnica</p>
+      </div>
+
+      <%- include('partials/alertas') %>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor">0</div>
+          <div class="card-label">OS Abertas</div>
+        </div>
+        <div class="card">
+          <div class="card-valor">0</div>
+          <div class="card-label">Aguardando Orçamento</div>
+        </div>
+        <div class="card">
+          <div class="card-valor">0</div>
+          <div class="card-label">Em Andamento</div>
+        </div>
+        <div class="card">
+          <div class="card-valor">0</div>
+          <div class="card-label">Finalizadas (Mês)</div>
+        </div>
+      </div>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Ordens de Serviço Recentes</h2>
+          <a href="/ordens/nova" class="btn btn-primary btn-sm">+ Nova OS</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Cliente</th>
+              <th>Equipamento</th>
+              <th>Status</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma ordem de serviço cadastrada ainda.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

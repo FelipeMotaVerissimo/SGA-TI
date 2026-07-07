@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/clientes' }) %>
+
+    <div class="conteudo">
+      <a href="/clientes" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= titulo %></h1>
+        <p>Preencha os dados do cliente</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="form-box">
+        <form action="<%= cliente ? '/clientes/' + cliente.id : '/clientes' %>" method="POST">
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Nome Completo *</label>
+              <input type="text" name="nome" placeholder="Nome completo do cliente"
+                value="<%= cliente ? cliente.nome : '' %>" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>CPF/CNPJ *</label>
+              <input type="text" name="cpfCnpj" placeholder="000.000.000-00"
+                value="<%= cliente ? cliente.cpfCnpj : '' %>" required>
+            </div>
+            <div class="form-group">
+              <label>RG</label>
+              <input type="text" name="rg" placeholder="RG do cliente"
+                value="<%= cliente ? (cliente.rg || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Telefone</label>
+              <input type="text" name="telefone" placeholder="(00) 0000-0000"
+                value="<%= cliente ? (cliente.telefone || '') : '' %>">
+            </div>
+            <div class="form-group">
+              <label>Celular</label>
+              <input type="text" name="celular" placeholder="(00) 00000-0000"
+                value="<%= cliente ? (cliente.celular || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>E-mail</label>
+              <input type="email" name="email" placeholder="cliente@email.com"
+                value="<%= cliente ? (cliente.email || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Endereço</label>
+              <input type="text" name="endereco" placeholder="Rua, Avenida, etc."
+                value="<%= cliente ? (cliente.endereco || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número</label>
+              <input type="text" name="numero" placeholder="123"
+                value="<%= cliente ? (cliente.numero || '') : '' %>">
+            </div>
+            <div class="form-group">
+              <label>Bairro</label>
+              <input type="text" name="bairro" placeholder="Nome do bairro"
+                value="<%= cliente ? (cliente.bairro || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cidade</label>
+              <input type="text" name="cidade" placeholder="Nome da cidade"
+                value="<%= cliente ? (cliente.cidade || '') : '' %>">
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select name="estado">
+                <option value="">Selecione</option>
+                <% ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].forEach(uf => { %>
+                <option value="<%= uf %>" <%= cliente && cliente.estado === uf ? 'selected' : '' %>><%= uf %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>CEP</label>
+              <input type="text" name="cep" placeholder="00000-000"
+                value="<%= cliente ? (cliente.cep || '') : '' %>">
+            </div>
+            <div class="form-group">
+              <label>Data de Nascimento</label>
+              <input type="date" name="dataNascimento"
+                value="<%= cliente && cliente.dataNascimento ? cliente.dataNascimento.toISOString().split('T')[0] : '' %>">
+            </div>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">💾 Salvar Cliente</button>
+            <a href="/clientes" class="btn btn-secondary">✕ Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

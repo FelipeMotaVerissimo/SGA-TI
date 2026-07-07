@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clientes — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/clientes' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Clientes</h1>
+        <p>Gerencie os clientes cadastrados no sistema</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Lista de Clientes</h2>
+          <a href="/clientes/novo" class="btn btn-primary btn-sm">+ Novo Cliente</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>CPF/CNPJ</th>
+              <th>Telefone</th>
+              <th>Cidade</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (clientes.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum cliente cadastrado ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% clientes.forEach(c => { %>
+            <tr>
+              <td><%= c.id %></td>
+              <td><%= c.nome %></td>
+              <td><%= c.cpfCnpj %></td>
+              <td><%= c.celular || c.telefone || '—' %></td>
+              <td><%= c.cidade || '—' %></td>
+              <td>
+                <a href="/clientes/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <form action="/clientes/<%= c.id %>/excluir" method="POST" style="display:inline"
+                  onsubmit="return confirm('Deseja remover este cliente?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                </form>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
