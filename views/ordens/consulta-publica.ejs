@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultar OS — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+  <div style="width:100%; max-width:500px; margin:0 auto; padding:24px">
+
+    <div class="login-box" style="max-width:500px">
+      <div class="logo">
+        <h1>SGA TI</h1>
+        <p>Consulta de Ordem de Serviço</p>
+      </div>
+
+      <% if (erro) { %>
+      <div class="alert alert-erro"><%= erro %></div>
+      <% } %>
+
+      <form class="form-login" action="/consulta" method="POST">
+        <div class="form-group">
+          <label>Número da OS</label>
+          <input type="text" name="numero" placeholder="Ex: OS-2026-123456" required autofocus>
+        </div>
+        <button type="submit" class="btn btn-primary">🔍 Consultar</button>
+      </form>
+
+      <% if (ordem) { %>
+      <div style="margin-top:24px; border-top:1px solid #eee; padding-top:24px">
+        <h3 style="font-size:15px; color:#185FA5; margin-bottom:16px">Resultado da Consulta</h3>
+
+        <div style="display:flex; flex-direction:column; gap:12px">
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Número da OS</span>
+            <strong><%= ordem.numero %></strong>
+          </div>
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Status Atual</span>
+            <span class="badge badge-azul" style="font-size:13px"><%= ordem.status.replace('_',' ') %></span>
+          </div>
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Equipamento</span>
+            <strong><%= ordem.equipamento.marca %> <%= ordem.equipamento.modelo %></strong>
+          </div>
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Defeito Relatado</span>
+            <span><%= ordem.defeitoRelatado %></span>
+          </div>
+          <% if (ordem.previsaoEntrega) { %>
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Previsão de Entrega</span>
+            <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
+          </div>
+          <% } %>
+          <% if (ordem.valorOrcamento) { %>
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Valor do Orçamento</span>
+            <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
+          </div>
+          <% } %>
+          <% if (ordem.dataAbertura) { %>
+          <div>
+            <span style="font-size:12px; color:#888; display:block">Data de Abertura</span>
+            <span><%= new Date(ordem.dataAbertura).toLocaleDateString('pt-BR') %></span>
+          </div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+
+      <div style="text-align:center; margin-top:20px">
+        <a href="/login" style="font-size:13px; color:#185FA5">← Voltar ao sistema</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

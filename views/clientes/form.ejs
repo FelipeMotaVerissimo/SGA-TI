@@ -21,7 +21,7 @@
       <%- include('../partials/alertas') %>
 
       <div class="form-box">
-        <form action="<%= cliente ? '/clientes/' + cliente.id : '/clientes' %>" method="POST">
+        <form action="<%= cliente ? '/clientes/' + cliente.id + '/editar' : '/clientes/novo' %>" method="POST">
 
           <div class="form-row full">
             <div class="form-group">
@@ -112,7 +112,7 @@
             <div class="form-group">
               <label>Data de Nascimento</label>
               <input type="date" name="dataNascimento"
-                value="<%= cliente && cliente.dataNascimento ? cliente.dataNascimento.toISOString().split('T')[0] : '' %>">
+                value="<%= cliente && cliente.dataNascimento ? new Date(cliente.dataNascimento).toISOString().split('T')[0] : '' %>">
             </div>
           </div>
 

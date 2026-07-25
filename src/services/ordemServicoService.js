@@ -14,7 +14,7 @@ async function listarOrdens(filtros = {}) {
     where,
     include: {
       equipamento: { include: { cliente: true } },
-      usuario: { select: { id: true, nome: true } },
+      usuario:     { select: { id: true, nome: true } },
     },
     orderBy: { dataAbertura: 'desc' },
   });
@@ -25,9 +25,20 @@ async function buscarOrdemPorId(id) {
     where: { id: Number(id) },
     include: {
       equipamento: { include: { cliente: true } },
-      servicos: true,
-      itens:    { include: { produto: true } },
-      usuario:  { select: { id: true, nome: true } },
+      servicos:    true,
+      itens:       { include: { produto: true } },
+      usuario:     { select: { id: true, nome: true } },
+    },
+  });
+  if (!ordem) throw Object.assign(new Error('Ordem de serviço não encontrada.'), { status: 404 });
+  return ordem;
+}
+
+async function buscarOrdemPorNumero(numero) {
+  const ordem = await prisma.ordemServico.findUnique({
+    where: { numero },
+    include: {
+      equipamento: { include: { cliente: true } },
     },
   });
   if (!ordem) throw Object.assign(new Error('Ordem de serviço não encontrada.'), { status: 404 });
@@ -39,7 +50,7 @@ async function abrirOrdem(dados, usuarioId) {
     data: {
       numero:          gerarNumeroOS(),
       defeitoRelatado: dados.defeitoRelatado,
-      observacoes:     dados.observacoes,
+      observacoes:     dados.observacoes || null,
       equipamentoId:   Number(dados.equipamentoId),
       usuarioId:       Number(usuarioId),
     },
@@ -62,11 +73,18 @@ async function registrarOrcamento(id, dados) {
     where: { id: Number(id) },
     data: {
       valorOrcamento:  dados.valorOrcamento,
-      dataAprovacao:   dados.dataAprovacao   ? new Date(dados.dataAprovacao)   : undefined,
-      previsaoEntrega: dados.previsaoEntrega ? new Date(dados.previsaoEntrega) : undefined,
+      dataAprovacao:   dados.dataAprovacao   ? new Date(dados.dataAprovacao)   : null,
+      previsaoEntrega: dados.previsaoEntrega ? new Date(dados.previsaoEntrega) : null,
       status:          'ORCAMENTO',
     },
   });
 }
 
-module.exports = { listarOrdens, buscarOrdemPorId, abrirOrdem, atualizarStatus, registrarOrcamento };
+module.exports = {
+  listarOrdens,
+  buscarOrdemPorId,
+  buscarOrdemPorNumero,
+  abrirOrdem,
+  atualizarStatus,
+  registrarOrcamento,
+};

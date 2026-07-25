@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/equipamentos' }) %>
+
+    <div class="conteudo">
+      <a href="/equipamentos" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= titulo %></h1>
+        <p>Registre um novo equipamento e vincule a um cliente</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="form-box">
+        <form action="<%= equipamento ? '/equipamentos/' + equipamento.id : '/equipamentos' %>" method="POST">
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Cliente *</label>
+              <select name="clienteId" required>
+                <option value="">Selecione ou busque um cliente</option>
+                <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>"
+                  <%= String(clienteId) === String(c.id) ? 'selected' : '' %>>
+                  <%= c.nome %> — <%= c.cpfCnpj %>
+                </option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Marca *</label>
+              <input type="text" name="marca" placeholder="Ex: Dell, Apple, Samsung"
+                value="<%= equipamento ? equipamento.marca : '' %>" required>
+            </div>
+            <div class="form-group">
+              <label>Modelo *</label>
+              <input type="text" name="modelo" placeholder="Ex: Inspiron 15, iPhone 12"
+                value="<%= equipamento ? equipamento.modelo : '' %>" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número de Série</label>
+              <input type="text" name="numeroSerie" placeholder="Número de série do equipamento"
+                value="<%= equipamento ? (equipamento.numeroSerie || '') : '' %>">
+            </div>
+            <div class="form-group">
+              <label>Código</label>
+              <input type="text" name="codigo" placeholder="Gerado automaticamente se vazio"
+                value="<%= equipamento ? equipamento.codigo : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Descrição do Problema *</label>
+              <textarea name="defeito" placeholder="Descreva o problema relatado pelo cliente..." required><%= equipamento ? equipamento.defeito : '' %></textarea>
+            </div>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">💾 Salvar Equipamento</button>
+            <a href="/equipamentos" class="btn btn-secondary">✕ Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

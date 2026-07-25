@@ -16,12 +16,14 @@ async function exibirForm(req, res) {
 
 async function criar(req, res) {
   try {
+    console.log('BODY RECEBIDO:', req.body);
     await clienteService.criarCliente(req.body);
     req.flash('sucesso', 'Cliente cadastrado com sucesso!');
     res.redirect('/clientes');
   } catch (err) {
+    console.log('ERRO:', err.message);
     req.flash('erro', err.message);
-    res.render('clientes/form', { titulo: 'Novo Cliente', cliente: req.body });
+    res.render('clientes/form', { titulo: 'Novo Cliente', cliente: null });
   }
 }
 

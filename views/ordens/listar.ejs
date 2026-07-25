@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ordens de Serviço — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/ordens' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Ordens de Serviço</h1>
+        <p>Gerencie todas as ordens de serviço</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <!-- Filtro de status -->
+      <div class="form-box" style="margin-bottom:16px; padding:16px">
+        <form action="/ordens" method="GET" style="display:flex; gap:12px; align-items:flex-end">
+          <div class="form-group" style="margin:0; flex:1">
+            <label>Filtrar por Status</label>
+            <select name="status">
+              <option value="">Todos</option>
+              <% ['INICIAL','ORCAMENTO','AUTORIZADO','EM_ANDAMENTO','CANCELADO','FINALIZADO'].forEach(s => { %>
+              <option value="<%= s %>" <%= filtroStatus === s ? 'selected' : '' %>><%= s.replace('_',' ') %></option>
+              <% }) %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+          <a href="/ordens" class="btn btn-secondary">Limpar</a>
+        </form>
+      </div>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Lista de OS</h2>
+          <a href="/ordens/nova" class="btn btn-primary btn-sm">+ Nova OS</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Cliente</th>
+              <th>Equipamento</th>
+              <th>Status</th>
+              <th>Abertura</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (ordens.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma ordem de serviço encontrada.
+              </td>
+            </tr>
+            <% } else { %>
+            <% ordens.forEach(o => { %>
+            <tr>
+              <td><strong><%= o.numero %></strong></td>
+              <td><%= o.equipamento.cliente.nome %></td>
+              <td><%= o.equipamento.marca %> <%= o.equipamento.modelo %></td>
+              <td>
+                <%
+                  const cores = {
+                    INICIAL: 'badge-cinza',
+                    ORCAMENTO: 'badge-azul',
+                    AUTORIZADO: 'badge-verde',
+                    EM_ANDAMENTO: 'badge-azul',
+                    CANCELADO: 'badge-vermelho',
+                    FINALIZADO: 'badge-verde',
+                  };
+                %>
+                <span class="badge <%= cores[o.status] || 'badge-cinza' %>">
+                  <%= o.status.replace('_',' ') %>
+                </span>
+              </td>
+              <td><%= new Date(o.dataAbertura).toLocaleDateString('pt-BR') %></td>
+              <td>
+                <a href="/ordens/<%= o.id %>" class="btn btn-secondary btn-sm">Ver</a>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

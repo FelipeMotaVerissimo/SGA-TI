@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/ordens' }) %>
+
+    <div class="conteudo">
+      <a href="/ordens" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= titulo %></h1>
+        <p>Inicie uma nova OS para um equipamento</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="form-box">
+        <form action="/ordens" method="POST">
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Cliente *</label>
+              <select name="clienteId" id="clienteId" required onchange="carregarEquipamentos()">
+                <option value="">Selecione o cliente</option>
+                <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>"><%= c.nome %> — <%= c.cpfCnpj %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Equipamento *</label>
+              <select name="equipamentoId" id="equipamentoId" required>
+                <option value="">Selecione um cliente primeiro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Defeito Relatado *</label>
+              <textarea name="defeitoRelatado" placeholder="Descreva detalhadamente o problema relatado pelo cliente..." required></textarea>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Observações Iniciais</label>
+              <textarea name="observacoes" placeholder="Anotações adicionais sobre a OS..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data de Abertura</label>
+              <input type="text" value="<%= new Date().toLocaleDateString('pt-BR') %>" disabled>
+            </div>
+            <div class="form-group">
+              <label>Status Inicial</label>
+              <input type="text" value="INICIAL" disabled>
+            </div>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">📋 Abrir OS</button>
+            <a href="/ordens" class="btn btn-secondary">✕ Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function carregarEquipamentos() {
+      const clienteId = document.getElementById('clienteId').value;
+      const select    = document.getElementById('equipamentoId');
+
+      select.innerHTML = '<option value="">Carregando...</option>';
+
+      if (!clienteId) {
+        select.innerHTML = '<option value="">Selecione um cliente primeiro</option>';
+        return;
+      }
+
+      try {
+        const res  = await fetch(`/api/equipamentos/cliente/${clienteId}`);
+        const data = await res.json();
+
+        if (data.length === 0) {
+          select.innerHTML = '<option value="">Nenhum equipamento cadastrado para este cliente</option>';
+        } else {
+          select.innerHTML = '<option value="">Selecione o equipamento</option>';
+          data.forEach(e => {
+            select.innerHTML += `<option value="${e.id}">${e.marca} ${e.modelo} — ${e.codigo}</option>`;
+          });
+        }
+      } catch (err) {
+        select.innerHTML = '<option value="">Erro ao carregar equipamentos</option>';
+      }
+    }
+  </script>
+</body>
+</html>

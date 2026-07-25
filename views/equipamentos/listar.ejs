@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipamentos — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/equipamentos' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Equipamentos</h1>
+        <p>Gerencie os equipamentos cadastrados no sistema</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Lista de Equipamentos</h2>
+          <a href="/equipamentos/novo" class="btn btn-primary btn-sm">+ Novo Equipamento</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Defeito</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (equipamentos.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum equipamento cadastrado ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% equipamentos.forEach(e => { %>
+            <tr>
+              <td><%= e.codigo %></td>
+              <td><%= e.cliente.nome %></td>
+              <td><%= e.marca %></td>
+              <td><%= e.modelo %></td>
+              <td><%= e.defeito.substring(0, 40) %><%= e.defeito.length > 40 ? '...' : '' %></td>
+              <td>
+                <a href="/equipamentos/<%= e.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <a href="/ordens/nova?equipamentoId=<%= e.id %>" class="btn btn-primary btn-sm">+ OS</a>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

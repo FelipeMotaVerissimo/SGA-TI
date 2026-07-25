@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/ordens' }) %>
+
+    <div class="conteudo">
+      <a href="/ordens" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= ordem.numero %></h1>
+        <p>Detalhes da Ordem de Serviço</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <!-- Status e ações -->
+      <div class="form-box" style="margin-bottom:16px">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px">
+          <div>
+            <span style="font-size:13px; color:#888">Status atual:</span><br>
+            <span class="badge badge-azul" style="font-size:14px; padding:6px 14px">
+              <%= ordem.status.replace('_',' ') %>
+            </span>
+          </div>
+          <form action="/ordens/<%= ordem.id %>/status" method="POST" style="display:flex; gap:8px; align-items:center">
+            <select name="status" class="form-group" style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px">
+              <% ['INICIAL','ORCAMENTO','AUTORIZADO','EM_ANDAMENTO','CANCELADO','FINALIZADO'].forEach(s => { %>
+              <option value="<%= s %>" <%= ordem.status === s ? 'selected' : '' %>><%= s.replace('_',' ') %></option>
+              <% }) %>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Atualizar Status</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Informações gerais -->
+      <div class="form-box" style="margin-bottom:16px">
+        <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">📋 Informações Gerais</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cliente</label>
+            <input type="text" value="<%= ordem.equipamento.cliente.nome %>" disabled>
+          </div>
+          <div class="form-group">
+            <label>CPF/CNPJ</label>
+            <input type="text" value="<%= ordem.equipamento.cliente.cpfCnpj %>" disabled>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Equipamento</label>
+            <input type="text" value="<%= ordem.equipamento.marca %> <%= ordem.equipamento.modelo %>" disabled>
+          </div>
+          <div class="form-group">
+            <label>Código</label>
+            <input type="text" value="<%= ordem.equipamento.codigo %>" disabled>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data de Abertura</label>
+            <input type="text" value="<%= new Date(ordem.dataAbertura).toLocaleDateString('pt-BR') %>" disabled>
+          </div>
+          <div class="form-group">
+            <label>Responsável</label>
+            <input type="text" value="<%= ordem.usuario.nome %>" disabled>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Defeito Relatado</label>
+            <textarea disabled><%= ordem.defeitoRelatado %></textarea>
+          </div>
+        </div>
+        <% if (ordem.observacoes) { %>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Observações</label>
+            <textarea disabled><%= ordem.observacoes %></textarea>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Orçamento -->
+      <div class="form-box" style="margin-bottom:16px">
+        <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">💰 Orçamento</h2>
+        <form action="/ordens/<%= ordem.id %>/orcamento" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valor do Orçamento (R$)</label>
+              <input type="number" step="0.01" name="valorOrcamento" placeholder="0,00"
+                value="<%= ordem.valorOrcamento || '' %>">
+            </div>
+            <div class="form-group">
+              <label>Previsão de Entrega</label>
+              <input type="date" name="previsaoEntrega"
+                value="<%= ordem.previsaoEntrega ? new Date(ordem.previsaoEntrega).toISOString().split('T')[0] : '' %>">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data de Aprovação</label>
+              <input type="date" name="dataAprovacao"
+                value="<%= ordem.dataAprovacao ? new Date(ordem.dataAprovacao).toISOString().split('T')[0] : '' %>">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success btn-sm">💾 Salvar Orçamento</button>
+        </form>
+      </div>
+
+      <!-- Serviços executados -->
+      <div class="tabela-box" style="margin-bottom:16px">
+        <div class="tabela-header">
+          <h2>🔧 Serviços Executados</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Observações</th>
+              <th>Garantia (dias)</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (ordem.servicos.length === 0) { %>
+            <tr>
+              <td colspan="4" style="text-align:center; color:#aaa; padding:24px">
+                Nenhum serviço registrado ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% ordem.servicos.forEach(s => { %>
+            <tr>
+              <td><%= s.descricao %></td>
+              <td><%= s.observacoes || '—' %></td>
+              <td><%= s.garantiaDias || '—' %></td>
+              <td><%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Produtos utilizados -->
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>📦 Produtos Utilizados</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th>Valor Unit.</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (ordem.itens.length === 0) { %>
+            <tr>
+              <td colspan="4" style="text-align:center; color:#aaa; padding:24px">
+                Nenhum produto utilizado ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% ordem.itens.forEach(i => { %>
+            <tr>
+              <td><%= i.produto.nome %></td>
+              <td><%= i.quantidade %></td>
+              <td>R$ <%= Number(i.valorUnit).toFixed(2) %></td>
+              <td>R$ <%= (Number(i.valorUnit) * i.quantidade).toFixed(2) %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
