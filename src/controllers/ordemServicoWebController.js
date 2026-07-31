@@ -82,4 +82,37 @@ async function buscarConsultaPublica(req, res) {
   }
 }
 
-module.exports = { listar, exibirDetalhe, exibirForm, criar, atualizarStatus, registrarOrcamento, consultaPublica, buscarConsultaPublica };
+async function aprovarOrcamento(req, res) {
+  try {
+    await ordemServicoService.aprovarOrcamento(req.params.id);
+    req.flash('sucesso', 'Orçamento aprovado com sucesso!');
+    res.redirect(`/ordens/${req.params.id}`);
+  } catch (err) {
+    req.flash('erro', err.message);
+    res.redirect(`/ordens/${req.params.id}`);
+  }
+}
+
+async function rejeitarOrcamento(req, res) {
+  try {
+    await ordemServicoService.rejeitarOrcamento(req.params.id);
+    req.flash('sucesso', 'Orçamento rejeitado.');
+    res.redirect(`/ordens/${req.params.id}`);
+  } catch (err) {
+    req.flash('erro', err.message);
+    res.redirect(`/ordens/${req.params.id}`);
+  }
+}
+
+module.exports = {
+  listar,
+  exibirDetalhe,
+  exibirForm,
+  criar,
+  atualizarStatus,
+  registrarOrcamento,
+  aprovarOrcamento,
+  rejeitarOrcamento,
+  consultaPublica,
+  buscarConsultaPublica
+};

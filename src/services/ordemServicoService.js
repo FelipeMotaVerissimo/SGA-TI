@@ -80,6 +80,25 @@ async function registrarOrcamento(id, dados) {
   });
 }
 
+async function aprovarOrcamento(id) {
+  await buscarOrdemPorId(id);
+  return prisma.ordemServico.update({
+    where: { id: Number(id) },
+    data: {
+      status:        'AUTORIZADO',
+      dataAprovacao: new Date(),
+    },
+  });
+}
+
+async function rejeitarOrcamento(id) {
+  await buscarOrdemPorId(id);
+  return prisma.ordemServico.update({
+    where: { id: Number(id) },
+    data:  { status: 'CANCELADO' },
+  });
+}
+
 module.exports = {
   listarOrdens,
   buscarOrdemPorId,
@@ -87,4 +106,6 @@ module.exports = {
   abrirOrdem,
   atualizarStatus,
   registrarOrcamento,
+  aprovarOrcamento,
+  rejeitarOrcamento,
 };

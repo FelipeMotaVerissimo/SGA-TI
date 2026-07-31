@@ -39,6 +39,8 @@ router.post('/ordens',                   sessaoMiddleware, ordemServicoWeb.criar
 router.get('/ordens/:id',                sessaoMiddleware, ordemServicoWeb.exibirDetalhe);
 router.post('/ordens/:id/status',        sessaoMiddleware, ordemServicoWeb.atualizarStatus);
 router.post('/ordens/:id/orcamento',     sessaoMiddleware, ordemServicoWeb.registrarOrcamento);
+router.post('/ordens/:id/aprovar',   sessaoMiddleware, ordemServicoWeb.aprovarOrcamento);
+router.post('/ordens/:id/rejeitar',  sessaoMiddleware, ordemServicoWeb.rejeitarOrcamento);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);
