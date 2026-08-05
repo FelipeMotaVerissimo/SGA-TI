@@ -1,6 +1,7 @@
-const ordemServicoService = require('../services/ordemServicoService');
-const equipamentoService  = require('../services/equipamentoService');
-const clienteService      = require('../services/clienteService');
+const ordemServicoService     = require('../services/ordemServicoService');
+const equipamentoService      = require('../services/equipamentoService');
+const clienteService          = require('../services/clienteService');
+const servicoExecutadoService = require('../services/servicoExecutadoService'); // Módulo 3 - parte 2
 
 async function listar(req, res) {
   try {
@@ -14,10 +15,33 @@ async function listar(req, res) {
   }
 }
 
+/** Formata uma data para o value de <input type="date">, sem converter para UTC. */
+function formatarDataInput(data) {
+  const d = new Date(data);
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mes}-${dia}`;
+}
+
 async function exibirDetalhe(req, res) {
   try {
     const ordem = await ordemServicoService.buscarOrdemPorId(req.params.id);
-    res.render('ordens/detalhe', { titulo: `OS ${ordem.numero}`, ordem });
+
+    // Módulo 3 - parte 2: anexa a situação da garantia a cada serviço
+    const servicos = servicoExecutadoService.enriquecerComGarantia(ordem.servicos);
+    const podeRegistrarServico = servicoExecutadoService.podeRegistrarServico(ordem.status);
+    const podeExcluirServico   = !servicoExecutadoService.STATUS_BLOQUEIA_EXCLUSAO.includes(ordem.status);
+    const podeEditarOrcamento  = ordemServicoService.STATUS_PERMITE_ORCAMENTO.includes(ordem.status);
+
+    res.render('ordens/detalhe', {
+      titulo: `OS ${ordem.numero}`,
+      ordem,
+      servicos,
+      podeRegistrarServico,
+      podeExcluirServico,
+      podeEditarOrcamento,
+      formatarDataInput,
+    });
   } catch (err) {
     req.flash('erro', err.message);
     res.redirect('/ordens');
@@ -70,15 +94,24 @@ async function registrarOrcamento(req, res) {
 
 // Consulta pública para clientes (sem login)
 async function consultaPublica(req, res) {
-  res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem: null, erro: null });
+  res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem: null, servicos: [], erro: null });
 }
 
 async function buscarConsultaPublica(req, res) {
   try {
     const ordem = await ordemServicoService.buscarOrdemPorNumero(req.body.numero);
-    res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem, erro: null });
+
+    // Módulo 3 - parte 2: o cliente também vê os serviços e a garantia
+    const servicos = servicoExecutadoService.enriquecerComGarantia(ordem.servicos || []);
+
+    res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem, servicos, erro: null });
   } catch (err) {
-    res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem: null, erro: 'Ordem de serviço não encontrada.' });
+    res.render('ordens/consulta-publica', {
+      titulo: 'Consultar OS',
+      ordem: null,
+      servicos: [],
+      erro: 'Ordem de serviço não encontrada.',
+    });
   }
 }
 

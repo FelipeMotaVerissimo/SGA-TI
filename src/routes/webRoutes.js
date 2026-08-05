@@ -4,6 +4,7 @@ const clienteWeb       = require('../controllers/clienteWebController');
 const usuarioWeb       = require('../controllers/usuarioWebController');
 const equipamentoWeb   = require('../controllers/equipamentoWebController');
 const ordemServicoWeb  = require('../controllers/ordemServicoWebController');
+const servicoWeb       = require('../controllers/servicoExecutadoWebController'); // Módulo 3 - parte 2
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 
 // Rota raiz
@@ -41,6 +42,10 @@ router.post('/ordens/:id/status',        sessaoMiddleware, ordemServicoWeb.atual
 router.post('/ordens/:id/orcamento',     sessaoMiddleware, ordemServicoWeb.registrarOrcamento);
 router.post('/ordens/:id/aprovar',   sessaoMiddleware, ordemServicoWeb.aprovarOrcamento);
 router.post('/ordens/:id/rejeitar',  sessaoMiddleware, ordemServicoWeb.rejeitarOrcamento);
+
+// Serviços Executados e Garantia (Módulo 3 - parte 2)
+router.post('/ordens/:id/servicos',                       sessaoMiddleware, servicoWeb.registrar);
+router.post('/ordens/:id/servicos/:servicoId/excluir',    sessaoMiddleware, servicoWeb.excluir);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);

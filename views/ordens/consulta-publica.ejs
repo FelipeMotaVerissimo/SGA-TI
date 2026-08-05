@@ -67,6 +67,42 @@
           </div>
           <% } %>
         </div>
+
+        <!-- Módulo 3 (parte 2) — Serviços executados e garantia visíveis ao cliente -->
+        <% if (servicos && servicos.length > 0) { %>
+        <div style="margin-top:24px; border-top:1px solid #eee; padding-top:20px">
+          <h3 style="font-size:15px; color:#185FA5; margin-bottom:16px">🛠️ Serviços Executados</h3>
+
+          <div style="display:flex; flex-direction:column; gap:14px">
+            <% servicos.forEach(s => { %>
+            <div style="padding:12px; border:1px solid #eee; border-radius:6px; background:#fafafa">
+              <strong style="font-size:14px; display:block; margin-bottom:6px"><%= s.descricao %></strong>
+
+              <span style="font-size:12px; color:#888; display:block">
+                Executado em <%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %>
+              </span>
+
+              <div style="margin-top:8px">
+                <% if (s.garantia.situacao === 'EM_GARANTIA') { %>
+                  <span class="badge" style="background:#f0fff4; color:#276749; border:1px solid #9ae6b4; font-size:12px">
+                    ✅ Em garantia até <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
+                    (<%= s.garantia.diasRestantes %> dia(s))
+                  </span>
+                <% } else if (s.garantia.situacao === 'VENCIDA') { %>
+                  <span class="badge" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2; font-size:12px">
+                    ⌛ Garantia vencida em <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
+                  </span>
+                <% } else { %>
+                  <span class="badge" style="background:#f7f7f7; color:#777; border:1px solid #ddd; font-size:12px">
+                    Sem garantia
+                  </span>
+                <% } %>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
       </div>
       <% } %>
 
