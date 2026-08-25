@@ -7,8 +7,13 @@ prisma/dev.db
 prisma/dev.db-journal
 prisma/schema.dev.prisma
 
-# Capturas geradas pelo ambiente de preview
-sandbox/telas/
+# Ambiente pessoal de testes do Endrik — NAO versionar.
+# Nada aqui faz parte do sistema entregue: e so ferramenta local para
+# rodar e validar o projeto sem MySQL. Manter fora do repositorio para
+# nao poluir o codigo do TCC.
+sandbox/
+setup-dev.cmd
+rodar.cmd
 
 # ATENÇÃO: prisma/migrations/ já vinha ignorado no repositório original.
 # Para o TCC, as migrations DEVEM ser versionadas — sem elas o Felipe não
