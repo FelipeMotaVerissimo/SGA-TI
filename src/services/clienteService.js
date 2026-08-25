@@ -26,6 +26,7 @@ async function criarCliente(dados) {
       dataNascimento: dados.dataNascimento  ? new Date(dados.dataNascimento) : null,
       endereco:       dados.endereco       || null,
       numero:         dados.numero         || null,
+      bairro:         dados.bairro         || null,
       cidade:         dados.cidade         || null,
       estado:         dados.estado         || null,
       cep:            dados.cep            || null,
@@ -36,9 +37,34 @@ async function criarCliente(dados) {
   });
 }
 
+/**
+ * Atualiza o cliente montando o `data` campo a campo, como em criarCliente.
+ *
+ * Repassar o `req.body` inteiro para o Prisma quebrava a edição: o formulário
+ * envia campos que não existem no model (o `bairro`, por exemplo) e o MySQL
+ * respondia `Unknown argument`. Listar os campos aqui também impede que um POST
+ * manipulado altere colunas que a tela não oferece.
+ */
 async function atualizarCliente(id, dados) {
   await buscarClientePorId(id);
-  return prisma.cliente.update({ where: { id: Number(id) }, data: dados });
+
+  const permitidos = [
+    'nome', 'cpfCnpj', 'rg', 'endereco', 'numero', 'bairro',
+    'cidade', 'estado', 'cep', 'telefone', 'celular', 'email',
+  ];
+
+  const data = {};
+  for (const campo of permitidos) {
+    if (dados[campo] !== undefined) data[campo] = dados[campo] || null;
+  }
+  if (dados.nome    !== undefined) data.nome    = dados.nome;
+  if (dados.cpfCnpj !== undefined) data.cpfCnpj = dados.cpfCnpj;
+
+  if (dados.dataNascimento !== undefined) {
+    data.dataNascimento = dados.dataNascimento ? new Date(dados.dataNascimento) : null;
+  }
+
+  return prisma.cliente.update({ where: { id: Number(id) }, data });
 }
 
 async function excluirCliente(id) {

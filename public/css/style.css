@@ -323,6 +323,7 @@ tbody tr:hover {
 
 .alert-sucesso { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
 .alert-erro    { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+.alert-aviso   { background: #fffaf0; color: #975a16; border: 1px solid #fbd38d; }
 
 /* ===== FORM LOGIN ===== */
 .form-login .form-group {
@@ -380,3 +381,4 @@ tbody tr:hover {
 .badge-verde { background: #f0fff4; color: #276749; }
 .badge-cinza { background: #f0f0f0; color: #666; }
 .badge-vermelho { background: #fff5f5; color: #c53030; }
+.badge-amarelo  { background: #fffaf0; color: #975a16; }

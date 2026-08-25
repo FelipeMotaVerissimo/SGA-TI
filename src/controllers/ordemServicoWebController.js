@@ -2,6 +2,8 @@ const ordemServicoService     = require('../services/ordemServicoService');
 const equipamentoService      = require('../services/equipamentoService');
 const clienteService          = require('../services/clienteService');
 const servicoExecutadoService = require('../services/servicoExecutadoService'); // Módulo 3 - parte 2
+const itemOrdemService        = require('../services/itemOrdemService');        // Módulo 4
+const produtoService          = require('../services/produtoService');          // Módulo 4
 
 async function listar(req, res) {
   try {
@@ -33,6 +35,12 @@ async function exibirDetalhe(req, res) {
     const podeExcluirServico   = !servicoExecutadoService.STATUS_BLOQUEIA_EXCLUSAO.includes(ordem.status);
     const podeEditarOrcamento  = ordemServicoService.STATUS_PERMITE_ORCAMENTO.includes(ordem.status);
 
+    // Módulo 4: produtos disponíveis para lançamento e total em peças
+    const produtos       = await produtoService.listarDisponiveis();
+    const totalItens     = itemOrdemService.calcularTotalItens(ordem.itens);
+    const podeLancarItem = itemOrdemService.podeLancarItem(ordem.status);
+    const podeRemoverItem = itemOrdemService.podeRemoverItem(ordem.status);
+
     res.render('ordens/detalhe', {
       titulo: `OS ${ordem.numero}`,
       ordem,
@@ -40,6 +48,10 @@ async function exibirDetalhe(req, res) {
       podeRegistrarServico,
       podeExcluirServico,
       podeEditarOrcamento,
+      produtos,
+      totalItens,
+      podeLancarItem,
+      podeRemoverItem,
       formatarDataInput,
     });
   } catch (err) {
@@ -79,6 +91,17 @@ async function atualizarStatus(req, res) {
     req.flash('erro', err.message);
     res.redirect(`/ordens/${req.params.id}`);
   }
+}
+
+/** Módulo 4: encerra a OS liberando o faturamento (perfil de gerência). */
+async function faturar(req, res) {
+  try {
+    await ordemServicoService.faturarEEncerrar(req.params.id);
+    req.flash('sucesso', 'OS faturada e encerrada. Conta a receber gerada no financeiro.');
+  } catch (err) {
+    req.flash('erro', err.message);
+  }
+  res.redirect(`/ordens/${req.params.id}`);
 }
 
 async function registrarOrcamento(req, res) {
@@ -143,6 +166,7 @@ module.exports = {
   exibirForm,
   criar,
   atualizarStatus,
+  faturar,
   registrarOrcamento,
   aprovarOrcamento,
   rejeitarOrcamento,

@@ -20,27 +20,39 @@
 
       <div class="cards">
         <div class="card">
-          <div class="card-valor">0</div>
+          <div class="card-valor"><%= resumo.abertas %></div>
           <div class="card-label">OS Abertas</div>
         </div>
         <div class="card">
-          <div class="card-valor">0</div>
+          <div class="card-valor"><%= resumo.aguardandoOrcamento %></div>
           <div class="card-label">Aguardando Orçamento</div>
         </div>
         <div class="card">
-          <div class="card-valor">0</div>
+          <div class="card-valor"><%= resumo.emAndamento %></div>
           <div class="card-label">Em Andamento</div>
         </div>
         <div class="card">
-          <div class="card-valor">0</div>
+          <div class="card-valor"><%= resumo.finalizadasNoMes %></div>
           <div class="card-label">Finalizadas (Mês)</div>
         </div>
       </div>
 
+      <%
+        // O menu já esconde o que o perfil não acessa; aqui a tabela faz o mesmo
+        // com os links, para ninguém clicar e cair em "acesso negado".
+        const podeVerOS = locals.temPermissao
+          ? locals.temPermissao(locals.usuario, ['ATENDENTE', 'TECNICO', 'VENDEDOR'])
+          : true;
+        const podeAbrirOS = locals.temPermissao
+          ? locals.temPermissao(locals.usuario, ['ATENDENTE', 'TECNICO'])
+          : true;
+      %>
       <div class="tabela-box">
         <div class="tabela-header">
           <h2>Ordens de Serviço Recentes</h2>
+          <% if (podeAbrirOS) { %>
           <a href="/ordens/nova" class="btn btn-primary btn-sm">+ Nova OS</a>
+          <% } %>
         </div>
         <table>
           <thead>
@@ -53,11 +65,29 @@
             </tr>
           </thead>
           <tbody>
+            <% if (recentes.length === 0) { %>
             <tr>
               <td colspan="5" style="text-align:center; color:#aaa; padding:32px">
                 Nenhuma ordem de serviço cadastrada ainda.
               </td>
             </tr>
+            <% } else { %>
+            <% recentes.forEach(os => { %>
+            <tr>
+              <td>
+                <% if (podeVerOS) { %>
+                <a href="/ordens/<%= os.id %>"><%= os.numero %></a>
+                <% } else { %>
+                <%= os.numero %>
+                <% } %>
+              </td>
+              <td><%= os.equipamento.cliente.nome %></td>
+              <td><%= os.equipamento.marca %> <%= os.equipamento.modelo %></td>
+              <td><span class="badge badge-azul"><%= os.status.replace('_',' ') %></span></td>
+              <td><%= new Date(os.dataAbertura).toLocaleDateString('pt-BR') %></td>
+            </tr>
+            <% }) %>
+            <% } %>
           </tbody>
         </table>
       </div>

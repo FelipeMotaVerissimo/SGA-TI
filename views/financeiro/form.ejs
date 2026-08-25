@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/financeiro' }) %>
+
+    <div class="conteudo">
+      <a href="/financeiro" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= titulo %></h1>
+        <p>
+          <%= tipo === 'PAGAR'
+              ? 'Despesas da assistência: fornecedores, aluguel, serviços contratados'
+              : 'Valores a receber de clientes' %>
+        </p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="form-box">
+        <form action="<%= conta && conta.id ? `/financeiro/${rota}/${conta.id}/editar` : `/financeiro/${rota}` %>" method="POST">
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Descrição *</label>
+              <input type="text" name="descricao" maxlength="200" required
+                placeholder="<%= tipo === 'PAGAR' ? 'Ex.: Compra de peças — NF 1234' : 'Ex.: Serviço avulso de formatação' %>"
+                value="<%= conta ? (conta.descricao || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valor (R$) *</label>
+              <input type="text" name="valor" placeholder="0,00" required
+                value="<%= conta ? (conta.valor || '') : '' %>">
+            </div>
+            <div class="form-group">
+              <label>Vencimento *</label>
+              <input type="date" name="vencimento" required
+                value="<%= conta ? (conta.vencimento || '') : '' %>">
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <% if (tipo === 'PAGAR') { %>
+            <div class="form-group">
+              <label>Fornecedor</label>
+              <input type="text" name="fornecedor" maxlength="150" placeholder="Nome do fornecedor"
+                value="<%= conta ? (conta.fornecedor || '') : '' %>">
+            </div>
+            <% } else { %>
+            <div class="form-group">
+              <label>Cliente</label>
+              <select name="clienteId">
+                <option value="">Sem vínculo com cliente</option>
+                <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>"
+                  <%= conta && String(conta.clienteId) === String(c.id) ? 'selected' : '' %>>
+                  <%= c.nome %>
+                </option>
+                <% }) %>
+              </select>
+            </div>
+            <% } %>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Observações</label>
+              <textarea name="observacoes"><%= conta ? (conta.observacoes || '') : '' %></textarea>
+            </div>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">💾 Salvar Conta</button>
+            <a href="/financeiro" class="btn btn-secondary">✕ Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

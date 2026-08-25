@@ -12,19 +12,13 @@
     "test:unit": "jest tests/unit --runInBand --forceExit",
     "test:integration": "jest tests/integration --runInBand --forceExit",
     "test:coverage": "jest --coverage --forceExit",
-    "db:gerar": "node sandbox/gerarSchemaDev.js",
-    "db:dev": "npm run db:gerar && prisma migrate dev --schema prisma/schema.dev.prisma",
-    "db:dev:client": "npm run db:gerar && prisma generate --schema prisma/schema.dev.prisma",
-    "db:dev:studio": "prisma studio --schema prisma/schema.dev.prisma",
-    "db:dev:reset": "npm run db:gerar && prisma migrate reset --schema prisma/schema.dev.prisma",
-    "db:mysql": "prisma migrate dev --schema prisma/schema.prisma",
+    "db:mysql": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:mysql:client": "prisma generate --schema prisma/schema.prisma",
-    "seed": "node prisma/seed.js",
-    "preview": "node sandbox/preview.js 3000",
-    "test:e2e": "node sandbox/testeE2E.js"
+    "seed": "node prisma/seed.js"
   },
   "jest": {
     "testEnvironment": "node",
+    "globalSetup": "./tests/globalSetup.js",
     "globalTeardown": "./tests/setup.js"
   },
   "prisma": {

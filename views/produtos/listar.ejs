@@ -1,0 +1,122 @@
+<%
+  // Módulo 4: VENDEDOR consulta o catálogo e o saldo, mas quem cadastra e
+  // movimenta é o setor de Compras (RF015).
+  const podeEditarCatalogo = locals.temPermissao
+    ? locals.temPermissao(locals.usuario, ['COMPRAS'])
+    : true;
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produtos — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/produtos' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Produtos</h1>
+        <p>Peças e materiais utilizados nos serviços (RF014 / RF015)</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Lista de Produtos</h2>
+          <div style="display:flex; gap:8px; align-items:center">
+            <form action="/produtos" method="GET" style="display:flex; gap:8px; align-items:center">
+              <input type="text" name="busca" placeholder="Buscar por nome" value="<%= busca %>"
+                style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px">
+              <% if (incluirInativos) { %><input type="hidden" name="inativos" value="1"><% } %>
+              <button type="submit" class="btn btn-secondary btn-sm">Buscar</button>
+            </form>
+            <%
+              // preserva o termo buscado ao alternar o filtro de inativos
+              const qs = [];
+              if (busca) qs.push('busca=' + encodeURIComponent(busca));
+              if (!incluirInativos) qs.push('inativos=1');
+            %>
+            <a href="/produtos<%= qs.length ? '?' + qs.join('&') : '' %>" class="btn btn-secondary btn-sm">
+              <%= incluirInativos ? 'Ocultar inativos' : 'Mostrar inativos' %>
+            </a>
+            <% if (podeEditarCatalogo) { %>
+            <a href="/produtos/novo" class="btn btn-primary btn-sm">+ Novo Produto</a>
+            <% } %>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Preço</th>
+              <th>Estoque</th>
+              <th>Situação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (produtos.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum produto cadastrado ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% produtos.forEach(p => { %>
+            <tr>
+              <td><%= p.id %></td>
+              <td>
+                <%= p.nome %>
+                <% if (p.descricao) { %>
+                <div style="font-size:12px; color:#888"><%= p.descricao %></div>
+                <% } %>
+              </td>
+              <td>R$ <%= Number(p.preco).toFixed(2) %></td>
+              <td>
+                <% if (p.estoque < 0) { %>
+                  <span class="badge badge-vermelho"><%= p.estoque %> un.</span>
+                <% } else if (p.estoque === 0) { %>
+                  <span class="badge badge-amarelo">sem estoque</span>
+                <% } else { %>
+                  <span class="badge badge-verde"><%= p.estoque %> un.</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (p.ativo) { %>
+                  <span class="badge badge-azul">Ativo</span>
+                <% } else { %>
+                  <span class="badge badge-cinza">Inativo</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/produtos/<%= p.id %>/estoque" class="btn btn-secondary btn-sm">Estoque</a>
+                <% if (podeEditarCatalogo) { %>
+                <a href="/produtos/<%= p.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <% if (p.ativo) { %>
+                <form action="/produtos/<%= p.id %>/excluir" method="POST" style="display:inline"
+                  onsubmit="return confirm('Desativar este produto? O histórico será mantido.')">
+                  <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
+                </form>
+                <% } else { %>
+                <form action="/produtos/<%= p.id %>/reativar" method="POST" style="display:inline">
+                  <button type="submit" class="btn btn-success btn-sm">Reativar</button>
+                </form>
+                <% } %>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

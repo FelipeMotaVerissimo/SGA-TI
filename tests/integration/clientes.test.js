@@ -1,3 +1,4 @@
+require('../helpers/ambiente'); // isola o banco de teste do dev.db
 const request = require('supertest');
 const app     = require('../../src/app');
 const prisma  = require('../../src/config/database');

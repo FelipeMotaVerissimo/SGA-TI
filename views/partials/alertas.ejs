@@ -1,6 +1,9 @@
 <% if (locals.sucesso && sucesso.length > 0) { %>
   <div class="alert alert-sucesso"><%= sucesso[0] %></div>
 <% } %>
+<% if (locals.aviso && aviso.length > 0) { %>
+  <div class="alert alert-aviso">⚠ <%= aviso[0] %></div>
+<% } %>
 <% if (locals.erro && erro.length > 0) { %>
   <div class="alert alert-erro"><%= erro[0] %></div>
 <% } %>
