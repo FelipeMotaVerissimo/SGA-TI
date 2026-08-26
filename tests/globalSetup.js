@@ -13,13 +13,28 @@ const { execFileSync } = require('child_process');
 const fs   = require('fs');
 const path = require('path');
 
-require('./helpers/ambiente');
+const { URL_TESTE } = require('./helpers/ambiente');
 
 const RAIZ = path.join(__dirname, '..');
 
 module.exports = async function () {
+  // O schema é escolhido pela URL do banco, não pela existência do arquivo.
+  // Enquanto olhava só o arquivo, apontar TEST_DATABASE_URL para MySQL ainda
+  // carregava o schema SQLite e o Prisma recusava: "the URL must start with
+  // the protocol file:".
+  const ehSqlite  = URL_TESTE.startsWith('file:');
   const schemaDev = path.join(RAIZ, 'sandbox', 'prisma-dev', 'schema.dev.prisma');
-  const schema    = fs.existsSync(schemaDev) ? schemaDev : path.join(RAIZ, 'prisma', 'schema.prisma');
+  const schemaProd = path.join(RAIZ, 'prisma', 'schema.prisma');
+
+  const schema = ehSqlite && fs.existsSync(schemaDev) ? schemaDev : schemaProd;
+
+  if (ehSqlite && !fs.existsSync(schemaDev)) {
+    throw new Error(
+      'O banco de teste é SQLite, mas o schema de desenvolvimento não existe.\n' +
+      'Aponte TEST_DATABASE_URL para um MySQL vazio, por exemplo:\n' +
+      '  TEST_DATABASE_URL="mysql://usuario:senha@localhost:3306/sga_ti_teste"'
+    );
+  }
 
   // Chama o CLI do Prisma pelo próprio Node em vez de `npx`: no Windows,
   // spawnar um .cmd sem shell devolve EINVAL desde as correções de segurança

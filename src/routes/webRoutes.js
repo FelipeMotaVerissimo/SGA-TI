@@ -8,6 +8,8 @@ const servicoWeb       = require('../controllers/servicoExecutadoWebController')
 const produtoWeb       = require('../controllers/produtoWebController');          // Módulo 4
 const itemOrdemWeb     = require('../controllers/itemOrdemWebController');        // Módulo 4
 const financeiroWeb    = require('../controllers/financeiroWebController');       // Módulo 4
+const relatorioWeb     = require('../controllers/relatorioWebController');        // Módulo 5
+const tipoServicoWeb   = require('../controllers/tipoServicoWebController');      // Módulo 5
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
 
@@ -91,6 +93,19 @@ router.get('/financeiro/:tipo/:id/editar',      sessaoMiddleware, exigirPerfil(.
 router.post('/financeiro/:tipo/:id/editar',     sessaoMiddleware, exigirPerfil(...PERFIS_FINANCEIRO), financeiroWeb.atualizar);
 router.post('/financeiro/:tipo/:id/quitar',     sessaoMiddleware, exigirPerfil(...PERFIS_FINANCEIRO), financeiroWeb.quitar);
 router.post('/financeiro/:tipo/:id/cancelar',   sessaoMiddleware, exigirPerfil(...PERFIS_FINANCEIRO), financeiroWeb.cancelar);
+
+// Catálogo de tipos de serviço (Módulo 5) — configuração, perfil gerencial
+router.get('/tipos-servico',                sessaoMiddleware, exigirPerfil(), tipoServicoWeb.listar);
+router.get('/tipos-servico/novo',           sessaoMiddleware, exigirPerfil(), tipoServicoWeb.exibirForm);
+router.post('/tipos-servico',               sessaoMiddleware, exigirPerfil(), tipoServicoWeb.criar);
+router.get('/tipos-servico/:id/editar',     sessaoMiddleware, exigirPerfil(), tipoServicoWeb.exibirEditar);
+router.post('/tipos-servico/:id',           sessaoMiddleware, exigirPerfil(), tipoServicoWeb.atualizar);
+router.post('/tipos-servico/:id/desativar', sessaoMiddleware, exigirPerfil(), tipoServicoWeb.desativar);
+router.post('/tipos-servico/:id/reativar',  sessaoMiddleware, exigirPerfil(), tipoServicoWeb.reativar);
+
+// Relatórios (Módulo 5) — UC RF008: "usuário autenticado com permissão gerencial"
+router.get('/relatorios', sessaoMiddleware, exigirPerfil(), relatorioWeb.exibir);
+router.get('/relatorios/:relatorio/csv', sessaoMiddleware, exigirPerfil(), relatorioWeb.exportar);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);

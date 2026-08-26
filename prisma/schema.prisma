@@ -23,6 +23,18 @@ enum SituacaoConta {
   CANCELADA
 }
 
+// Módulo 5 — o RF019 pede relatório "por tipo de equipamento", e até aqui só
+// existiam marca e modelo. "Dell Inspiron" e "Dell PowerEdge" são notebook e
+// servidor, mas o banco não tinha como saber.
+enum TipoEquipamento {
+  NOTEBOOK
+  DESKTOP
+  IMPRESSORA
+  SERVIDOR
+  CELULAR
+  OUTRO
+}
+
 model Usuario {
   id       Int      @id @default(autoincrement())
   nome     String   @db.VarChar(150)
@@ -72,6 +84,9 @@ model Cliente {
 model Equipamento {
   id          Int      @id @default(autoincrement())
   codigo      String   @unique @db.VarChar(50)
+  // Default OUTRO para os equipamentos já cadastrados não quebrarem: eles
+  // aparecem como "Outro" no relatório até serem reclassificados.
+  tipo        TipoEquipamento @default(OUTRO)
   marca       String   @db.VarChar(100)
   modelo      String   @db.VarChar(100)
   numeroSerie String?  @db.VarChar(100)
@@ -106,13 +121,30 @@ model OrdemServico {
 
 model ServicoExecutado {
   id           Int      @id @default(autoincrement())
+  // `descricao` continua sendo o relato do técnico, em texto livre.
+  // `tipoServicoId` é o que permite AGRUPAR (RF017): sem ele, "Troca de tela",
+  // "troca da tela" e "Substituição da tela" viram três serviços distintos.
+  // Opcional porque os serviços registrados antes do catálogo não têm tipo —
+  // eles aparecem como "Não classificado" no relatório.
   descricao    String   @db.Text
   observacoes  String?  @db.Text
   garantiaDias Int?
   executadoEm  DateTime @default(now())
   ordemId      Int
   ordem        OrdemServico @relation(fields: [ordemId], references: [id])
+  tipoServicoId Int?
+  tipoServico   TipoServico? @relation(fields: [tipoServicoId], references: [id])
   @@map("servicos_executados")
+}
+
+// Módulo 5 — catálogo de serviços, a granularidade do RF017.
+model TipoServico {
+  id       Int      @id @default(autoincrement())
+  nome     String   @unique @db.VarChar(120)
+  ativo    Boolean  @default(true)
+  criadoEm DateTime @default(now())
+  servicos ServicoExecutado[]
+  @@map("tipos_servico")
 }
 
 model Produto {
@@ -132,6 +164,10 @@ model ItemOrdem {
   id         Int     @id @default(autoincrement())
   quantidade Int
   valorUnit  Decimal @db.Decimal(10, 2)
+  // Módulo 5: a peça não tinha data própria. Sem isso, "produtos mais vendidos
+  // por período" (RF018) teria que usar a data de abertura da OS — uma OS
+  // aberta em julho com peça lançada em agosto contaria como julho.
+  criadoEm   DateTime @default(now())
   ordemId    Int
   ordem      OrdemServico @relation(fields: [ordemId], references: [id])
   produtoId  Int

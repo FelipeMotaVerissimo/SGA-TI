@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatórios — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/relatorios' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Relatórios</h1>
+        <p>Relatórios gerenciais por período (RF016 a RF019)</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <!-- Um período para todos os relatórios da página -->
+      <div class="form-box" style="max-width:100%; margin-bottom:24px">
+        <form action="/relatorios" method="GET">
+          <div class="form-row">
+            <div class="form-group">
+              <label>De *</label>
+              <input type="date" name="de" value="<%= filtro.de %>" required>
+            </div>
+            <div class="form-group">
+              <label>Até *</label>
+              <input type="date" name="ate" value="<%= filtro.ate %>" required>
+            </div>
+          </div>
+          <div class="form-acoes" style="margin-top:8px">
+            <button type="submit" class="btn btn-primary">🔍 Aplicar Período</button>
+            <a href="/relatorios" class="btn btn-secondary">Últimos 30 dias</a>
+          </div>
+        </form>
+      </div>
+
+      <%
+        const dataBR = (d) => new Date(d).toLocaleDateString('pt-BR');
+        const real   = (v) => 'R$ ' + Number(v).toFixed(2);
+      %>
+
+      <% const qs = `?de=${filtro.de}&ate=${filtro.ate}`; %>
+
+      <p style="font-size:13px; color:#888; margin-bottom:16px">
+        Período analisado: <strong><%= dataBR(periodo.de) %></strong>
+        até <strong><%= dataBR(periodo.ate) %></strong>
+      </p>
+
+      <!-- RF016 -->
+      <div class="tabela-box" style="margin-bottom:24px">
+        <div class="tabela-header">
+          <h2>👤 Maiores Clientes no Período</h2>
+          <div style="display:flex; gap:12px; align-items:center">
+            <span style="font-size:12px; color:#888">
+              Soma dos orçamentos das OS abertas no período, sem as canceladas
+            </span>
+            <a href="/relatorios/clientes/csv<%= qs %>" class="btn btn-secondary btn-sm">⭳ CSV</a>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cliente</th>
+              <th>OS</th>
+              <th>Total Orçado</th>
+              <th>Já Aprovado</th>
+              <th>Ticket Médio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (clientes.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma ordem de serviço no período selecionado.
+              </td>
+            </tr>
+            <% } else { %>
+            <% clientes.forEach((c, i) => { %>
+            <tr>
+              <td><%= i + 1 %>º</td>
+              <td>
+                <%= c.cliente %>
+                <div style="font-size:12px; color:#888"><%= c.cpfCnpj %></div>
+              </td>
+              <td><%= c.ordens %></td>
+              <td><strong><%= real(c.total) %></strong></td>
+              <td>
+                <% if (c.aprovado > 0) { %>
+                  <span class="badge badge-verde"><%= real(c.aprovado) %></span>
+                <% } else { %>
+                  <span style="color:#aaa">—</span>
+                <% } %>
+              </td>
+              <td><%= real(c.ticketMedio) %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RF018 -->
+      <div class="tabela-box" style="margin-bottom:24px">
+        <div class="tabela-header">
+          <h2>📦 Produtos Mais Vendidos no Período</h2>
+          <div style="display:flex; gap:12px; align-items:center">
+            <span style="font-size:12px; color:#888">Peças lançadas em ordens de serviço</span>
+            <a href="/relatorios/produtos/csv<%= qs %>" class="btn btn-secondary btn-sm">⭳ CSV</a>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th>Total Vendido</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (produtos.length === 0) { %>
+            <tr>
+              <td colspan="4" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma peça lançada no período selecionado.
+              </td>
+            </tr>
+            <% } else { %>
+            <% produtos.forEach((p, i) => { %>
+            <tr>
+              <td><%= i + 1 %>º</td>
+              <td>
+                <%= p.produto %>
+                <% if (!p.ativo) { %>
+                <span class="badge badge-cinza">inativo</span>
+                <% } %>
+              </td>
+              <td><strong><%= p.quantidade %></strong> un.</td>
+              <td><%= real(p.total) %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RF017 -->
+      <div class="tabela-box" style="margin-bottom:24px">
+        <div class="tabela-header">
+          <h2>🛠️ Serviços Mais Executados no Período</h2>
+          <div style="display:flex; gap:8px; align-items:center">
+            <a href="/tipos-servico" class="btn btn-secondary btn-sm">Gerenciar tipos</a>
+            <a href="/relatorios/servicos/csv<%= qs %>" class="btn btn-secondary btn-sm">⭳ CSV</a>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Tipo de Serviço</th>
+              <th>Execuções</th>
+              <th>Com Garantia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (servicos.length === 0) { %>
+            <tr>
+              <td colspan="4" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum serviço executado no período selecionado.
+              </td>
+            </tr>
+            <% } else { %>
+            <% servicos.forEach((s, i) => { %>
+            <tr>
+              <td><%= i + 1 %>º</td>
+              <td>
+                <% if (s.classificado) { %>
+                  <%= s.tipo %>
+                <% } else { %>
+                  <span style="color:#975a16"><%= s.tipo %></span>
+                  <div style="font-size:12px; color:#888">
+                    registrados sem escolher um tipo — não somam com nenhum grupo
+                  </div>
+                <% } %>
+              </td>
+              <td><strong><%= s.quantidade %></strong></td>
+              <td>
+                <% if (s.comGarantia > 0) { %>
+                  <span class="badge badge-verde"><%= s.comGarantia %></span>
+                <% } else { %>
+                  <span style="color:#aaa">—</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RF019 -->
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>🔧 Serviços e Produtos por Tipo de Equipamento</h2>
+          <div style="display:flex; gap:12px; align-items:center">
+            <span style="font-size:12px; color:#888">Cruzamento pedido na entrevista com o consultor</span>
+            <a href="/relatorios/equipamentos/csv<%= qs %>" class="btn btn-secondary btn-sm">⭳ CSV</a>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo de Equipamento</th>
+              <th>Serviços Executados</th>
+              <th>Peças Usadas</th>
+              <th>Total em Peças</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (equipamentos.length === 0) { %>
+            <tr>
+              <td colspan="4" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum movimento no período selecionado.
+              </td>
+            </tr>
+            <% } else { %>
+            <% equipamentos.forEach(e => { %>
+            <tr>
+              <td>
+                <span class="badge badge-azul"><%= e.tipo %></span>
+              </td>
+              <td><%= e.servicos %></td>
+              <td><%= e.pecas %> un.</td>
+              <td><%= real(e.totalPecas) %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

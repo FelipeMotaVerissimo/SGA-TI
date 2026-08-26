@@ -38,6 +38,31 @@
             </div>
           </div>
 
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Tipo de Equipamento *</label>
+              <select name="tipo" required>
+                <%
+                  const tiposEquipamento = [
+                    ['NOTEBOOK',   'Notebook'],
+                    ['DESKTOP',    'Desktop'],
+                    ['IMPRESSORA', 'Impressora'],
+                    ['SERVIDOR',   'Servidor'],
+                    ['CELULAR',    'Celular'],
+                    ['OUTRO',      'Outro'],
+                  ];
+                  const tipoAtual = equipamento ? (equipamento.tipo || 'OUTRO') : '';
+                %>
+                <% tiposEquipamento.forEach(([valor, rotulo]) => { %>
+                <option value="<%= valor %>" <%= tipoAtual === valor ? 'selected' : '' %>><%= rotulo %></option>
+                <% }) %>
+              </select>
+              <small style="color:#888; font-size:12px">
+                Usado no relatório de serviços e produtos por tipo de equipamento.
+              </small>
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label>Marca *</label>

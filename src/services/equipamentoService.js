@@ -1,5 +1,26 @@
 const prisma = require('../config/database');
 
+/**
+ * Módulo 5 — tipos de equipamento, a granularidade do RF019.
+ * OUTRO é o default: equipamento sem classificação não pode travar o cadastro,
+ * e é melhor que o relatório mostre "Outro" do que um tipo inventado.
+ */
+const TIPOS_EQUIPAMENTO = ['NOTEBOOK', 'DESKTOP', 'IMPRESSORA', 'SERVIDOR', 'CELULAR', 'OUTRO'];
+const TIPO_PADRAO = 'OUTRO';
+
+function validarTipo(bruto) {
+  const tipo = String(bruto || '').trim().toUpperCase();
+  if (!tipo) return TIPO_PADRAO;
+
+  if (!TIPOS_EQUIPAMENTO.includes(tipo)) {
+    throw Object.assign(
+      new Error(`Tipo de equipamento inválido. Use um destes: ${TIPOS_EQUIPAMENTO.join(', ')}.`),
+      { status: 400 }
+    );
+  }
+  return tipo;
+}
+
 async function listarEquipamentos() {
   return prisma.equipamento.findMany({
     include: { cliente: true },
@@ -31,6 +52,7 @@ async function criarEquipamento(dados) {
   return prisma.equipamento.create({
     data: {
       codigo:      dados.codigo || gerarCodigo(),
+      tipo:        validarTipo(dados.tipo),
       marca:       dados.marca,
       modelo:      dados.modelo,
       numeroSerie: dados.numeroSerie || null,
@@ -45,6 +67,7 @@ async function atualizarEquipamento(id, dados) {
   return prisma.equipamento.update({
     where: { id: Number(id) },
     data: {
+      tipo:        validarTipo(dados.tipo),
       marca:       dados.marca,
       modelo:      dados.modelo,
       numeroSerie: dados.numeroSerie || null,
@@ -53,4 +76,7 @@ async function atualizarEquipamento(id, dados) {
   });
 }
 
-module.exports = { listarEquipamentos, buscarEquipamentoPorId, buscarPorCliente, criarEquipamento, atualizarEquipamento };
+module.exports = {
+  TIPOS_EQUIPAMENTO,
+  TIPO_PADRAO,
+  validarTipo, listarEquipamentos, buscarEquipamentoPorId, buscarPorCliente, criarEquipamento, atualizarEquipamento };

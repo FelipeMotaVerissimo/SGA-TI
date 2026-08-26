@@ -4,6 +4,7 @@ const clienteService          = require('../services/clienteService');
 const servicoExecutadoService = require('../services/servicoExecutadoService'); // Módulo 3 - parte 2
 const itemOrdemService        = require('../services/itemOrdemService');        // Módulo 4
 const produtoService          = require('../services/produtoService');          // Módulo 4
+const tipoServicoService      = require('../services/tipoServicoService');      // Módulo 5
 
 async function listar(req, res) {
   try {
@@ -36,7 +37,11 @@ async function exibirDetalhe(req, res) {
     const podeEditarOrcamento  = ordemServicoService.STATUS_PERMITE_ORCAMENTO.includes(ordem.status);
 
     // Módulo 4: produtos disponíveis para lançamento e total em peças
-    const produtos       = await produtoService.listarDisponiveis();
+    // Módulo 5: catálogo de tipos, para classificar o serviço executado
+    const [produtos, tiposServico] = await Promise.all([
+      produtoService.listarDisponiveis(),
+      tipoServicoService.listarDisponiveis(),
+    ]);
     const totalItens     = itemOrdemService.calcularTotalItens(ordem.itens);
     const podeLancarItem = itemOrdemService.podeLancarItem(ordem.status);
     const podeRemoverItem = itemOrdemService.podeRemoverItem(ordem.status);
@@ -49,6 +54,7 @@ async function exibirDetalhe(req, res) {
       podeExcluirServico,
       podeEditarOrcamento,
       produtos,
+      tiposServico,
       totalItens,
       podeLancarItem,
       podeRemoverItem,
