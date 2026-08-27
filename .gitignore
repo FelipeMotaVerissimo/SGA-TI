@@ -1,4 +1,22 @@
 node_modules/
 .env
 .env.test
+
+# Banco de desenvolvimento (SQLite) — artefatos gerados, não versionar
+prisma/dev.db
+prisma/dev.db-journal
+prisma/schema.dev.prisma
+
+# Ambiente pessoal de testes do Endrik — NAO versionar.
+# Nada aqui faz parte do sistema entregue: e so ferramenta local para
+# rodar e validar o projeto sem MySQL. Manter fora do repositorio para
+# nao poluir o codigo do TCC.
+sandbox/
+setup-dev.cmd
+rodar.cmd
+
+# ATENÇÃO: prisma/migrations/ já vinha ignorado no repositório original.
+# Para o TCC, as migrations DEVEM ser versionadas — sem elas o Felipe não
+# consegue recriar o banco a partir do repositório. Combine com ele antes
+# de remover a linha abaixo.
 prisma/migrations/

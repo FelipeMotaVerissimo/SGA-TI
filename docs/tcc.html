@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SGA TI — Painel do TCC</title>
+<style>
+  :root{
+    --azul:#185FA5; --azul-claro:#E6F1FB; --texto:#1c1c1a; --suave:#6b6b66;
+    --borda:#e3e1da; --fundo:#faf9f5; --card:#fff;
+    --ok:#3B6D11; --ok-bg:#EAF3DE; --and:#854F0B; --and-bg:#FAEEDA;
+    --pend:#5F5E5A; --pend-bg:#F1EFE8; --erro:#A32D2D; --erro-bg:#FCEBEB;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+  header{border-bottom:1px solid var(--borda);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:26px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--suave);font-size:14px;margin:0}
+  h2{font-size:17px;font-weight:600;margin:32px 0 12px;color:var(--azul)}
+  .grid{display:grid;gap:12px}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .card{background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:16px 18px}
+  .metrica .rot{font-size:12px;color:var(--suave);text-transform:uppercase;letter-spacing:.4px}
+  .metrica .val{font-size:26px;font-weight:600;margin-top:2px}
+  .metrica .obs{font-size:12px;color:var(--suave)}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+  .b-ok{background:var(--ok-bg);color:var(--ok)} .b-and{background:var(--and-bg);color:var(--and)}
+  .b-pend{background:var(--pend-bg);color:var(--pend)} .b-erro{background:var(--erro-bg);color:var(--erro)}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card);border:1px solid var(--borda);border-radius:10px;overflow:hidden}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave);background:#f6f5f0;padding:10px 14px;font-weight:600;border-bottom:1px solid var(--borda)}
+  td{padding:11px 14px;border-bottom:1px solid #f0eee8;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  code{background:#f1efe8;padding:1px 6px;border-radius:4px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  pre{background:#1e1e1c;color:#e8e6df;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.6}
+  ul{margin:8px 0;padding-left:20px} li{margin:4px 0}
+  a{color:var(--azul)}
+  .mod{border-left:4px solid var(--borda)}
+  .mod.feito{border-left-color:var(--ok)} .mod.andamento{border-left-color:var(--and)}
+  .mod h3{margin:0 0 6px;font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .mod p{margin:0;font-size:13px;color:var(--suave)}
+  .nota{background:var(--azul-claro);border:1px solid #c9e0f5;border-radius:8px;padding:12px 16px;font-size:13px}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--borda);font-size:12px;color:var(--suave)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>SGA TI — Sistema de Gerenciamento de Assistência Técnica</h1>
+  <p class="sub">TCC 2026 · Engenharia de Software · Endrik Perin e Felipe Mota Veríssimo · Node.js + Express + Prisma + MySQL + EJS</p>
+</header>
+
+<div class="grid g4">
+  <div class="card metrica"><div class="rot">Módulo atual</div><div class="val">3</div><div class="obs">parte 2 — serviços e garantia</div></div>
+  <div class="card metrica"><div class="rot">Testes E2E</div><div class="val">39/39</div><div class="obs">no ambiente de preview</div></div>
+  <div class="card metrica"><div class="rot">Testes unitários</div><div class="val">10/10</div><div class="obs">Jest — suíte do Felipe</div></div>
+  <div class="card metrica"><div class="rot">Branch</div><div class="val" style="font-size:17px">modulo3-servicos</div><div class="obs">ainda não enviada ao GitHub</div></div>
+</div>
+
+<h2>Módulos</h2>
+<div class="grid g2">
+  <div class="card mod feito">
+    <h3>Módulo 1 — Base <span class="badge b-ok">concluído</span></h3>
+    <p>Login com sessão, dashboard, cadastro de clientes, equipamentos e usuários. Responsável: Felipe.</p>
+  </div>
+  <div class="card mod feito">
+    <h3>Módulo 2 — Ordens de Serviço <span class="badge b-ok">concluído</span></h3>
+    <p>Abertura de OS, atualização de status e consulta pública. Responsável: Felipe.</p>
+  </div>
+  <div class="card mod feito">
+    <h3>Módulo 3 — parte 1 <span class="badge b-ok">concluído</span></h3>
+    <p>Registro de orçamento, aprovação e rejeição. Responsável: Felipe.</p>
+  </div>
+  <div class="card mod andamento">
+    <h3>Módulo 3 — parte 2 <span class="badge b-and">em validação</span></h3>
+    <p>Serviços executados e controle de garantia. Responsável: Endrik. Código pronto e testado no preview; falta rodar com MySQL local e homologar.</p>
+  </div>
+  <div class="card mod">
+    <h3>Módulo 4 <span class="badge b-pend">não iniciado</span></h3>
+    <p>Escopo ainda não definido. O schema já prevê <code>Produto</code>, <code>ItemOrdem</code> e <code>MovimentoEstoque</code> — provável eixo de produtos e estoque.</p>
+  </div>
+  <div class="card mod">
+    <h3>Módulo 5 <span class="badge b-pend">não iniciado</span></h3>
+    <p>Escopo ainda não definido.</p>
+  </div>
+</div>
+
+<h2>Módulo 3 (parte 2) — regras implementadas</h2>
+<table>
+  <thead><tr><th style="width:70px">ID</th><th>Regra</th><th style="width:120px">Situação</th></tr></thead>
+  <tbody>
+    <tr><td>RN01</td><td>Serviços só podem ser registrados em OS com status <code>AUTORIZADO</code> ou <code>EM_ANDAMENTO</code></td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN02</td><td>Ao registrar serviço numa OS <code>AUTORIZADO</code>, o status passa para <code>EM_ANDAMENTO</code></td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN03</td><td>Descrição obrigatória, mínimo de 5 caracteres</td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN04</td><td><code>garantiaDias</code> opcional, inteiro entre 0 e 3650; <code>0</code> equivale a sem garantia</td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN05</td><td>A data-fim da garantia não é persistida — é derivada de <code>executadoEm + garantiaDias</code></td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN06</td><td>A garantia vale até o fim do último dia coberto</td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN07</td><td>Serviços não podem ser excluídos de OS <code>FINALIZADO</code> ou <code>CANCELADO</code></td><td><span class="badge b-ok">testada</span></td></tr>
+    <tr><td>RN08</td><td>Um serviço só pode ser excluído pela OS à qual pertence</td><td><span class="badge b-ok">testada</span></td></tr>
+  </tbody>
+</table>
+
+<h2>Arquivos do Módulo 3 (parte 2)</h2>
+<table>
+  <thead><tr><th>Arquivo</th><th style="width:110px">Ação</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td><code>src/services/servicoExecutadoService.js</code></td><td>novo</td><td>toda a regra de negócio e o cálculo de garantia</td></tr>
+    <tr><td><code>src/controllers/servicoExecutadoWebController.js</code></td><td>novo</td><td>padrão try/catch + flash + redirect</td></tr>
+    <tr><td><code>src/controllers/ordemServicoWebController.js</code></td><td>alterado</td><td>passa <code>servicos</code> e as flags de permissão às views</td></tr>
+    <tr><td><code>src/services/ordemServicoService.js</code></td><td>alterado</td><td><code>buscarOrdemPorNumero</code> agora inclui <code>servicos</code></td></tr>
+    <tr><td><code>src/routes/webRoutes.js</code></td><td>alterado</td><td>2 rotas novas</td></tr>
+    <tr><td><code>views/ordens/detalhe.ejs</code></td><td>alterado</td><td>formulário e tabela de serviços com badges de garantia</td></tr>
+    <tr><td><code>views/ordens/consulta-publica.ejs</code></td><td>alterado</td><td>serviços e garantia visíveis ao cliente</td></tr>
+  </tbody>
+</table>
+
+<h2>Como rodar</h2>
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:14px;font-weight:600">Real — MySQL na sua máquina</h3>
+<pre>npm install
+npx prisma migrate dev
+npx prisma db seed
+npm run dev</pre>
+    <p style="font-size:13px;color:var(--suave);margin:8px 0 0">Não é preciso nova migration: o model <code>ServicoExecutado</code> já existe no schema.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:14px;font-weight:600">Preview — sem banco</h3>
+<pre>npm install
+node sandbox/preview.js 3000
+node sandbox/testeE2E.js</pre>
+    <p style="font-size:13px;color:var(--suave);margin:8px 0 0">Login <code>admin</code> / <code>admin123</code>. Dados em memória, recriados a cada boot.</p>
+  </div>
+</div>
+
+<h2>Telas capturadas</h2>
+<p style="font-size:14px;margin:0 0 10px">Renderizadas pelo app real rodando no preview. Abrem direto no navegador:</p>
+<ul style="font-size:14px">
+  <li><a href="../sandbox/telas/os-detalhe-em-andamento.html">OS em andamento</a> — três situações de garantia lado a lado</li>
+  <li><a href="../sandbox/telas/os-detalhe-autorizado.html">OS autorizada</a> — formulário de registro liberado</li>
+  <li><a href="../sandbox/telas/os-detalhe-inicial-bloqueado.html">OS inicial</a> — registro bloqueado pela RN01</li>
+  <li><a href="../sandbox/telas/consulta-publica.html">Consulta pública</a> — visão do cliente</li>
+  <li><a href="../sandbox/telas/os-listagem.html">Listagem de OS</a> · <a href="../sandbox/telas/dashboard.html">Dashboard</a></li>
+</ul>
+
+<h2>Backlog e pendências</h2>
+<table>
+  <thead><tr><th style="width:60px">ID</th><th>Item</th><th style="width:110px">Prioridade</th></tr></thead>
+  <tbody>
+    <tr><td>P00</td><td>Rodar o Módulo 3 parte 2 com MySQL real e validar a <code>$transaction</code> que muda AUTORIZADO → EM_ANDAMENTO</td><td><span class="badge b-erro">bloqueante</span></td></tr>
+    <tr><td>P01</td><td>Testes de integração do Felipe estão desatualizados: usam <code>usuario.email</code>, campo que não existe no schema (o correto é <code>login</code>)</td><td><span class="badge b-and">alta</span></td></tr>
+    <tr><td>P02</td><td>Não há testes automatizados do Módulo 3 dentro da suíte Jest do projeto</td><td><span class="badge b-and">média</span></td></tr>
+    <tr><td>P03</td><td>Serviço executado não registra qual usuário executou — exigiria migration</td><td><span class="badge b-pend">média</span></td></tr>
+    <tr><td>P04</td><td>Não existe vínculo entre serviço executado e peça utilizada</td><td><span class="badge b-pend">média</span></td></tr>
+    <tr><td>P05</td><td>Falta tela consolidada de serviços em garantia para a gestão</td><td><span class="badge b-pend">baixa</span></td></tr>
+    <tr><td>P06</td><td>Definir escopo dos Módulos 4 e 5 com o Felipe e o orientador</td><td><span class="badge b-pend">baixa</span></td></tr>
+  </tbody>
+</table>
+
+<h2>Limitações do ambiente de preview</h2>
+<div class="nota">
+  O preview troca apenas <code>src/config/database.js</code> por um Prisma falso em memória — todo o resto é o código real.
+  Ele <strong>valida</strong> rotas, regras de negócio, validações, sessão, flash, views e regressão.
+  Ele <strong>não valida</strong> SQL, migrations, tipos nativos do MySQL, constraints de unicidade, integridade referencial
+  e o comportamento real de <code>$transaction</code>. Por isso o teste com MySQL na sua máquina continua obrigatório antes de homologar.
+</div>
+
+<h2>Controle de versões</h2>
+<table>
+  <thead><tr><th style="width:70px">Versão</th><th style="width:100px">Data</th><th>Alterações</th><th style="width:100px">Responsável</th></tr></thead>
+  <tbody>
+    <tr><td>V01</td><td>04/08/2026</td><td>Módulo 3 parte 2: serviços executados e controle de garantia. Ambiente de preview e suíte E2E criados.</td><td>Endrik</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  Repositório: <a href="https://github.com/FelipeMotaVerissimo/SGA-TI">github.com/FelipeMotaVerissimo/SGA-TI</a> ·
+  Página gerada em 04/08/2026 · Atualizar a cada entrega de módulo.
+</footer>
+
+</div>
+</body>
+</html>
