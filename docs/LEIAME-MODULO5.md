@@ -19,6 +19,7 @@ gerenciais e dashboards de acompanhamento.
 | RF019 — serviços e produtos vendidos por tipo de equipamento | `relatorioService.porTipoDeEquipamento` |
 | UC RF008 — Emitir Relatórios (período, filtros, exibido **ou exportado**) | tela `/relatorios` + exportação CSV |
 | Dashboards de acompanhamento | blocos do `/dashboard`, por perfil |
+| RF012 — histórico de serviços por equipamento (V02) | `equipamentoService.historicoDeServicos` + tela `/equipamentos/:id/historico` |
 
 ---
 
@@ -209,3 +210,73 @@ O servidor temporário foi removido depois; nada foi instalado na máquina.
 | Versão | Data | Alterações | Testes |
 |---|---|---|---|
 | V01 | 25/08/2026 | Modelagem (catálogo de tipos, tipo de equipamento, data do item), os quatro relatórios, dashboards por perfil e exportação CSV | 165 unitários + 145 integração |
+| V02 | 27/08/2026 | RF012 — tela de histórico de serviços por equipamento, fechando a pendência P07 dos Módulos 3 e 4 | 175 unitários + 159 integração |
+
+---
+
+## 11. RF012 — Histórico de serviços por equipamento (V02)
+
+Era a pendência **P07**, aberta no Módulo 3 parte 2 e repetida no Módulo 4: o
+requisito existia no documento, mas nunca teve tela. O histórico só podia ser
+lido abrindo uma OS de cada vez — para saber se uma peça já tinha sido trocada,
+o atendente comparava de cabeça.
+
+**Rota:** `GET /equipamentos/:id/historico`
+
+### Granularidade
+
+Uma linha por **serviço executado**, reunindo todas as OS do equipamento. A
+pergunta do balcão é "o que já foi feito nesta máquina?", não "quais OS ela
+teve" — por isso o serviço é a unidade, e não a ordem. As OS aparecem numa
+segunda tabela, como contexto.
+
+### Regras de negócio
+
+| # | Regra | Motivo |
+|---|---|---|
+| RN01 | A lista é ordenada pela data de execução, mais recente primeiro, **atravessando as OS** | A ordem cronológica do equipamento é o que interessa; agrupar por OS devolveria o problema que a tela veio resolver |
+| RN02 | Serviço de OS `CANCELADO` **continua** no histórico, com o status da OS na linha | Ele foi mesmo executado na máquina. Esconder falsearia o histórico técnico; mostrar sem o status esconderia o contexto. É a mesma leitura do indicador de garantias do dashboard, que também não filtra por status |
+| RN03 | A garantia é derivada por `calcularGarantia`, a mesma função da tela da OS | Reimplementar o cálculo faria as duas telas discordarem sobre a mesma garantia (RN05/RN06 do Módulo 3) |
+
+### Acesso (RF023)
+
+`ATENDENTE` e `TECNICO`, além do `ADMINISTRADOR`. O técnico é justamente quem
+precisa saber o que já foi feito antes de mexer — e chega à tela pelo link no
+detalhe da OS, já que a lista de equipamentos é do atendente.
+
+Como o técnico não acessa `/equipamentos`, o botão "voltar" muda de destino
+conforme o perfil. Sem isso, o link de saída jogaria o técnico direto num
+"acesso negado".
+
+### O que a tela mostra
+
+- identificação do equipamento (código, tipo, série, cliente, defeito do cadastro);
+- quatro indicadores: OS, serviços executados, **em garantia vigente** e último atendimento;
+- aviso destacado quando há garantia vigente — é o retrabalho que não se cobra duas vezes;
+- a lista de serviços, com tipo, garantia e situação, e link para a OS de origem;
+- as OS do equipamento, com quantidade de serviços de cada uma.
+
+### Arquivos
+
+| Arquivo | Ação |
+|---|---|
+| `src/services/equipamentoService.js` | **alterado** — `historicoDeServicos` |
+| `src/controllers/equipamentoWebController.js` | **alterado** — `exibirHistorico` |
+| `src/routes/webRoutes.js` | **alterado** — a rota, com `exigirPerfil('ATENDENTE', 'TECNICO')` |
+| `views/equipamentos/historico.ejs` | **novo** |
+| `views/equipamentos/listar.ejs`, `views/ordens/detalhe.ejs` | **alterados** — links de entrada |
+| `tests/unit/equipamentoService.test.js` | **novo** — 10 testes |
+| `tests/integration/historicoEquipamento.test.js` | **novo** — 14 testes |
+
+### Como validar
+
+```cmd
+npm run test:unit             :: 175 testes
+npm run test:integration      :: 159 testes (as 3 falhas do auth.test.js seguem intencionais)
+```
+
+Na tela, com a massa de demonstração: o equipamento **EQ-0003 (Lenovo
+ThinkPad T480)** é o caso que justifica o requisito — tem uma OS `INICIAL`
+aberta agora e uma OS `FINALIZADO` de julho cujo serviço ainda está **em
+garantia por 147 dias**. Antes desta tela, quem abrisse a OS nova não teria
+como saber disso sem procurar OS por OS.

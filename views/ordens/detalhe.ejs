@@ -94,6 +94,11 @@
           <div class="form-group">
             <label>Código</label>
             <input type="text" value="<%= ordem.equipamento.codigo %>" disabled>
+            <%# RF012: daqui o tecnico ve o que ja foi feito nesta maquina antes de mexer %>
+            <a href="/equipamentos/<%= ordem.equipamento.id %>/historico"
+               style="font-size:12px; display:inline-block; margin-top:6px">
+              🕓 Ver histórico de serviços deste equipamento
+            </a>
           </div>
         </div>
         <div class="form-row">

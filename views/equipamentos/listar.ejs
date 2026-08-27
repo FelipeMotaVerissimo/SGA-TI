@@ -51,6 +51,7 @@
               <td><%= e.defeito.substring(0, 40) %><%= e.defeito.length > 40 ? '...' : '' %></td>
               <td>
                 <a href="/equipamentos/<%= e.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <a href="/equipamentos/<%= e.id %>/historico" class="btn btn-secondary btn-sm">🕓 Histórico</a>
                 <a href="/ordens/nova?equipamentoId=<%= e.id %>" class="btn btn-primary btn-sm">+ OS</a>
               </td>
             </tr>

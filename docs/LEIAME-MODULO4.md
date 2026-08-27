@@ -428,7 +428,7 @@ a do Módulo 4 aplica o delta. Ambas geradas pelo Prisma a partir do
 | P10 | ~~Campo `bairro` quebrava a edição de cliente~~ — resolvido na V03 | — |
 | P11 | ~~O filtro de busca perde o termo ao alternar "Mostrar inativos"~~ — resolvido na V03 | — |
 | P12 | A conta a receber gerada no encerramento não é cancelada se a OS for reaberta e cancelada depois | baixa |
-| P07 | RF012 (histórico de serviços por equipamento) continua sem tela própria — herdado do M3 | média |
+| P07 | ~~RF012 (histórico de serviços por equipamento) continua sem tela própria~~ — resolvido na V02 do Módulo 5 | — |
 | P08 | O link `/relatorios` da sidebar ainda é 404 — é o Módulo 5 | — |
 
 ---

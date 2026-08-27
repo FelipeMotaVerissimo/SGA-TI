@@ -52,6 +52,9 @@ router.get('/equipamentos/novo',         sessaoMiddleware, exigirPerfil(...PERFI
 router.post('/equipamentos',             sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.criar);
 router.get('/equipamentos/:id/editar',   sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.exibirEditar);
 router.post('/equipamentos/:id',         sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.atualizar);
+// RF012 — histórico de serviços por equipamento. O TECNICO entra aqui vindo da
+// OS: é ele quem precisa saber o que já foi feito na máquina antes de mexer.
+router.get('/equipamentos/:id/historico', sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO, 'TECNICO'), equipamentoWeb.exibirHistorico);
 
 // Ordens de Serviço
 router.get('/ordens',                sessaoMiddleware, exigirPerfil(...PERFIS_OS, 'VENDEDOR'), ordemServicoWeb.listar);

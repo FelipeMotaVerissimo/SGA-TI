@@ -200,7 +200,7 @@ de status). Precisa ser validado na sua máquina antes de abrir o PR.
 | P04 | Não há registro de qual usuário executou o serviço (schema não tem `usuarioId` em `ServicoExecutado`) | média — exigiria migration |
 | P05 | ~~Sem testes automatizados~~ — resolvido na V02 | — |
 | P06 | Nenhuma rota valida o **perfil** do usuário: qualquer usuário logado lança orçamento e registra serviço | média |
-| P07 | RF012 (histórico de serviços por equipamento) não tem tela própria — o histórico só aparece dentro de cada OS | média |
+| P07 | ~~RF012 (histórico de serviços por equipamento) não tem tela própria~~ — resolvido na V02 do Módulo 5 | — |
 
 ---
 

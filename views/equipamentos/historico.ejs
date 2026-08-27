@@ -1,0 +1,236 @@
+<%
+  // RF012 — o TECNICO chega aqui pela OS e não enxerga a lista de equipamentos,
+  // que é do ATENDENTE. O "voltar" tem que respeitar isso, senão manda o
+  // técnico direto para um "acesso negado".
+  const podeVerLista = locals.temPermissao
+    ? locals.temPermissao(locals.usuario, ['ATENDENTE'])
+    : true;
+
+  const coresStatus = {
+    INICIAL:      'badge-cinza',
+    ORCAMENTO:    'badge-azul',
+    AUTORIZADO:   'badge-verde',
+    EM_ANDAMENTO: 'badge-azul',
+    CANCELADO:    'badge-vermelho',
+    FINALIZADO:   'badge-verde',
+  };
+
+  const dataBR = (d) => new Date(d).toLocaleDateString('pt-BR');
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/equipamentos' }) %>
+
+    <div class="conteudo">
+      <% if (podeVerLista) { %>
+      <a href="/equipamentos" class="voltar">← Voltar para equipamentos</a>
+      <% } else { %>
+      <a href="/ordens" class="voltar">← Voltar para ordens de serviço</a>
+      <% } %>
+
+      <div class="page-header">
+        <h1><%= equipamento.marca %> <%= equipamento.modelo %></h1>
+        <p>Histórico de serviços executados neste equipamento (RF012)</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="tabela-box" style="margin-bottom:16px">
+        <div class="tabela-header">
+          <h2>🔧 Identificação</h2>
+          <% if (podeVerLista) { %>
+          <a href="/equipamentos/<%= equipamento.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+          <% } %>
+        </div>
+        <table>
+          <tbody>
+            <tr>
+              <th style="width:180px">Código</th>
+              <td><%= equipamento.codigo %></td>
+            </tr>
+            <tr>
+              <th>Tipo</th>
+              <td><span class="badge badge-cinza"><%= equipamento.tipo %></span></td>
+            </tr>
+            <tr>
+              <th>Número de série</th>
+              <td><%= equipamento.numeroSerie || '—' %></td>
+            </tr>
+            <tr>
+              <th>Cliente</th>
+              <td><%= equipamento.cliente.nome %></td>
+            </tr>
+            <tr>
+              <th>Defeito do cadastro</th>
+              <td style="color:#666"><%= equipamento.defeito %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor"><%= resumo.totalOrdens %></div>
+          <div class="card-label">Ordens de serviço</div>
+        </div>
+        <div class="card">
+          <div class="card-valor"><%= resumo.totalServicos %></div>
+          <div class="card-label">Serviços executados</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="<%= resumo.emGarantia > 0 ? 'color:#276749' : '' %>">
+            <%= resumo.emGarantia %>
+          </div>
+          <div class="card-label">Em garantia vigente</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="font-size:20px">
+            <%= resumo.ultimoAtendimento ? dataBR(resumo.ultimoAtendimento) : '—' %>
+          </div>
+          <div class="card-label">Último atendimento</div>
+        </div>
+      </div>
+
+      <% if (resumo.emGarantia > 0) { %>
+      <div class="alert alert-aviso">
+        🛡️ Este equipamento tem <strong><%= resumo.emGarantia %></strong> serviço(s) com
+        garantia ainda vigente. Confira a tabela antes de orçar um novo atendimento —
+        pode ser retrabalho coberto.
+      </div>
+      <% } %>
+
+      <div class="tabela-box" style="margin-bottom:16px">
+        <div class="tabela-header">
+          <h2>🛠️ Serviços Executados</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Executado em</th>
+              <th>OS</th>
+              <th>Tipo</th>
+              <th>Descrição</th>
+              <th>Garantia</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (servicos.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum serviço executado registrado neste equipamento ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% servicos.forEach(s => { %>
+            <tr>
+              <td><%= dataBR(s.executadoEm) %></td>
+              <td>
+                <a href="/ordens/<%= s.ordem.id %>"><%= s.ordem.numero %></a><br>
+                <span class="badge <%= coresStatus[s.ordem.status] || 'badge-cinza' %>"
+                      style="font-size:11px">
+                  <%= s.ordem.status.replace('_', ' ') %>
+                </span>
+              </td>
+              <td>
+                <% if (s.tipoServico) { %>
+                  <span class="badge badge-azul"><%= s.tipoServico.nome %></span>
+                <% } else { %>
+                  <span style="color:#aaa; font-size:12px">não classificado</span>
+                <% } %>
+              </td>
+              <td>
+                <%= s.descricao %>
+                <% if (s.observacoes) { %>
+                <br><span style="font-size:12px; color:#888"><%= s.observacoes %></span>
+                <% } %>
+              </td>
+              <td>
+                <% if (s.garantia.possuiGarantia) { %>
+                  <%= s.garantiaDias %> dia(s)<br>
+                  <span style="font-size:12px; color:#888">
+                    até <%= dataBR(s.garantia.dataFim) %>
+                  </span>
+                <% } else { %>
+                  <span style="color:#aaa">—</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (s.garantia.situacao === 'EM_GARANTIA') { %>
+                  <span class="badge" style="background:#f0fff4; color:#276749; border:1px solid #9ae6b4">
+                    ✅ <%= s.garantia.diasRestantes %> dia(s)
+                  </span>
+                <% } else if (s.garantia.situacao === 'VENCIDA') { %>
+                  <span class="badge" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2">
+                    ⌛ Vencida
+                  </span>
+                <% } else { %>
+                  <span class="badge" style="background:#f7f7f7; color:#777; border:1px solid #ddd">
+                    Sem garantia
+                  </span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>📋 Ordens de Serviço do Equipamento</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Abertura</th>
+              <th>Status</th>
+              <th>Defeito relatado</th>
+              <th>Serviços</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (ordens.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Este equipamento ainda não teve nenhuma ordem de serviço.
+              </td>
+            </tr>
+            <% } else { %>
+            <% ordens.forEach(o => { %>
+            <tr>
+              <td><%= o.numero %></td>
+              <td><%= dataBR(o.dataAbertura) %></td>
+              <td>
+                <span class="badge <%= coresStatus[o.status] || 'badge-cinza' %>">
+                  <%= o.status.replace('_', ' ') %>
+                </span>
+              </td>
+              <td style="color:#666">
+                <%= o.defeitoRelatado.substring(0, 50) %><%= o.defeitoRelatado.length > 50 ? '...' : '' %>
+              </td>
+              <td><%= o.servicos.length %></td>
+              <td>
+                <a href="/ordens/<%= o.id %>" class="btn btn-secondary btn-sm">Abrir</a>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
