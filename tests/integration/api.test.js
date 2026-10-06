@@ -59,6 +59,65 @@ describe('autenticação da API', () => {
   });
 });
 
+/**
+ * Regressão do defeito D01 (ver docs/DIVERGENCIAS-DOC.md).
+ *
+ * POST /api/auth/usuarios não exigia autenticação nenhuma e aceitava
+ * `perfilId` no corpo: qualquer um criava um ADMINISTRADOR e obtinha um token
+ * válido na requisição seguinte, contornando RF022/RF023 por inteiro.
+ */
+describe('criação de usuário pela API (RF022 / RF023)', () => {
+  const novoUsuario = (sufixo) => ({
+    nome:     'Usuario Criado No Teste',
+    login:    `criado_${sufixo}`,
+    senha:    'senha123456',
+    perfilId: dados.perfis.ADMINISTRADOR.id,
+  });
+
+  test('sem token, não cria e devolve 401', async () => {
+    const antes = await prisma.usuario.count();
+
+    const r = await request(app).post('/api/auth/usuarios').send(novoUsuario('sem_token'));
+
+    expect(r.status).toBe(401);
+    expect(await prisma.usuario.count()).toBe(antes);
+  });
+
+  test.each(['ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS'])(
+    '%s não pode criar usuário',
+    async (perfil) => {
+      const antes = await prisma.usuario.count();
+
+      const r = await comToken(
+        request(app).post('/api/auth/usuarios').send(novoUsuario(perfil.toLowerCase())),
+        perfil
+      );
+
+      expect(r.status).toBe(403);
+      expect(await prisma.usuario.count()).toBe(antes);
+    }
+  );
+
+  test('ADMINISTRADOR cria normalmente', async () => {
+    const r = await comToken(
+      request(app).post('/api/auth/usuarios').send(novoUsuario('admin')),
+      'ADMINISTRADOR'
+    );
+
+    expect(r.status).toBe(201);
+    expect(r.body.login).toBe('criado_admin');
+    expect(await prisma.usuario.findUnique({ where: { login: 'criado_admin' } })).not.toBeNull();
+  });
+
+  test('o login continua público — é por onde se obtém o token', async () => {
+    const r = await request(app).post('/api/auth/login')
+      .send({ login: 'admin', senha: dados.SENHA });
+
+    expect(r.status).toBe(200);
+    expect(r.body.token).toBeDefined();
+  });
+});
+
 describe('API de produtos (RF014 / RF015)', () => {
   test('COMPRAS lista os produtos ativos', async () => {
     const r = await comToken(request(app).get('/api/produtos'), 'COMPRAS');

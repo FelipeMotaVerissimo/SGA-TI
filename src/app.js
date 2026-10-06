@@ -33,9 +33,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
-// Sessão
+/**
+ * Sessão.
+ *
+ * O segredo tinha um fallback fixo no fonte (`|| 'sga_ti_secret'`). Sem a
+ * variável de ambiente, os cookies de sessão passavam a ser assinados com um
+ * valor público e versionado — qualquer um podia forjar uma sessão. Agora
+ * falha alto, como o JWT já fazia, em vez de degradar em silêncio.
+ */
+if (!process.env.SESSION_SECRET) {
+  throw new Error(
+    'SESSION_SECRET não definida. Crie o arquivo .env conforme docs/COMO-RODAR.md, seção 2.'
+  );
+}
+
 app.use(session({
-  secret:            process.env.SESSION_SECRET || 'sga_ti_secret',
+  secret:            process.env.SESSION_SECRET,
   resave:            false,
   saveUninitialized: false,
   cookie:            { maxAge: 8 * 60 * 60 * 1000 }, // 8 horas

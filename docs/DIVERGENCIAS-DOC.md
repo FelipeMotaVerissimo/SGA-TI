@@ -120,12 +120,41 @@ que a monografia afirma sobre controle de acesso.
 
 | # | Defeito | Gravidade | Evidência | Recomendação |
 |---|---|---|---|---|
-| **D01** | **`POST /api/auth/usuarios` não exige autenticação nenhuma** e aceita `perfilId` no corpo. Qualquer pessoa com acesso à porta cria um usuário `ADMINISTRADOR` e obtém um token JWT válido em seguida | **Crítica** | Reproduzido contra o banco de teste: resposta `201`, usuário gravado com perfil `ADMINISTRADOR`, e `POST /api/auth/login` logo depois devolveu `200` com token | **Ajustar o código, com prioridade sobre o resto do plano.** Exigir `authMiddleware` + perfil `ADMINISTRADOR` na rota. Contradiz frontalmente RF022/RF023 |
-| **D02** | Segredo de sessão com fallback fixo no código: `process.env.SESSION_SECRET \|\| 'sga_ti_secret'` (`src/app.js:38`) | Alta | Leitura direta | **Ajustar o código.** Sem `SESSION_SECRET` no ambiente, as sessões são assinadas com um segredo público, versionado. O JWT faz o certo: usa `process.env.JWT_SECRET` sem fallback e falha se faltar. Seguir o mesmo padrão |
+| **D01** | `POST /api/auth/usuarios` não exigia autenticação nenhuma e aceitava `perfilId` no corpo. Qualquer pessoa com acesso à porta criava um usuário `ADMINISTRADOR` e obtinha um token JWT válido em seguida | **Crítica** | **CORRIGIDO** — ver 4.1 | — |
+| **D02** | Segredo de sessão com fallback fixo no código: `process.env.SESSION_SECRET \|\| 'sga_ti_secret'`. Sem a variável no ambiente, as sessões eram assinadas com um segredo público e versionado | Alta | **CORRIGIDO** — ver 4.1 | — |
 | **D03** | `/api/usuarios` é um namespace **vazio**: `src/routes/usuarioRoutes.js` só tem `router.use(authMiddleware)`, sem nenhuma rota | Baixa | `GET /api/usuarios` com token válido devolve `404` | **Ajustar o código:** implementar ou remover. Um router montado que não atende nada é dívida |
 | **D04** | `src/routes/ordemServicoRoutes.js:6` tem registro aninhado: `router.get('/', router.get('/', ordemServicoController.listar))` — o retorno de `router.get` é o próprio router, que acaba passado como handler | Baixa | `GET /api/ordens` devolve `200` e a lista correta — funciona por acaso, porque o registro interno resolve primeiro | **Ajustar o código:** erro de digitação que hoje não quebra, mas é frágil |
 | **D05** | `src/routes/equipamentoRoutes.js` chama `router.use(authMiddleware)` **depois** da única rota, então o JWT não protege endpoint algum ali | Baixa | `GET /api/equipamentos/cliente/1` sem token devolve `302` (barrado pela sessão, não pelo JWT); `GET /api/equipamentos` devolve `401` apenas porque nada casa | **Ajustar o código:** a rota existente é de uso interno das telas e está corretamente protegida por sessão. O `router.use` ali induz a erro |
 | **D06** | `tests/integration/auth.test.js` falha nos 3 casos desde antes da consolidação, por usar `usuario.email` e `usuario.perfil` como texto | Média | `PrismaClientValidationError` no `upsert` | `[VALIDAR: decisão da dupla.]` Corrigir, remover ou manter. Manter deixa `npm test` permanentemente vermelho, o que é difícil de defender numa banca |
+
+### 4.1 Correção aplicada no D01 e no D02
+
+Os dois foram corrigidos em 05/10/2026, **antes** de este documento ser
+publicado — o repositório é público, e descrever um desvio de autenticação
+ainda aberto seria entregar o roteiro pronto.
+
+| Defeito | Correção | Arquivo |
+|---|---|---|
+| D01 | A rota passou a exigir `authMiddleware` + `exigirPerfilApi()`, que sem argumentos libera só o `ADMINISTRADOR` — a mesma regra que `/usuarios` já tinha nas telas web. O `POST /api/auth/login` continua público, porque é por onde se obtém o token | `src/routes/authRoutes.js` |
+| D02 | O fallback saiu. Na ausência de `SESSION_SECRET` a aplicação **recusa subir**, com mensagem apontando o `docs/COMO-RODAR.md`. É o mesmo comportamento que o `JWT_SECRET` já tinha | `src/app.js` |
+
+O primeiro administrador não depende da rota: nasce do `prisma/seed.js`.
+
+**Verificação.** A mesma prova que antes criava um administrador foi repetida
+após a correção:
+
+| Antes | Depois |
+|---|---|
+| `201`, usuário gravado como `ADMINISTRADOR`, token obtido na sequência | `401 {"erro":"Token não fornecido."}`, nada gravado no banco |
+
+Oito testes de regressão entraram em `tests/integration/api.test.js`, no bloco
+`criação de usuário pela API (RF022 / RF023)`: sem token devolve 401; cada um
+dos cinco perfis não administrativos devolve 403; o `ADMINISTRADOR` cria
+normalmente; e o login segue público. A suíte de integração passou de 159 para
+**167 casos passando**.
+
+Para o D02, verificado nos dois sentidos: com o segredo ausente a aplicação
+lança o erro e não sobe; com o segredo presente, carrega normalmente.
 
 > **Observação sobre o D01 e o D06:** o `authController.login` já foi corrigido
 > em algum momento para aceitar `login` além de `email`, com comentário
@@ -140,7 +169,7 @@ que a monografia afirma sobre controle de acesso.
 |---|---|---|
 | **Ajustar só o texto da monografia** | A1, A2, A3, A4, C1 | Baixo — é reescrita de parágrafo |
 | **Regerar ou aposentar o painel `tcc.html`** | B1–B11 | Baixo |
-| **Corrigir o código, urgente** | D01, D02 | Baixo, e não pode ir para a banca sem isso |
+| ~~Corrigir o código, urgente~~ | ~~D01, D02~~ — **feito**, ver 4.1 | — |
 | **Corrigir o código, quando sobrar fôlego** | D03, D04, D05 | Baixo |
 | **Implementar o que o documento promete** | C2 (Fase 4), C3/C4/C5 (Fase 5) | Médio — já está no plano |
 | **Decidir** | D06, e o escopo de NF001–NF003 | — |
