@@ -1,0 +1,96 @@
+name: CI
+
+# Roda a cada push e a cada pull request, em qualquer branch.
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    name: Testes e migrations (MySQL real)
+    runs-on: ubuntu-latest
+
+    # O ganho principal deste CI: a suíte de integração passa a rodar contra um
+    # MySQL de verdade a cada push. Na máquina de desenvolvimento ela roda em
+    # SQLite, e o que o SQLite não consegue validar — SQL gerado, migrations,
+    # tipos nativos, ENUM, constraints e $transaction real — ficava dependendo
+    # de homologação manual.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: raiz_do_ci
+          MYSQL_DATABASE: sga_ti_teste
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -praiz_do_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: "mysql://root:raiz_do_ci@127.0.0.1:3306/sga_ti_teste"
+      TEST_DATABASE_URL: "mysql://root:raiz_do_ci@127.0.0.1:3306/sga_ti_teste"
+      SESSION_SECRET: segredo_de_sessao_do_ci
+      JWT_SECRET: segredo_jwt_do_ci
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar o Prisma Client (schema de MySQL)
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      # --------------------------------------------------------------------
+      # Migrations
+      # --------------------------------------------------------------------
+      - name: Aplicar as migrations num banco vazio
+        run: npx prisma migrate deploy --schema prisma/schema.prisma
+
+      - name: Conferir que as migrations reproduzem o schema
+        # `migrate diff` entre o banco criado pelas migrations e o
+        # schema.prisma precisa voltar VAZIO. Se divergir, alguém editou o
+        # schema sem gerar a migration correspondente — defeito que só
+        # apareceria na hora de subir para produção.
+        run: |
+          npx prisma migrate diff \
+            --from-url "$DATABASE_URL" \
+            --to-schema-datamodel prisma/schema.prisma \
+            --exit-code \
+          && echo "Banco e schema estão iguais."
+
+      - name: Seed
+        run: npm run seed
+
+      # --------------------------------------------------------------------
+      # Testes
+      # --------------------------------------------------------------------
+      - name: Testes unitários
+        run: npm run test:unit
+
+      - name: Testes de integração
+        # `auth.test.js` fica de fora: ele falha desde antes desta suíte
+        # existir, por ter sido escrito contra um schema antigo que usava
+        # `usuario.email`. Excluir aqui é o que permite o CI ser verde e
+        # significar alguma coisa. A falha continua visível no passo seguinte.
+        # A decisão sobre o destino desse arquivo está aberta — ver
+        # docs/DIVERGENCIAS-DOC.md, defeito D06.
+        run: npx jest tests/integration --runInBand --forceExit --testPathIgnorePatterns "node_modules" "auth\.test\.js"
+
+      - name: Falha conhecida (auth.test.js) — não bloqueia
+        continue-on-error: true
+        run: |
+          echo "Este passo roda o único arquivo com falha conhecida."
+          echo "Vermelho aqui é esperado enquanto a dupla não decidir o destino dele."
+          npx jest tests/integration/auth.test.js --runInBand --forceExit

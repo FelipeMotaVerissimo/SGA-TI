@@ -220,5 +220,9 @@ vermelha, o que é difícil de defender numa banca.
 
 - O `.env` não vai para o repositório (correto). Quem clonar precisa criar o seu,
   conforme a seção 2.
-- Não há ainda integração contínua: a suíte roda só na máquina de quem
-  desenvolve. Previsto para a fase de deploy.
+- ~~Não há integração contínua~~ — resolvido: `.github/workflows/ci.yml` roda as
+  duas suítes a cada push e a cada pull request, **contra um MySQL 8 de
+  verdade**, e falha o build se as migrations divergirem do `schema.prisma`.
+  Ver `docs/DEPLOY.md`.
+- O deploy está configurado (`render.yaml`) mas **ainda não foi executado**.
+  Ver `docs/DEPLOY.md`, pendência P01.

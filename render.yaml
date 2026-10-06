@@ -1,0 +1,51 @@
+# Blueprint de deploy do SGA TI no Render.
+#
+# Render hospeda a APLICAÇÃO. O banco MySQL fica no Aiven, porque o plano
+# gratuito do Render só oferece PostgreSQL. A justificativa completa está em
+# docs/DEPLOY.md, seção 2.
+#
+# Nenhum segredo entra neste arquivo: tudo que é sensível está marcado com
+# `sync: false` (informado no painel) ou `generateValue: true` (gerado pelo
+# Render e nunca visto por ninguém).
+
+services:
+  - type: web
+    name: sga-ti
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+
+    # `migrate deploy` roda no build, e não na inicialização, para o serviço não
+    # começar a atender antes de o banco estar com o schema certo. É idempotente:
+    # aplica só o que falta, então rodar a cada deploy não causa problema.
+    buildCommand: npm ci && npx prisma generate --schema prisma/schema.prisma && npx prisma migrate deploy --schema prisma/schema.prisma
+    startCommand: npm start
+
+    # O Render considera o serviço no ar quando esta rota responde. `/login` é
+    # a única tela pública que exercita view, sessão e arquivo estático.
+    healthCheckPath: /login
+
+    envVars:
+      - key: NODE_ENV
+        value: production        # liga HSTS, HTTPS, cookie secure e trust proxy (NF007)
+
+      - key: PORT
+        value: 10000             # porta que o Render espera no plano free
+
+      # Informada no painel do Render: é a string de conexão do Aiven, com
+      # usuário, senha e o parâmetro de TLS.
+      - key: DATABASE_URL
+        sync: false
+
+      # Geradas pelo Render. Nunca aparecem no repositório nem no painel em
+      # texto que alguém precise copiar.
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Origens autorizadas a chamar /api/* (NF007). Vazio = nenhuma origem
+      # cruzada, que é o correto enquanto não existir front separado.
+      - key: CORS_ORIGINS
+        sync: false

@@ -2,6 +2,9 @@
   "name": "sga_ti",
   "version": "1.0.0",
   "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "directories": {
     "test": "tests"
   },
