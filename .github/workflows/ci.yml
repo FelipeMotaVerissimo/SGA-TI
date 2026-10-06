@@ -40,10 +40,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Node.js 20
+      # Mesma versão da máquina de desenvolvimento. O Node 20 chegou ao fim da
+      # vida em abril de 2026; rodar o CI nele validaria um ambiente que ninguém
+      # mais deveria usar.
+      - name: Node.js 22
         uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Instalar dependências
