@@ -1,0 +1,199 @@
+<%
+  // Módulo 4: VENDEDOR consulta o saldo; quem movimenta é Compras (RF015).
+  const podeMovimentar = locals.temPermissao
+    ? locals.temPermissao(locals.usuario, ['COMPRAS'])
+    : true;
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/produtos' }) %>
+
+    <div class="conteudo">
+      <a href="/produtos" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= produto.nome %></h1>
+        <p>Controle de estoque e histórico de movimentações</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor" style="<%= produto.estoque < 0 ? 'color:#c53030' : '' %>">
+            <%= produto.estoque %>
+          </div>
+          <div class="card-label">Saldo em estoque</div>
+        </div>
+        <div class="card">
+          <div class="card-valor">R$ <%= Number(produto.preco).toFixed(2) %></div>
+          <div class="card-label">Preço de venda</div>
+        </div>
+        <div class="card">
+          <div class="card-valor"><%= movimentos.length %></div>
+          <div class="card-label">Movimentações</div>
+        </div>
+      </div>
+
+      <% if (produto.estoque < 0) { %>
+      <div class="alert alert-aviso">
+        ⚠ Este produto está com saldo negativo. Isso acontece quando peças são lançadas
+        em ordens de serviço antes de a entrada ser registrada — regularize com uma ENTRADA.
+      </div>
+      <% } %>
+
+      <% if (!podeMovimentar) { %>
+      <div class="alert alert-aviso">
+        ⚠ O registro de entradas e saídas de estoque é atribuição do setor de
+        <strong>COMPRAS</strong>. Esta tela está em modo de consulta.
+      </div>
+      <% } else if (produto.ativo) { %>
+      <div class="form-box" style="max-width:100%; margin-bottom:24px">
+        <h2 style="font-size:15px; margin-bottom:16px">Registrar Movimentação</h2>
+        <form action="/produtos/<%= produto.id %>/estoque" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo *</label>
+              <select name="tipo" required>
+                <option value="ENTRADA">ENTRADA — compra / devolução ao estoque</option>
+                <option value="SAIDA">SAÍDA — baixa manual / perda</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantidade *</label>
+              <input type="number" name="quantidade" min="1" step="1" placeholder="1" required>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Descrição</label>
+              <input type="text" name="descricao" maxlength="200"
+                placeholder="Ex.: Nota fiscal 1234 — fornecedor XYZ">
+            </div>
+          </div>
+
+          <!-- Conta a pagar da compra (opcional, só faz sentido em ENTRADA) -->
+          <div id="blocoCompra" style="display:none; border-top:1px solid #eee; padding-top:16px; margin-top:8px">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#555">
+              <input type="checkbox" name="gerarContaPagar" value="1" id="gerarContaPagar">
+              Lançar a conta a pagar desta compra no financeiro
+            </label>
+
+            <div id="camposCompra" style="display:none; margin-top:16px">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Valor da compra (R$) *</label>
+                  <input type="text" name="valorCompra" placeholder="0,00">
+                </div>
+                <div class="form-group">
+                  <label>Vencimento *</label>
+                  <input type="date" name="vencimentoCompra">
+                </div>
+              </div>
+              <div class="form-row full">
+                <div class="form-group">
+                  <label>Fornecedor</label>
+                  <input type="text" name="fornecedorCompra" maxlength="150"
+                    placeholder="Nome do fornecedor">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">💾 Registrar Movimentação</button>
+          </div>
+        </form>
+      </div>
+      <% } else { %>
+      <div class="alert alert-aviso">
+        ⚠ Produto inativo — não é possível movimentar o estoque. Reative-o na listagem
+        para voltar a registrar entradas e saídas.
+      </div>
+      <% } %>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Histórico de Movimentações</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Quantidade</th>
+              <th>Descrição</th>
+              <th>Registrado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (movimentos.length === 0) { %>
+            <tr>
+              <td colspan="5" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma movimentação registrada ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% movimentos.forEach(m => { %>
+            <tr>
+              <td><%= new Date(m.criadoEm).toLocaleString('pt-BR') %></td>
+              <td>
+                <% if (m.tipo === 'ENTRADA') { %>
+                  <span class="badge badge-verde">▲ ENTRADA</span>
+                <% } else { %>
+                  <span class="badge badge-vermelho">▼ SAÍDA</span>
+                <% } %>
+              </td>
+              <td><%= m.tipo === 'ENTRADA' ? '+' : '−' %><%= m.quantidade %></td>
+              <td><%= m.descricao || '—' %></td>
+              <td><%= m.usuario ? m.usuario.nome : '—' %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // O bloco da conta a pagar só aparece em ENTRADA — não existe conta a
+    // pagar de uma baixa por perda. Os campos só ficam obrigatórios quando
+    // o usuário marca a caixa.
+    (function () {
+      const tipo   = document.querySelector('[name="tipo"]');
+      const bloco  = document.getElementById('blocoCompra');
+      const caixa  = document.getElementById('gerarContaPagar');
+      const campos = document.getElementById('camposCompra');
+      if (!tipo || !bloco) return;
+
+      const valor       = document.querySelector('[name="valorCompra"]');
+      const vencimento  = document.querySelector('[name="vencimentoCompra"]');
+
+      function atualizar() {
+        const entrada = tipo.value === 'ENTRADA';
+        bloco.style.display = entrada ? 'block' : 'none';
+        if (!entrada) caixa.checked = false;
+
+        const marcado = entrada && caixa.checked;
+        campos.style.display = marcado ? 'block' : 'none';
+        valor.required      = marcado;
+        vencimento.required = marcado;
+      }
+
+      tipo.addEventListener('change', atualizar);
+      caixa.addEventListener('change', atualizar);
+      atualizar();
+    })();
+  </script>
+</body>
+</html>

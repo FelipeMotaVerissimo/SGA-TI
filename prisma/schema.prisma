@@ -16,6 +16,13 @@ enum StatusOS {
   FINALIZADO
 }
 
+// Módulo 4 (parte 2) — situação de uma conta a pagar ou a receber.
+enum SituacaoConta {
+  ABERTA
+  PAGA
+  CANCELADA
+}
+
 model Usuario {
   id       Int      @id @default(autoincrement())
   nome     String   @db.VarChar(150)
@@ -26,6 +33,10 @@ model Usuario {
   perfil   Perfil   @relation(fields: [perfilId], references: [id])
   criadoEm DateTime @default(now())
   ordens   OrdemServico[]
+  // Módulo 4: rastreabilidade de estoque e financeiro
+  movimentos     MovimentoEstoque[]
+  contasPagas    ContaPagar[]
+  contasRecebidas ContaReceber[]
   @@map("usuarios")
 }
 
@@ -44,6 +55,7 @@ model Cliente {
   dataNascimento DateTime?
   endereco       String?   @db.VarChar(200)
   numero         String?   @db.VarChar(10)
+  bairro         String?   @db.VarChar(100)
   cidade         String?   @db.VarChar(100)
   estado         String?   @db.Char(2)
   cep            String?   @db.VarChar(9)
@@ -53,6 +65,7 @@ model Cliente {
   ativo          Boolean   @default(true)
   criadoEm      DateTime  @default(now())
   equipamentos   Equipamento[]
+  contasReceber  ContaReceber[]
   @@map("clientes")
 }
 
@@ -87,6 +100,7 @@ model OrdemServico {
   usuario         Usuario      @relation(fields: [usuarioId], references: [id])
   servicos        ServicoExecutado[]
   itens           ItemOrdem[]
+  contaReceber    ContaReceber?
   @@map("ordens_servico")
 }
 
@@ -132,6 +146,49 @@ model MovimentoEstoque {
   descricao  String?  @db.VarChar(200)
   produtoId  Int
   produto    Produto  @relation(fields: [produtoId], references: [id])
+  // Quem registrou a movimentação. Opcional porque os movimentos gerados
+  // automaticamente pela OS podem não ter um usuário na mão.
+  usuarioId  Int?
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id])
   criadoEm  DateTime @default(now())
   @@map("movimentos_estoque")
+}
+
+// ===== Módulo 4 (parte 2) — Controle Financeiro (RF020 / RF021) =====
+
+model ContaPagar {
+  id          Int           @id @default(autoincrement())
+  descricao   String        @db.VarChar(200)
+  fornecedor  String?       @db.VarChar(150)
+  valor       Decimal       @db.Decimal(10, 2)
+  vencimento  DateTime
+  situacao    SituacaoConta @default(ABERTA)
+  quitadaEm   DateTime?
+  observacoes String?       @db.Text
+  criadoEm    DateTime      @default(now())
+  // Quem deu baixa no pagamento (RF023 — rastreabilidade)
+  quitadaPorId Int?
+  quitadaPor   Usuario?     @relation(fields: [quitadaPorId], references: [id])
+  @@map("contas_pagar")
+}
+
+model ContaReceber {
+  id          Int           @id @default(autoincrement())
+  descricao   String        @db.VarChar(200)
+  valor       Decimal       @db.Decimal(10, 2)
+  vencimento  DateTime
+  situacao    SituacaoConta @default(ABERTA)
+  quitadaEm   DateTime?
+  observacoes String?       @db.Text
+  criadoEm    DateTime      @default(now())
+  // Vínculo opcional com a OS: preenchido quando a conta é gerada
+  // automaticamente no encerramento. @unique garante uma conta por OS.
+  ordemId     Int?          @unique
+  ordem       OrdemServico? @relation(fields: [ordemId], references: [id])
+  clienteId   Int?
+  cliente     Cliente?      @relation(fields: [clienteId], references: [id])
+  // Quem registrou o recebimento (RF023 — rastreabilidade)
+  quitadaPorId Int?
+  quitadaPor   Usuario?     @relation(fields: [quitadaPorId], references: [id])
+  @@map("contas_receber")
 }

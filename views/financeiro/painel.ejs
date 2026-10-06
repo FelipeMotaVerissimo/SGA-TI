@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financeiro — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/financeiro' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Financeiro</h1>
+        <p>Contas a pagar e a receber (RF020 / RF021)</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor" style="color:#276749">R$ <%= resumo.aReceber.toFixed(2) %></div>
+          <div class="card-label">
+            A receber em aberto
+            <% if (resumo.vencidasReceber > 0) { %>
+            — <span style="color:#c53030"><%= resumo.vencidasReceber %> vencida(s)</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="color:#c53030">R$ <%= resumo.aPagar.toFixed(2) %></div>
+          <div class="card-label">
+            A pagar em aberto
+            <% if (resumo.vencidasPagar > 0) { %>
+            — <span style="color:#c53030"><%= resumo.vencidasPagar %> vencida(s)</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="<%= resumo.saldo < 0 ? 'color:#c53030' : '' %>">
+            R$ <%= resumo.saldo.toFixed(2) %>
+          </div>
+          <div class="card-label">Saldo previsto</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px; display:flex; gap:8px; align-items:center">
+        <span style="font-size:13px; color:#888">Filtrar por situação:</span>
+        <a href="/financeiro" class="btn btn-sm <%= situacao === '' ? 'btn-primary' : 'btn-secondary' %>">Todas</a>
+        <% ['ABERTA','PAGA','CANCELADA'].forEach(s => { %>
+        <a href="/financeiro?situacao=<%= s %>"
+           class="btn btn-sm <%= situacao === s ? 'btn-primary' : 'btn-secondary' %>"><%= s %></a>
+        <% }) %>
+      </div>
+
+      <%
+        const badgeSituacao = (s) => {
+          if (s === 'PAGA')      return 'badge-verde';
+          if (s === 'CANCELADA') return 'badge-cinza';
+          if (s === 'VENCIDA')   return 'badge-vermelho';
+          return 'badge-amarelo';
+        };
+        const dataBR = (d) => new Date(d).toLocaleDateString('pt-BR');
+      %>
+
+      <!-- Contas a receber -->
+      <div class="tabela-box" style="margin-bottom:24px">
+        <div class="tabela-header">
+          <h2>📥 Contas a Receber</h2>
+          <a href="/financeiro/receber/nova" class="btn btn-primary btn-sm">+ Nova Conta a Receber</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Cliente</th>
+              <th>Valor</th>
+              <th>Vencimento</th>
+              <th>Situação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (contasReceber.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma conta a receber registrada.
+              </td>
+            </tr>
+            <% } else { %>
+            <% contasReceber.forEach(c => { %>
+            <tr>
+              <td>
+                <%= c.descricao %>
+                <% if (c.ordem) { %>
+                <div style="font-size:12px; color:#888">
+                  <a href="/ordens/<%= c.ordem.id %>">gerada pela OS <%= c.ordem.numero %></a>
+                </div>
+                <% } %>
+              </td>
+              <td><%= c.cliente ? c.cliente.nome : '—' %></td>
+              <td>R$ <%= Number(c.valor).toFixed(2) %></td>
+              <td><%= dataBR(c.vencimento) %></td>
+              <td>
+                <span class="badge <%= badgeSituacao(c.situacaoExibicao) %>"><%= c.situacaoExibicao %></span>
+                <% if (c.quitadaEm) { %>
+                <div style="font-size:12px; color:#888">
+                  em <%= dataBR(c.quitadaEm) %><%= c.quitadaPor ? ` por ${c.quitadaPor.nome}` : '' %>
+                </div>
+                <% } %>
+              </td>
+              <td>
+                <% if (c.situacao === 'ABERTA') { %>
+                <form action="/financeiro/receber/<%= c.id %>/quitar" method="POST" style="display:inline">
+                  <button type="submit" class="btn btn-success btn-sm">Receber</button>
+                </form>
+                <a href="/financeiro/receber/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <form action="/financeiro/receber/<%= c.id %>/cancelar" method="POST" style="display:inline"
+                  onsubmit="return confirm('Cancelar esta conta?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
+                </form>
+                <% } else { %>
+                <span style="color:#aaa; font-size:13px">—</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Contas a pagar -->
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>📤 Contas a Pagar</h2>
+          <a href="/financeiro/pagar/nova" class="btn btn-primary btn-sm">+ Nova Conta a Pagar</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Fornecedor</th>
+              <th>Valor</th>
+              <th>Vencimento</th>
+              <th>Situação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (contasPagar.length === 0) { %>
+            <tr>
+              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma conta a pagar registrada.
+              </td>
+            </tr>
+            <% } else { %>
+            <% contasPagar.forEach(c => { %>
+            <tr>
+              <td><%= c.descricao %></td>
+              <td><%= c.fornecedor || '—' %></td>
+              <td>R$ <%= Number(c.valor).toFixed(2) %></td>
+              <td><%= dataBR(c.vencimento) %></td>
+              <td>
+                <span class="badge <%= badgeSituacao(c.situacaoExibicao) %>"><%= c.situacaoExibicao %></span>
+                <% if (c.quitadaEm) { %>
+                <div style="font-size:12px; color:#888">
+                  em <%= dataBR(c.quitadaEm) %><%= c.quitadaPor ? ` por ${c.quitadaPor.nome}` : '' %>
+                </div>
+                <% } %>
+              </td>
+              <td>
+                <% if (c.situacao === 'ABERTA') { %>
+                <form action="/financeiro/pagar/<%= c.id %>/quitar" method="POST" style="display:inline">
+                  <button type="submit" class="btn btn-success btn-sm">Pagar</button>
+                </form>
+                <a href="/financeiro/pagar/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <form action="/financeiro/pagar/<%= c.id %>/cancelar" method="POST" style="display:inline"
+                  onsubmit="return confirm('Cancelar esta conta?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
+                </form>
+                <% } else { %>
+                <span style="color:#aaa; font-size:13px">—</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

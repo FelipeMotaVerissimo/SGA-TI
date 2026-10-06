@@ -1,3 +1,10 @@
+<%
+  // Módulo 4: o menu mostra só o que o perfil do usuário pode acessar (RF023).
+  // A mesma função usada pelo middleware das rotas, exposta em res.locals.
+  const pode = (...perfis) => locals.temPermissao
+    ? locals.temPermissao(locals.usuario, perfis)
+    : true;
+%>
 <div class="sidebar">
   <div class="brand">
     <h2>SGA TI</h2>
@@ -8,22 +15,33 @@
     <a href="/dashboard" class="<%= locals.path === '/dashboard' ? 'ativo' : '' %>">
       📊 Dashboard
     </a>
+    <% if (pode('ATENDENTE')) { %>
     <a href="/clientes" class="<%= locals.path && locals.path.startsWith('/clientes') ? 'ativo' : '' %>">
       👤 Clientes
     </a>
     <a href="/equipamentos" class="<%= locals.path && locals.path.startsWith('/equipamentos') ? 'ativo' : '' %>">
       🔧 Equipamentos
     </a>
+    <% } %>
+    <% if (pode('ATENDENTE', 'TECNICO', 'VENDEDOR')) { %>
     <a href="/ordens" class="<%= locals.path && locals.path.startsWith('/ordens') ? 'ativo' : '' %>">
       📋 Ordens de Serviço
     </a>
+    <% } %>
+    <% if (pode('COMPRAS', 'VENDEDOR')) { %>
     <a href="/produtos" class="<%= locals.path && locals.path.startsWith('/produtos') ? 'ativo' : '' %>">
       📦 Produtos
     </a>
+    <% } %>
+    <% if (pode('FINANCEIRO')) { %>
+    <a href="/financeiro" class="<%= locals.path && locals.path.startsWith('/financeiro') ? 'ativo' : '' %>">
+      💰 Financeiro
+    </a>
+    <% } %>
+    <% if (pode()) { %>
     <a href="/relatorios" class="<%= locals.path && locals.path.startsWith('/relatorios') ? 'ativo' : '' %>">
       📈 Relatórios
     </a>
-    <% if (locals.usuario && locals.usuario.perfil === 'ADMINISTRADOR') { %>
     <a href="/usuarios" class="<%= locals.path && locals.path.startsWith('/usuarios') ? 'ativo' : '' %>">
       ⚙️ Usuários
     </a>

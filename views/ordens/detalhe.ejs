@@ -1,3 +1,22 @@
+<%
+  // Módulo 4: a tela só mostra a ação que o perfil pode executar. Sem isso o
+  // usuário preenche o formulário, leva "acesso negado" e perde o que digitou.
+  const pode = (...perfis) => locals.temPermissao
+    ? locals.temPermissao(locals.usuario, perfis)
+    : true;
+
+  const podeMexerStatus    = pode('TECNICO');
+  const podeMexerOrcamento = pode('VENDEDOR');
+  const podeAprovar        = pode('ATENDENTE', 'VENDEDOR');
+  const podeMexerServico   = pode('TECNICO');
+  const podeMexerItem      = pode('VENDEDOR');
+  // Liberação de faturamento é da Gerência/ADM (entrevista, item 8).
+  const podeFaturar        = pode();
+
+  // A coluna "Ações" só aparece quando o status permite E o perfil pode.
+  const mostrarAcoesServico = podeExcluirServico && podeMexerServico;
+  const mostrarAcoesItem    = podeRemoverItem    && podeMexerItem;
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -29,14 +48,28 @@
               <%= ordem.status.replace('_',' ') %>
             </span>
           </div>
-          <form action="/ordens/<%= ordem.id %>/status" method="POST" style="display:flex; gap:8px; align-items:center">
-            <select name="status" class="form-group" style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px">
-              <% ['INICIAL','ORCAMENTO','AUTORIZADO','EM_ANDAMENTO','CANCELADO','FINALIZADO'].forEach(s => { %>
-              <option value="<%= s %>" <%= ordem.status === s ? 'selected' : '' %>><%= s.replace('_',' ') %></option>
-              <% }) %>
-            </select>
-            <button type="submit" class="btn btn-primary btn-sm">Atualizar Status</button>
-          </form>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <% if (podeMexerStatus) { %>
+            <form action="/ordens/<%= ordem.id %>/status" method="POST" style="display:flex; gap:8px; align-items:center">
+              <select name="status" class="form-group" style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px">
+                <%# FINALIZADO fica de fora: encerrar é faturar, e depende de liberação da gerência %>
+                <% ['INICIAL','ORCAMENTO','AUTORIZADO','EM_ANDAMENTO','CANCELADO'].forEach(s => { %>
+                <option value="<%= s %>" <%= ordem.status === s ? 'selected' : '' %>><%= s.replace('_',' ') %></option>
+                <% }) %>
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm">Atualizar Status</button>
+            </form>
+            <% } %>
+
+            <% if (podeFaturar && ordem.status === 'EM_ANDAMENTO') { %>
+            <form action="/ordens/<%= ordem.id %>/faturar" method="POST">
+              <button type="submit" class="btn btn-success btn-sm"
+                onclick="return confirm('Faturar e encerrar esta OS? A conta a receber será gerada no financeiro.')">
+                💵 Faturar e Encerrar
+              </button>
+            </form>
+            <% } %>
+          </div>
         </div>
       </div>
 
@@ -93,7 +126,7 @@
 <div class="form-box" style="margin-bottom:16px">
   <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">💰 Orçamento</h2>
 
-  <% if (podeEditarOrcamento) { %>
+  <% if (podeEditarOrcamento && podeMexerOrcamento) { %>
   <form action="/ordens/<%= ordem.id %>/orcamento" method="POST">
     <div class="form-row">
       <div class="form-group">
@@ -109,7 +142,17 @@
     </div>
     <button type="submit" class="btn btn-primary btn-sm">💾 Salvar Orçamento</button>
   </form>
-  <% } else if (ordem.valorOrcamento && ordem.status !== 'AUTORIZADO') { %>
+  <% } else if (!ordem.valorOrcamento) { %>
+  <p style="font-size:13px; color:#888">
+    Nenhum orçamento registrado.
+    <% if (podeEditarOrcamento) { %>
+      O lançamento do orçamento é atribuição do VENDEDOR.
+    <% } else { %>
+      O orçamento só pode ser lançado enquanto a OS estiver
+      <strong>INICIAL</strong> ou <strong>ORCAMENTO</strong>.
+    <% } %>
+  </p>
+  <% } else if (ordem.status !== 'AUTORIZADO') { %>
   <p style="font-size:13px; color:#555">
     Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
     <% if (ordem.previsaoEntrega) { %>
@@ -119,21 +162,14 @@
       — Aprovado em: <strong><%= new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') %></strong>
     <% } %>
   </p>
-  <% } else { %>
-  <p style="font-size:13px; color:#888">
-    Nenhum orçamento registrado. O orçamento só pode ser lançado enquanto a OS estiver
-    <strong>INICIAL</strong> ou <strong>ORCAMENTO</strong>.
-  </p>
   <% } %>
 
-  <% if (ordem.valorOrcamento && ordem.status === 'ORCAMENTO') { %>
+  <% if (ordem.valorOrcamento && ordem.status === 'ORCAMENTO' && podeAprovar) { %>
   <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee">
-    <p style="font-size:13px; color:#555; margin-bottom:12px">
-      Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
-      <% if (ordem.previsaoEntrega) { %>
-        — Previsão: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
-      <% } %>
-    </p>
+    <%
+      // O valor já aparece acima — no formulário, para quem lança o orçamento,
+      // ou no resumo, para quem só acompanha. Repetir aqui duplicava a linha.
+    %>
     <div style="display:flex; gap:12px">
       <form action="/ordens/<%= ordem.id %>/aprovar" method="POST">
         <button type="submit" class="btn btn-success btn-sm"
@@ -179,7 +215,7 @@
       <div class="form-box" style="margin-bottom:16px">
         <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">🔧 Registrar Serviço Executado</h2>
 
-        <% if (podeRegistrarServico) { %>
+        <% if (podeRegistrarServico && podeMexerServico) { %>
         <form action="/ordens/<%= ordem.id %>/servicos" method="POST">
           <div class="form-row full">
             <div class="form-group">
@@ -206,6 +242,12 @@
             </div>
           </div>
         </form>
+        <% } else if (!podeMexerServico) { %>
+        <div style="padding:12px; background:#f7f9fc; border-radius:6px; border:1px solid #e2e8f0">
+          <p style="color:#666; font-size:13px">
+            O registro de serviços executados é atribuição do <strong>TÉCNICO</strong>.
+          </p>
+        </div>
         <% } else { %>
         <div style="padding:12px; background:#fffaf0; border-radius:6px; border:1px solid #fbd38d">
           <p style="color:#975a16; font-size:13px">
@@ -229,13 +271,13 @@
               <th>Executado em</th>
               <th>Garantia</th>
               <th>Situação</th>
-              <% if (podeExcluirServico) { %><th>Ações</th><% } %>
+              <% if (mostrarAcoesServico) { %><th>Ações</th><% } %>
             </tr>
           </thead>
           <tbody>
             <% if (!servicos || servicos.length === 0) { %>
             <tr>
-              <td colspan="<%= podeExcluirServico ? 6 : 5 %>" style="text-align:center; color:#aaa; padding:24px">
+              <td colspan="<%= mostrarAcoesServico ? 6 : 5 %>" style="text-align:center; color:#aaa; padding:24px">
                 Nenhum serviço executado registrado ainda.
               </td>
             </tr>
@@ -270,7 +312,7 @@
                   </span>
                 <% } %>
               </td>
-              <% if (podeExcluirServico) { %>
+              <% if (mostrarAcoesServico) { %>
               <td>
                 <form action="/ordens/<%= ordem.id %>/servicos/<%= s.id %>/excluir" method="POST">
                   <button type="submit" class="btn btn-danger btn-sm"
@@ -288,10 +330,54 @@
       </div>
       <!-- ============ fim Módulo 3 (parte 2) ============ -->
 
+      <!-- ============ Módulo 4 (parte 1): produtos utilizados ============ -->
       <!-- Produtos utilizados -->
+      <% if (podeLancarItem && podeMexerItem) { %>
+      <div class="form-box" style="margin-bottom:16px">
+        <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">📦 Lançar Produto na OS</h2>
+        <form action="/ordens/<%= ordem.id %>/itens" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Produto *</label>
+              <select name="produtoId" required>
+                <option value="">Selecione o produto</option>
+                <% produtos.forEach(p => { %>
+                <option value="<%= p.id %>" data-preco="<%= Number(p.preco).toFixed(2) %>">
+                  <%= p.nome %> — R$ <%= Number(p.preco).toFixed(2) %> (<%= p.estoque %> em estoque)
+                </option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantidade *</label>
+              <input type="number" name="quantidade" min="1" step="1" value="1" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valor Unitário (R$)</label>
+              <input type="text" name="valorUnit" placeholder="Em branco = preço de tabela">
+              <span style="font-size:12px; color:#888">
+                Preencha apenas se houver desconto ou preço negociado.
+              </span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">➕ Lançar Produto</button>
+        </form>
+      </div>
+      <% } else if (podeMexerItem) { %>
+      <div class="alert alert-aviso" style="margin-bottom:16px">
+        ⚠ Produtos só podem ser lançados quando a OS estiver <strong>AUTORIZADO</strong>
+        ou <strong>EM ANDAMENTO</strong>. Status atual: <strong><%= ordem.status.replace('_',' ') %></strong>.
+      </div>
+      <% } %>
+
       <div class="tabela-box">
         <div class="tabela-header">
           <h2>📦 Produtos Utilizados</h2>
+          <span style="font-size:13px; color:#555">
+            Total em peças: <strong>R$ <%= totalItens.toFixed(2) %></strong>
+          </span>
         </div>
         <table>
           <thead>
@@ -300,12 +386,13 @@
               <th>Quantidade</th>
               <th>Valor Unit.</th>
               <th>Subtotal</th>
+              <% if (mostrarAcoesItem) { %><th>Ações</th><% } %>
             </tr>
           </thead>
           <tbody>
             <% if (ordem.itens.length === 0) { %>
             <tr>
-              <td colspan="4" style="text-align:center; color:#aaa; padding:24px">
+              <td colspan="<%= mostrarAcoesItem ? 5 : 4 %>" style="text-align:center; color:#aaa; padding:24px">
                 Nenhum produto utilizado ainda.
               </td>
             </tr>
@@ -316,12 +403,21 @@
               <td><%= i.quantidade %></td>
               <td>R$ <%= Number(i.valorUnit).toFixed(2) %></td>
               <td>R$ <%= (Number(i.valorUnit) * i.quantidade).toFixed(2) %></td>
+              <% if (mostrarAcoesItem) { %>
+              <td>
+                <form action="/ordens/<%= ordem.id %>/itens/<%= i.id %>/remover" method="POST" style="display:inline"
+                  onsubmit="return confirm('Remover este produto da OS? A quantidade volta para o estoque.')">
+                  <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                </form>
+              </td>
+              <% } %>
             </tr>
             <% }) %>
             <% } %>
           </tbody>
         </table>
       </div>
+      <!-- ============ fim Módulo 4 (parte 1) ============ -->
 
     </div>
   </div>

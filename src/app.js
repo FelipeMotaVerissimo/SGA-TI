@@ -12,8 +12,10 @@ const clienteRoutes      = require('./routes/clienteRoutes');
 const equipamentoRoutes  = require('./routes/equipamentoRoutes');
 const ordemServicoRoutes = require('./routes/ordemServicoRoutes');
 const produtoRoutes      = require('./routes/produtoRoutes');
+const financeiroRoutes   = require('./routes/financeiroRoutes');
 const usuarioRoutes      = require('./routes/usuarioRoutes');
 const errorHandler       = require('./middlewares/errorHandler');
+const { temPermissao }   = require('./middlewares/perfilMiddleware');
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.use((req, res, next) => {
   res.locals.usuario   = req.session.usuario || null;
   res.locals.sucesso   = req.flash('sucesso');
   res.locals.erro      = req.flash('erro');
+  res.locals.aviso     = req.flash('aviso');   // Módulo 4: estoque negativo etc.
+  res.locals.temPermissao = temPermissao;      // Módulo 4: usado pela sidebar
   next();
 });
 
@@ -56,6 +60,7 @@ app.use('/api/clientes',     clienteRoutes);
 app.use('/api/equipamentos', equipamentoRoutes);
 app.use('/api/ordens',       ordemServicoRoutes);
 app.use('/api/produtos',     produtoRoutes);
+app.use('/api/financeiro',   financeiroRoutes);
 app.use('/api/usuarios',     usuarioRoutes);
 
 // Rotas de views (web)

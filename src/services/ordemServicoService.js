@@ -1,4 +1,5 @@
-const prisma = require('../config/database');
+const prisma            = require('../config/database');
+const financeiroService = require('./financeiroService'); // Módulo 4 - parte 2
 
 // Status em que o orçamento ainda pode ser lançado/alterado.
 // FINALIZADO e CANCELADO ficam de fora (rastreabilidade);
@@ -104,13 +105,40 @@ async function abrirOrdem(dados, usuarioId) {
   });
 }
 
-async function atualizarStatus(id, status) {
-  await buscarOrdemPorId(id);
+/**
+ * Atualiza o status da OS.
+ *
+ * Módulo 4 (parte 2): ao FINALIZAR, o sistema também gera a conta a receber
+ * do atendimento. As duas escritas vão na mesma transação — uma OS encerrada
+ * sem o lançamento financeiro (ou o contrário) deixaria o caixa inconsistente.
+ */
+async function atualizarStatus(id, status, opcoes = {}) {
+  const ordem = await buscarOrdemPorId(id);
+
+  // Módulo 4: encerrar a OS gera a conta a receber, ou seja, é faturar. Na
+  // entrevista (item 8) a liberação de faturamento é da Gerência/ADM, por isso
+  // FINALIZADO só passa pela rota própria, que exige o perfil.
+  if (status === 'FINALIZADO' && !opcoes.liberadoParaFaturar) {
+    throw erro(
+      'Encerrar a ordem de serviço gera o faturamento e depende de liberação ' +
+      'da gerência. Use a ação "Faturar e encerrar".'
+    );
+  }
+
   const extra = {};
   if (status === 'FINALIZADO') extra.dataFechamento = new Date();
-  return prisma.ordemServico.update({
-    where: { id: Number(id) },
-    data:  { status, ...extra },
+
+  return prisma.$transaction(async (tx) => {
+    const atualizada = await tx.ordemServico.update({
+      where: { id: ordem.id },
+      data:  { status, ...extra },
+    });
+
+    if (status === 'FINALIZADO' && ordem.status !== 'FINALIZADO') {
+      await financeiroService.gerarContaDaOrdem(tx, ordem);
+    }
+
+    return atualizada;
   });
 }
 
@@ -177,8 +205,18 @@ async function rejeitarOrcamento(id) {
   });
 }
 
+/**
+ * Encerra a OS liberando o faturamento. Só a rota protegida pelo perfil de
+ * gerência chega aqui — a diferença para `atualizarStatus` é exatamente a
+ * liberação.
+ */
+async function faturarEEncerrar(id) {
+  return atualizarStatus(id, 'FINALIZADO', { liberadoParaFaturar: true });
+}
+
 module.exports = {
   STATUS_PERMITE_ORCAMENTO,
+  faturarEEncerrar,
   parseDataLocal,
   validarValorOrcamento,
   listarOrdens,

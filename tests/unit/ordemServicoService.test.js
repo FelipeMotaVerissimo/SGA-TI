@@ -5,10 +5,27 @@ jest.mock('../../src/config/database', () => ({
     create:     jest.fn(),
     update:     jest.fn(),
   },
+  // Módulo 4: o encerramento da OS passou a rodar dentro de uma transação,
+  // junto com a geração da conta a receber.
+  contaReceber: { findUnique: jest.fn(), create: jest.fn() },
+  $transaction: jest.fn(),
 }));
 
 const prisma              = require('../../src/config/database');
 const ordemServicoService = require('../../src/services/ordemServicoService');
+
+/** Transação falsa que devolve os mesmos mocks do prisma. */
+function transacaoFake() {
+  const tx = {
+    ordemServico: { update: jest.fn().mockResolvedValue({}) },
+    contaReceber: {
+      findUnique: jest.fn().mockResolvedValue(null),
+      create:     jest.fn().mockImplementation(async (a) => ({ id: 1, ...a.data })),
+    },
+  };
+  prisma.$transaction.mockImplementation((fn) => fn(tx));
+  return tx;
+}
 
 describe('ordemServicoService', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -26,15 +43,67 @@ describe('ordemServicoService', () => {
   });
 
   test('atualizarStatus FINALIZADO deve registrar dataFechamento', async () => {
-    const ordemMock = { id: 1, status: 'EM_ANDAMENTO' };
+    const ordemMock = { id: 1, status: 'EM_ANDAMENTO', itens: [] };
     prisma.ordemServico.findUnique.mockResolvedValue(ordemMock);
-    prisma.ordemServico.update.mockResolvedValue({ ...ordemMock, status: 'FINALIZADO' });
+    const tx = transacaoFake();
 
-    await ordemServicoService.atualizarStatus(1, 'FINALIZADO');
+    await ordemServicoService.faturarEEncerrar(1);
 
-    const chamada = prisma.ordemServico.update.mock.calls[0][0];
+    const chamada = tx.ordemServico.update.mock.calls[0][0];
     expect(chamada.data.dataFechamento).toBeDefined();
     expect(chamada.data.status).toBe('FINALIZADO');
+  });
+
+  // ----- Módulo 4 (parte 2): conta a receber gerada no encerramento -----
+
+  test('encerrar a OS gera a conta a receber na mesma transação', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue({
+      id: 1, numero: 'OS-2026-000104', status: 'EM_ANDAMENTO',
+      valorOrcamento: '890.00', itens: [],
+      equipamento: { cliente: { id: 7, nome: 'Marcos Almeida' } },
+    });
+    const tx = transacaoFake();
+
+    await ordemServicoService.faturarEEncerrar(1);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.contaReceber.create).toHaveBeenCalledTimes(1);
+    expect(tx.contaReceber.create.mock.calls[0][0].data).toMatchObject({
+      ordemId: 1, clienteId: 7, valor: '890.00',
+    });
+  });
+
+  test('mudar para outro status não gera conta', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue({
+      id: 1, status: 'AUTORIZADO', valorOrcamento: '890.00', itens: [],
+    });
+    const tx = transacaoFake();
+
+    await ordemServicoService.atualizarStatus(1, 'EM_ANDAMENTO');
+
+    expect(tx.contaReceber.create).not.toHaveBeenCalled();
+  });
+
+  test('reenviar FINALIZADO numa OS já finalizada não gera outra conta', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue({
+      id: 1, status: 'FINALIZADO', valorOrcamento: '890.00', itens: [],
+    });
+    const tx = transacaoFake();
+
+    await ordemServicoService.faturarEEncerrar(1);
+
+    expect(tx.contaReceber.create).not.toHaveBeenCalled();
+  });
+
+  test('atualizarStatus não encerra a OS sem liberação de faturamento', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue({
+      id: 1, status: 'EM_ANDAMENTO', valorOrcamento: '890.00', itens: [],
+    });
+    transacaoFake();
+
+    await expect(ordemServicoService.atualizarStatus(1, 'FINALIZADO'))
+      .rejects.toThrow(/depende de liberação da gerência/);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   // ----- Módulo 3 (parte 2): correções de orçamento -----

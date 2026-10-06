@@ -1,0 +1,93 @@
+<%
+  /**
+   * Formata o preço para o campo. Quando o cadastro volta com erro de
+   * validação, `produto` é o próprio req.body e o preço ainda é o texto
+   * digitado ("31,50") — `Number('31,50')` daria NaN e o usuário perderia
+   * o que escreveu. Nesse caso o valor é devolvido como veio.
+   */
+  const precoNoCampo = (p) => {
+    if (!p || p.preco === undefined || p.preco === null || p.preco === '') return '';
+    const n = Number(p.preco);
+    return Number.isFinite(n) ? n.toFixed(2) : p.preco;
+  };
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/produtos' }) %>
+
+    <div class="conteudo">
+      <a href="/produtos" class="voltar">← Voltar</a>
+
+      <div class="page-header">
+        <h1><%= titulo %></h1>
+        <p>Preencha os dados do produto</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="form-box">
+        <form action="<%= produto && produto.id ? '/produtos/' + produto.id : '/produtos' %>" method="POST">
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Nome do Produto *</label>
+              <input type="text" name="nome" placeholder="Ex.: Memória DDR4 8GB"
+                value="<%= produto ? (produto.nome || '') : '' %>" required>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Descrição</label>
+              <textarea name="descricao"
+                placeholder="Especificações, compatibilidade, fornecedor..."><%= produto ? (produto.descricao || '') : '' %></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Preço de Venda (R$) *</label>
+              <input type="text" name="preco" placeholder="0,00"
+                value="<%= precoNoCampo(produto) %>" required>
+            </div>
+
+            <% if (!produto || !produto.id) { %>
+            <div class="form-group">
+              <label>Estoque Inicial</label>
+              <input type="number" name="estoque" min="0" step="1" placeholder="0"
+                value="<%= produto ? (produto.estoque || '') : '' %>">
+              <span style="font-size:12px; color:#888">
+                Entra como uma movimentação de ENTRADA no histórico.
+              </span>
+            </div>
+            <% } else { %>
+            <div class="form-group">
+              <label>Estoque Atual</label>
+              <input type="text" value="<%= produto.estoque %> unidade(s)" disabled>
+              <span style="font-size:12px; color:#888">
+                O saldo só muda por movimentação —
+                <a href="/produtos/<%= produto.id %>/estoque">abrir tela de estoque</a>.
+              </span>
+            </div>
+            <% } %>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-primary">💾 Salvar Produto</button>
+            <a href="/produtos" class="btn btn-secondary">✕ Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
