@@ -17,6 +17,7 @@ const usuarioRoutes      = require('./routes/usuarioRoutes');
 const errorHandler       = require('./middlewares/errorHandler');
 const { temPermissao }   = require('./middlewares/perfilMiddleware');
 const { contextoMiddleware } = require('./middlewares/contextoMiddleware'); // NF005
+const seguranca          = require('./config/seguranca');                    // NF007
 
 const app = express();
 
@@ -27,9 +28,18 @@ app.set('views', path.join(__dirname, '..', 'views'));
 // Arquivos estáticos
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// NF007 — atrás do proxy da hospedagem, é o que faz o Express enxergar o
+// protocolo e o IP originais. Só em produção: em desenvolvimento não há proxy,
+// e confiar em cabeçalho forjável seria o oposto de segurança.
+if (seguranca.emProducao()) app.set('trust proxy', 1);
+
+// NF007 — HTTP vira HTTPS em produção. Antes de tudo, para nenhuma resposta
+// sair em claro.
+app.use(seguranca.redirecionarParaHttps);
+
 // Middlewares globais
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
+app.use(helmet(seguranca.opcoesHelmet()));   // NF007: CSP ligado e HSTS em produção
+app.use(cors(seguranca.opcoesCors()));       // NF007: só as origens de CORS_ORIGINS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
@@ -52,7 +62,7 @@ app.use(session({
   secret:            process.env.SESSION_SECRET,
   resave:            false,
   saveUninitialized: false,
-  cookie:            { maxAge: 8 * 60 * 60 * 1000 }, // 8 horas
+  cookie:            seguranca.opcoesCookieSessao(), // NF007
 }));
 
 // Flash messages

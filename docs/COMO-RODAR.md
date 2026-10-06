@@ -25,16 +25,23 @@ PORT=3000
 NODE_ENV=development
 JWT_SECRET=troque_esta_chave
 SESSION_SECRET=troque_esta_chave
+CORS_ORIGINS=
 ```
+
+> Em produção, `NODE_ENV=production` liga HSTS, redirecionamento HTTP→HTTPS,
+> cookie `secure` e `trust proxy`. Em desenvolvimento tudo isso fica desligado
+> de propósito, para o sistema continuar funcionando em `http://localhost`.
+> Detalhes em `docs/SEGURANCA.md`.
 
 | Variável | Quem lê | Obrigatória | Para que serve |
 |---|---|---|---|
 | `DATABASE_URL` | `prisma/schema.prisma` | sim | Conexão com o MySQL da aplicação |
 | `PORT` | `server.js` | não (padrão 3000) | Porta HTTP |
-| `NODE_ENV` | `src/app.js`, `src/middlewares/errorHandler.js` | não | Em `production`, o tratador de erros deixa de expor o stack trace |
+| `NODE_ENV` | `src/app.js`, `src/config/seguranca.js`, `src/middlewares/errorHandler.js` | não | Em `production`, liga as proteções de transporte do NF007 e o tratador de erros deixa de expor o stack trace |
 | `JWT_SECRET` | `src/controllers/authController.js` | sim | Assinatura do token das rotas de API (`/api/*`) |
 | `SESSION_SECRET` | `src/app.js` | sim | Assinatura do cookie de sessão das telas web |
 | `TEST_DATABASE_URL` | `tests/helpers/ambiente.js` | só nos testes | Banco **vazio e separado** para a suíte de integração (ver seção 6) |
+| `CORS_ORIGINS` | `src/config/seguranca.js` | não | Origens autorizadas a chamar a API, separadas por vírgula. Vazio = nenhuma origem cruzada (NF007) |
 
 > `JWT_SECRET` e `SESSION_SECRET` são chaves distintas de propósito: o site usa
 > sessão com cookie (`express-session`) e a API usa token JWT. Comprometer uma
@@ -57,8 +64,9 @@ npm run seed
 | `db:mysql:client` | Gera o Prisma Client a partir de `prisma/schema.prisma` |
 | `db:mysql` | Aplica as migrations versionadas (`prisma migrate deploy`) |
 | `seed` | Cria os 6 perfis e o usuário `admin` |
+| `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
 
-### As quatro migrations
+### As cinco migrations
 
 | Migration | O que acrescenta |
 |---|---|
@@ -66,6 +74,7 @@ npm run seed
 | `20260817133444_modulo4_financeiro_estoque` | Módulo 4: `produtos`, `movimentos_estoque`, `itens_ordem`, `contas_pagar`, `contas_receber`, e as colunas `clientes.bairro`, `movimentos_estoque.usuarioId` e `quitadaPorId` |
 | `20260825120000_modulo5_relatorios` | Módulo 5: `tipos_servico`, `equipamentos.tipo` e `itens_ordem.criadoEm` |
 | `20261005120000_nf005_auditoria` | NF005: `logs_auditoria` e o enum `AcaoAuditoria` |
+| `20261006120000_nf008_retencao` | NF008: `equipamentos.ativo` e `clientes.anonimizadoEm` |
 
 As três primeiras já foram aplicadas num servidor MySQL real, em banco vazio, com o
 `prisma migrate diff` do resultado contra o schema voltando vazio. Detalhes em
@@ -139,8 +148,8 @@ precisa criar os outros cinco à mão antes de conseguir demonstrar o RF022/RF02
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 190 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 192 testes de integração (rota, sessão, JWT e banco)
+npm run test:unit         :: 223 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 226 testes de integração (rota, sessão, JWT e banco)
 npm test                  :: suíte completa
 ```
 
@@ -148,8 +157,8 @@ Resultado atual na `main` consolidada:
 
 | Suíte | Passando | Falhando |
 |---|---|---|
-| Unitários | **190** | 0 |
-| Integração | **189** | 3 (todas em `auth.test.js`, ver abaixo) |
+| Unitários | **223** | 0 |
+| Integração | **223** | 3 (todas em `auth.test.js`, ver abaixo) |
 
 ### Banco dos testes
 
@@ -181,6 +190,8 @@ npm run test:integration
 | `tests/integration/tiposServico.test.js` | Catálogo de tipos e classificação (RF017/RF019) |
 | `tests/integration/dashboard.test.js` | Dashboards por perfil e exportação CSV (UC RF008) |
 | `tests/integration/auditoria.test.js` | Log de auditoria, acesso e somente-leitura (NF005) |
+| `tests/integration/seguranca.test.js` | Cabeçalhos, cookie e CORS (NF007) |
+| `tests/integration/retencao.test.js` | Anonimização LGPD e exclusão lógica (NF008) |
 | `tests/integration/clientes.test.js` | API de clientes (Módulo 1) |
 
 ### As 3 falhas conhecidas

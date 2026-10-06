@@ -1,3 +1,8 @@
+<%
+  // NF008: anonimizar é irreversível, então só o administrador vê o botão —
+  // a rota já trava, isto evita oferecer o que vai ser negado.
+  const ehAdmin = locals.temPermissao ? locals.temPermissao(locals.usuario, []) : true;
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -21,7 +26,12 @@
       <div class="tabela-box">
         <div class="tabela-header">
           <h2>Lista de Clientes</h2>
-          <a href="/clientes/novo" class="btn btn-primary btn-sm">+ Novo Cliente</a>
+          <div style="display:flex; gap:8px; align-items:center">
+            <a href="/clientes<%= incluirInativos ? '' : '?inativos=1' %>" class="btn btn-secondary btn-sm">
+              <%= incluirInativos ? '👁 Só ativos' : '👁 Mostrar inativos' %>
+            </a>
+            <a href="/clientes/novo" class="btn btn-primary btn-sm">+ Novo Cliente</a>
+          </div>
         </div>
         <table>
           <thead>
@@ -31,13 +41,14 @@
               <th>CPF/CNPJ</th>
               <th>Telefone</th>
               <th>Cidade</th>
+              <th>Situação</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             <% if (clientes.length === 0) { %>
             <tr>
-              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+              <td colspan="7" style="text-align:center; color:#aaa; padding:32px">
                 Nenhum cliente cadastrado ainda.
               </td>
             </tr>
@@ -50,11 +61,40 @@
               <td><%= c.celular || c.telefone || '—' %></td>
               <td><%= c.cidade || '—' %></td>
               <td>
+                <% if (c.anonimizadoEm) { %>
+                  <span class="badge badge-cinza" title="Dados pessoais apagados a pedido do titular">
+                    🔒 Anonimizado
+                  </span><br>
+                  <span style="font-size:11px; color:#888">
+                    <%= new Date(c.anonimizadoEm).toLocaleDateString('pt-BR') %>
+                  </span>
+                <% } else if (!c.ativo) { %>
+                  <span class="badge badge-vermelho">Inativo</span>
+                <% } else { %>
+                  <span class="badge badge-verde">Ativo</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (!c.anonimizadoEm) { %>
                 <a href="/clientes/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/clientes/<%= c.id %>/excluir" method="POST" style="display:inline"
                   onsubmit="return confirm('Deseja remover este cliente?')">
                   <button type="submit" class="btn btn-danger btn-sm">Remover</button>
                 </form>
+                <% if (ehAdmin) { %>
+                <form action="/clientes/<%= c.id %>/anonimizar" method="POST" style="display:inline"
+                  onsubmit="return confirm('ANONIMIZAR os dados pessoais de <%= c.nome.replace(/'/g, '') %>?
+
+Nome, CPF/CNPJ, RG, endereço e contatos serão APAGADOS.
+As ordens de serviço e o histórico financeiro são preservados.
+
+Esta operação NÃO pode ser desfeita.')">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Art. 18 da LGPD">🔒 Anonimizar</button>
+                </form>
+                <% } %>
+                <% } else { %>
+                <span style="color:#aaa; font-size:12px">—</span>
+                <% } %>
               </td>
             </tr>
             <% }) %>

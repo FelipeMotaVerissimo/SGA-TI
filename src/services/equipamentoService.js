@@ -22,11 +22,34 @@ function validarTipo(bruto) {
   return tipo;
 }
 
-async function listarEquipamentos() {
+/**
+ * NF008 — por padrão lista só os ativos. O inativo some do dia a dia mas
+ * continua no banco, porque as ordens de serviço apontam para ele.
+ */
+async function listarEquipamentos(filtros = {}) {
+  const where = {};
+  if (!filtros.incluirInativos) where.ativo = true;
+
   return prisma.equipamento.findMany({
+    where,
     include: { cliente: true },
     orderBy: { criadoEm: 'desc' },
   });
+}
+
+/**
+ * NF008 — exclusão lógica. Física é impossível: `ordens_servico.equipamentoId`
+ * é `ON DELETE RESTRICT`, e apagar o equipamento levaria junto o histórico de
+ * atendimento da máquina.
+ */
+async function excluirEquipamento(id) {
+  const equip = await buscarEquipamentoPorId(id);
+  return prisma.equipamento.update({ where: { id: equip.id }, data: { ativo: false } });
+}
+
+async function reativarEquipamento(id) {
+  const equip = await buscarEquipamentoPorId(id);
+  return prisma.equipamento.update({ where: { id: equip.id }, data: { ativo: true } });
 }
 
 async function buscarEquipamentoPorId(id) {
@@ -40,7 +63,8 @@ async function buscarEquipamentoPorId(id) {
 
 async function buscarPorCliente(clienteId) {
   return prisma.equipamento.findMany({
-    where:   { clienteId: Number(clienteId) },
+    // NF008: equipamento inativo não entra em OS nova.
+    where:   { clienteId: Number(clienteId), ativo: true },
     orderBy: { criadoEm: 'desc' },
   });
 }
@@ -143,4 +167,5 @@ module.exports = {
   TIPOS_EQUIPAMENTO,
   TIPO_PADRAO,
   validarTipo, listarEquipamentos, buscarEquipamentoPorId, buscarPorCliente, criarEquipamento, atualizarEquipamento,
-  historicoDeServicos };
+  historicoDeServicos,
+  excluirEquipamento, reativarEquipamento };

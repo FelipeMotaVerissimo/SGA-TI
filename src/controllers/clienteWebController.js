@@ -1,9 +1,11 @@
 const clienteService = require('../services/clienteService');
+const retencaoService = require('../services/retencaoService'); // NF008
 
 async function listar(req, res) {
   try {
-    const clientes = await clienteService.listarClientes();
-    res.render('clientes/listar', { titulo: 'Clientes', clientes });
+    const incluirInativos = req.query.inativos === '1';
+    const clientes = await clienteService.listarClientes({ incluirInativos });
+    res.render('clientes/listar', { titulo: 'Clientes', clientes, incluirInativos });
   } catch (err) {
     req.flash('erro', err.message);
     res.redirect('/dashboard');
@@ -59,4 +61,26 @@ async function excluir(req, res) {
   }
 }
 
-module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, excluir };
+/**
+ * NF008 — anonimização a pedido do titular (art. 18 da LGPD).
+ *
+ * Operação irreversível, por isso restrita ao administrador na rota e com
+ * confirmação na tela.
+ */
+async function anonimizar(req, res) {
+  try {
+    const vinculo = await retencaoService.resumoDoVinculo(req.params.id);
+    await retencaoService.anonimizarCliente(req.params.id);
+    req.flash(
+      'sucesso',
+      'Dados pessoais apagados. Preservados: ' +
+      `${vinculo.ordens} ordem(ns) de serviço, ${vinculo.equipamentos} equipamento(s) ` +
+      `e ${vinculo.contas} conta(s) a receber.`
+    );
+  } catch (err) {
+    req.flash('erro', err.message);
+  }
+  res.redirect('/clientes?inativos=1');
+}
+
+module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, excluir, anonimizar };

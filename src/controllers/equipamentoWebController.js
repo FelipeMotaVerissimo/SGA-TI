@@ -4,8 +4,9 @@ const { temPermissao }   = require('../middlewares/perfilMiddleware');
 
 async function listar(req, res) {
   try {
-    const equipamentos = await equipamentoService.listarEquipamentos();
-    res.render('equipamentos/listar', { titulo: 'Equipamentos', equipamentos });
+    const incluirInativos = req.query.inativos === '1';
+    const equipamentos = await equipamentoService.listarEquipamentos({ incluirInativos });
+    res.render('equipamentos/listar', { titulo: 'Equipamentos', equipamentos, incluirInativos });
   } catch (err) {
     req.flash('erro', err.message);
     res.redirect('/dashboard');
@@ -87,4 +88,25 @@ async function exibirHistorico(req, res) {
   }
 }
 
-module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, exibirHistorico };
+/** NF008 — exclusão lógica. */
+async function excluir(req, res) {
+  try {
+    await equipamentoService.excluirEquipamento(req.params.id);
+    req.flash('sucesso', 'Equipamento desativado. O histórico de OS foi preservado.');
+  } catch (err) {
+    req.flash('erro', err.message);
+  }
+  res.redirect('/equipamentos');
+}
+
+async function reativar(req, res) {
+  try {
+    await equipamentoService.reativarEquipamento(req.params.id);
+    req.flash('sucesso', 'Equipamento reativado.');
+  } catch (err) {
+    req.flash('erro', err.message);
+  }
+  res.redirect('/equipamentos?inativos=1');
+}
+
+module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, exibirHistorico, excluir, reativar };

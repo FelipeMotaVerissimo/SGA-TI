@@ -1,7 +1,13 @@
 const prisma = require('../config/database');
 
-async function listarClientes() {
-  return prisma.cliente.findMany({ where: { ativo: true }, orderBy: { nome: 'asc' } });
+/**
+ * NF008 — por padrão só os ativos, como sempre foi. `incluirInativos` existe
+ * para o administrador conferir o resultado de uma anonimização: o cliente
+ * anonimizado é desativado e sumiria da tela sem deixar como verificar.
+ */
+async function listarClientes(filtros = {}) {
+  const where = filtros.incluirInativos ? {} : { ativo: true };
+  return prisma.cliente.findMany({ where, orderBy: { nome: 'asc' } });
 }
 
 async function buscarClientePorId(id) {

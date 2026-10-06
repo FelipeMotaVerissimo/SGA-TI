@@ -46,6 +46,9 @@ router.post('/clientes/novo',        sessaoMiddleware, exigirPerfil(...PERFIS_CA
 router.get('/clientes/:id/editar',   sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), clienteWeb.exibirEditar);
 router.post('/clientes/:id/editar',  sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), clienteWeb.atualizar);
 router.post('/clientes/:id/excluir', sessaoMiddleware, exigirPerfil(),                   clienteWeb.excluir); // UC RF004: só administrador
+// NF008 — anonimização (art. 18 da LGPD). Irreversível, por isso só o
+// administrador, mesma trava da exclusão.
+router.post('/clientes/:id/anonimizar', sessaoMiddleware, exigirPerfil(),              clienteWeb.anonimizar);
 
 // Equipamentos
 router.get('/equipamentos',              sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.listar);
@@ -56,6 +59,9 @@ router.post('/equipamentos/:id',         sessaoMiddleware, exigirPerfil(...PERFI
 // RF012 — histórico de serviços por equipamento. O TECNICO entra aqui vindo da
 // OS: é ele quem precisa saber o que já foi feito na máquina antes de mexer.
 router.get('/equipamentos/:id/historico', sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO, 'TECNICO'), equipamentoWeb.exibirHistorico);
+// NF008 — exclusão lógica do equipamento. Só administrador, como a de cliente.
+router.post('/equipamentos/:id/excluir',  sessaoMiddleware, exigirPerfil(), equipamentoWeb.excluir);
+router.post('/equipamentos/:id/reativar', sessaoMiddleware, exigirPerfil(), equipamentoWeb.reativar);
 
 // Ordens de Serviço
 router.get('/ordens',                sessaoMiddleware, exigirPerfil(...PERFIS_OS, 'VENDEDOR'), ordemServicoWeb.listar);

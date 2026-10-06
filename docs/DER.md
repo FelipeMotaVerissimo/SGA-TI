@@ -1,7 +1,7 @@
 # DER — Diagrama Entidade-Relacionamento
 
 **Sistema:** SGA TI — Sistema de Gerenciamento de Assistência Técnica
-**Origem:** gerado a partir de `prisma/schema.prisma` e das quatro migrations em
+**Origem:** gerado a partir de `prisma/schema.prisma` e das cinco migrations em
 `prisma/migrations/`, na `main` consolidada
 **Data:** 05/10/2026
 **SGBD:** MySQL 8 (`provider = "mysql"`)
@@ -82,6 +82,7 @@ erDiagram
         varchar cidade
         varchar estado
         boolean ativo
+        datetime anonimizadoEm
         datetime criadoEm
     }
 
@@ -93,6 +94,7 @@ erDiagram
         varchar modelo
         varchar numeroSerie
         text defeito
+        boolean ativo
         int clienteId FK
         datetime criadoEm
     }
@@ -195,7 +197,7 @@ erDiagram
 
 | Arquivo | Conteúdo | Dimensões |
 |---|---|---|
-| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 3958 px |
+| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 4124 px |
 | `docs/der-visao-geral.png` | Só entidades e relacionamentos | 5802 × 2109 px |
 
 Gerados com `@mermaid-js/mermaid-cli` 11 a partir do bloco acima, tema `neutral`,
@@ -333,7 +335,12 @@ pessoais do sistema — é a tabela crítica para a LGPD (NF008).
 | `celular` | `VARCHAR(20)` | sim | — | — |
 | `email` | `VARCHAR(150)` | sim | — | — |
 | `ativo` | `BOOLEAN` | não | — | `true` |
+| `anonimizadoEm` | `DATETIME(3)` | sim | — | — |
 | `criadoEm` | `DATETIME(3)` | não | — | agora |
+
+`anonimizadoEm` é do NF008: preenchido quando os dados pessoais foram apagados a
+pedido do titular (art. 18 da LGPD). Nulo = cliente com dados íntegros. Ver
+`docs/RETENCAO.md`.
 
 `cpfCnpj` com 18 posições acomoda o CNPJ formatado (`00.000.000/0000-00`).
 `cidade` e `estado` são os campos que sustentariam o NF004 (análise geográfica),
@@ -353,6 +360,7 @@ várias vezes — é por isso que o histórico por equipamento (RF012) faz senti
 | `modelo` | `VARCHAR(100)` | não | — | — |
 | `numeroSerie` | `VARCHAR(100)` | sim | — | — |
 | `defeito` | `TEXT` | não | — | — |
+| `ativo` | `BOOLEAN` | não | — | `true` |
 | `clienteId` | `INT` | não | FK → `clientes.id` | — |
 | `criadoEm` | `DATETIME(3)` | não | — | agora |
 
@@ -631,16 +639,17 @@ log.
 
 ### 8.3 Exclusão lógica incompleta
 
-Só **4 das 13** tabelas têm coluna `ativo`: `usuarios`, `clientes`,
-`tipos_servico` e `produtos`.
+**5 das 13** tabelas têm coluna `ativo`: `usuarios`, `clientes`,
+`tipos_servico`, `produtos` e, desde o NF008, `equipamentos`.
 
-Não têm: `perfis`, `equipamentos`, `ordens_servico`, `servicos_executados`,
+Não têm: `perfis`, `ordens_servico`, `servicos_executados`,
 `itens_ordem`, `movimentos_estoque`, `contas_pagar`, `contas_receber` e
 `logs_auditoria`.
 
 Para a maioria isso é correto — OS, serviço, item, movimento e conta são registros
 históricos que não se apagam, e o `RESTRICT` das FKs já impede a exclusão física.
 Em `logs_auditoria` é obrigatório que seja assim: log que se apaga não prova nada.
-A exceção é **`equipamentos`**: um equipamento cadastrado por engano, ou que o
-cliente não traz mais, não tem como sair da lista. É o item a revisar no NF008
-(Fase 5).
+
+~~A exceção é `equipamentos`~~ — **resolvido no NF008**: a coluna foi criada na
+migration `20261006120000_nf008_retencao`, e o equipamento inativo some da
+listagem, não entra em OS nova e preserva o histórico.

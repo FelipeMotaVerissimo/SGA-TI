@@ -2,6 +2,11 @@ node_modules/
 .env
 .env.test
 
+# NF006 — dumps gerados por `npm run backup`. Backup e copia do banco de
+# producao; nunca vai para o repositorio.
+backups/
+*.sql.gz
+
 # ---------------------------------------------------------------------------
 # Ambiente pessoal do Endrik — NAO versionar.
 #

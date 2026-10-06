@@ -1,3 +1,7 @@
+<%
+  // NF008: desativar e reativar são do administrador, como no cadastro de cliente.
+  const ehAdmin = locals.temPermissao ? locals.temPermissao(locals.usuario, []) : true;
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -21,7 +25,12 @@
       <div class="tabela-box">
         <div class="tabela-header">
           <h2>Lista de Equipamentos</h2>
-          <a href="/equipamentos/novo" class="btn btn-primary btn-sm">+ Novo Equipamento</a>
+          <div style="display:flex; gap:8px; align-items:center">
+            <a href="/equipamentos<%= incluirInativos ? '' : '?inativos=1' %>" class="btn btn-secondary btn-sm">
+              <%= incluirInativos ? '👁 Só ativos' : '👁 Mostrar inativos' %>
+            </a>
+            <a href="/equipamentos/novo" class="btn btn-primary btn-sm">+ Novo Equipamento</a>
+          </div>
         </div>
         <table>
           <thead>
@@ -31,13 +40,14 @@
               <th>Marca</th>
               <th>Modelo</th>
               <th>Defeito</th>
+              <th>Situação</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             <% if (equipamentos.length === 0) { %>
             <tr>
-              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+              <td colspan="7" style="text-align:center; color:#aaa; padding:32px">
                 Nenhum equipamento cadastrado ainda.
               </td>
             </tr>
@@ -50,9 +60,29 @@
               <td><%= e.modelo %></td>
               <td><%= e.defeito.substring(0, 40) %><%= e.defeito.length > 40 ? '...' : '' %></td>
               <td>
+                <span class="badge <%= e.ativo ? 'badge-verde' : 'badge-vermelho' %>">
+                  <%= e.ativo ? 'Ativo' : 'Inativo' %>
+                </span>
+              </td>
+              <td>
                 <a href="/equipamentos/<%= e.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <a href="/equipamentos/<%= e.id %>/historico" class="btn btn-secondary btn-sm">🕓 Histórico</a>
+                <% if (ehAdmin && e.ativo) { %>
+                <form action="/equipamentos/<%= e.id %>/excluir" method="POST" style="display:inline"
+                  onsubmit="return confirm('Desativar este equipamento?
+
+Ele some da lista e não entra em OS nova.
+O histórico de ordens de serviço é preservado.')">
+                  <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
+                </form>
+                <% } else if (ehAdmin) { %>
+                <form action="/equipamentos/<%= e.id %>/reativar" method="POST" style="display:inline">
+                  <button type="submit" class="btn btn-success btn-sm">Reativar</button>
+                </form>
+                <% } %>
+                <% if (e.ativo) { %>
                 <a href="/ordens/nova?equipamentoId=<%= e.id %>" class="btn btn-primary btn-sm">+ OS</a>
+                <% } %>
               </td>
             </tr>
             <% }) %>

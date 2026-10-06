@@ -14,7 +14,8 @@
     "test:coverage": "jest --coverage --forceExit",
     "db:mysql": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:mysql:client": "prisma generate --schema prisma/schema.prisma",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "backup": "node scripts/backup.js"
   },
   "jest": {
     "testEnvironment": "node",

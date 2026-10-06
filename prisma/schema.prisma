@@ -90,6 +90,11 @@ model Cliente {
   celular        String?        @db.VarChar(20)
   email          String?        @db.VarChar(150)
   ativo          Boolean        @default(true)
+  // NF008 — quando os dados pessoais foram apagados a pedido do titular
+  // (art. 18 da LGPD). Nulo = cliente com dados íntegros. O campo existe para
+  // que a anonimização seja verificável: sem ele, só daria para adivinhar pelo
+  // formato do cpfCnpj.
+  anonimizadoEm  DateTime?
   criadoEm       DateTime       @default(now())
   equipamentos   Equipamento[]
   contasReceber  ContaReceber[]
@@ -107,6 +112,11 @@ model Equipamento {
   modelo      String          @db.VarChar(100)
   numeroSerie String?         @db.VarChar(100)
   defeito     String          @db.Text
+  // NF008 — exclusão lógica. Era a única tabela de cadastro sem ela: um
+  // equipamento cadastrado por engano, ou que o cliente não traz mais, não
+  // tinha como sair da lista. Exclusão física é impossível aqui, porque as
+  // ordens de serviço apontam para ele com ON DELETE RESTRICT.
+  ativo       Boolean         @default(true)
   clienteId   Int
   cliente     Cliente         @relation(fields: [clienteId], references: [id])
   ordens      OrdemServico[]
