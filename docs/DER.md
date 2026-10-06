@@ -1,8 +1,8 @@
 # DER — Diagrama Entidade-Relacionamento
 
 **Sistema:** SGA TI — Sistema de Gerenciamento de Assistência Técnica
-**Origem:** gerado a partir de `prisma/schema.prisma` e das três migrations em
-`prisma/migrations/`, na `main` consolidada (commit `934e769`)
+**Origem:** gerado a partir de `prisma/schema.prisma` e das quatro migrations em
+`prisma/migrations/`, na `main` consolidada
 **Data:** 05/10/2026
 **SGBD:** MySQL 8 (`provider = "mysql"`)
 
@@ -15,7 +15,7 @@
 
 ## 1. Visão geral
 
-O modelo tem **12 tabelas** e **3 enumerações**, organizadas em quatro blocos:
+O modelo tem **13 tabelas** e **4 enumerações**, organizadas em cinco blocos:
 
 | Bloco | Tabelas | Módulos |
 |---|---|---|
@@ -23,6 +23,7 @@ O modelo tem **12 tabelas** e **3 enumerações**, organizadas em quatro blocos:
 | Atendimento | `clientes`, `equipamentos`, `ordens_servico`, `servicos_executados`, `tipos_servico` | 1, 2, 3 e 5 |
 | Estoque | `produtos`, `itens_ordem`, `movimentos_estoque` | 4 |
 | Financeiro | `contas_pagar`, `contas_receber` | 4 |
+| Rastreabilidade | `logs_auditoria` | NF005 |
 
 O núcleo do sistema é a trilha **cliente → equipamento → ordem de serviço**. Tudo
 o mais pendura nela: os serviços executados e as peças descrevem o que foi feito
@@ -56,6 +57,8 @@ erDiagram
     CLIENTES |o--o{ CONTAS_RECEBER : "deve"
     USUARIOS |o--o{ CONTAS_RECEBER : "da_baixa"
     USUARIOS |o--o{ CONTAS_PAGAR : "da_baixa"
+
+    USUARIOS |o--o{ LOGS_AUDITORIA : "e_responsavel_por"
 
     PERFIS {
         int id PK
@@ -163,6 +166,18 @@ erDiagram
         int quitadaPorId FK
     }
 
+    LOGS_AUDITORIA {
+        int id PK
+        varchar entidade
+        int registroId
+        enum acao
+        text valorAnterior
+        text valorNovo
+        varchar ip
+        int usuarioId FK
+        datetime criadoEm
+    }
+
     CONTAS_RECEBER {
         int id PK
         varchar descricao
@@ -180,22 +195,22 @@ erDiagram
 
 | Arquivo | Conteúdo | Dimensões |
 |---|---|---|
-| `docs/der.png` | Diagrama completo, com os atributos | 4312 × 3958 px |
-| `docs/der-visao-geral.png` | Só entidades e relacionamentos | 4920 × 2109 px |
+| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 3958 px |
+| `docs/der-visao-geral.png` | Só entidades e relacionamentos | 5802 × 2109 px |
 
 Gerados com `@mermaid-js/mermaid-cli` 11 a partir do bloco acima, tema `neutral`,
 fundo branco.
 
-**Sobre a impressão em A4 retrato.** Vale ser direto: um DER de 12 entidades com
+**Sobre a impressão em A4 retrato.** Vale ser direto: um DER de 13 entidades com
 todos os atributos **não fica legível** numa página A4 retrato. O arquivo
-`der.png` tem proporção quase quadrada (1,09); impresso na largura útil de
-180 mm, ocupa 167 mm de altura e o texto fica com cerca de **1,1 mm** — algo como
+`der.png` tem proporção 1,29; impresso na largura útil de 180 mm, ocupa 140 mm
+de altura e o texto fica com cerca de **0,9 mm** — algo como
 3 pontos, pequeno demais para leitura em papel. Aumentar a fonte não resolve,
 porque as caixas crescem junto e a proporção não muda.
 
 O encaminhamento honesto é usar as duas figuras com papéis diferentes:
 
-- **`der-visao-geral.png` no corpo do texto.** Mostra as 12 entidades e os 14
+- **`der-visao-geral.png` no corpo do texto.** Mostra as 13 entidades e os 15
   relacionamentos com os nomes legíveis, que é o que o leitor precisa para
   entender o modelo.
 - **`der.png` como figura de página inteira**, preferencialmente em orientação
@@ -250,6 +265,14 @@ financeiro). Dá quatro diagramas pequenos e confortáveis de ler. É só pedir.
 Criada no Módulo 5 para atender ao RF019, que pede relatório "por tipo de
 equipamento". Antes só existiam marca e modelo, e o banco não tinha como saber
 que "Dell Inspiron" e "Dell PowerEdge" são um notebook e um servidor.
+
+### `AcaoAuditoria` — tipo de operação registrada no log
+
+`LEITURA`, `INCLUSAO`, `ALTERACAO`, `EXCLUSAO`.
+
+Criada no NF005. O registro automático cobre só as operações de escrita;
+`LEITURA` existe no catálogo porque o requisito a prevê, mas logar toda consulta
+multiplicaria o volume sem acrescentar rastreabilidade de quem alterou o quê.
 
 ---
 
@@ -497,6 +520,29 @@ o financeiro: ao encerrar a OS, a conta é gerada na mesma transação.
 gera no máximo uma conta, e a restrição está no banco, não só no código. Opcional
 porque o financeiro também lança contas avulsas, sem OS.
 
+### 5.13 `logs_auditoria` (`LogAuditoria`)
+
+**Papel:** rastreabilidade (NF005). Registra quem alterou o quê, quando e de
+qual IP. É a única tabela que nenhuma tela escreve: a gravação é feita por uma
+extensão do Prisma Client, e não existe rota de escrita.
+
+| Campo | Tipo | Nulo | Chave | Padrão |
+|---|---|---|---|---|
+| `id` | `INT` | não | PK | auto |
+| `entidade` | `VARCHAR(60)` | não | — | — |
+| `registroId` | `INT` | sim | — | — |
+| `acao` | `ENUM AcaoAuditoria` | não | — | — |
+| `valorAnterior` | `TEXT` | sim | — | — |
+| `valorNovo` | `TEXT` | sim | — | — |
+| `ip` | `VARCHAR(45)` | sim | — | — |
+| `usuarioId` | `INT` | sim | FK → `usuarios.id` | — |
+| `criadoEm` | `DATETIME(3)` | não | — | agora |
+
+Índices em `criadoEm`, `(entidade, registroId)` e `usuarioId` — os três caminhos
+de consulta da tela. `registroId` é nulo quando a operação não atinge um registro
+único; `usuarioId` é nulo nas operações sem sessão, como o seed. Detalhes em
+`docs/AUDITORIA.md`.
+
 ---
 
 ## 6. Relacionamentos e cardinalidades
@@ -517,6 +563,7 @@ porque o financeiro também lança contas avulsas, sem OS.
 | R12 | `clientes` | `contas_receber` | 0..1 : 0..N | `contas_receber.clienteId` | `SET NULL` |
 | R13 | `usuarios` | `contas_receber` | 0..1 : 0..N | `contas_receber.quitadaPorId` | `SET NULL` |
 | R14 | `usuarios` | `contas_pagar` | 0..1 : 0..N | `contas_pagar.quitadaPorId` | `SET NULL` |
+| R15 | `usuarios` | `logs_auditoria` | 0..1 : 0..N | `logs_auditoria.usuarioId` | `SET NULL` |
 
 **Leitura das ações de exclusão.** A regra que o Prisma gerou é coerente e vale
 explicar na defesa:
@@ -574,23 +621,26 @@ Pontos verificados no schema que merecem decisão. Nenhum impede a entrega.
 | M05 | `ServicoExecutado` **não tem `usuarioId`** | Não se sabe qual técnico executou cada serviço. `ordens_servico.usuarioId` é quem *abriu* a OS, que em geral é o atendente, não o técnico | Pendência P04 do Módulo 3 |
 | M06 | Não há vínculo entre `ServicoExecutado` e `ItemOrdem` | Não dá para dizer qual peça foi usada em qual serviço, só que ambos pertencem à mesma OS | Pendência P02 do Módulo 3 |
 | M07 | `ContaPagar` não se liga a `MovimentoEstoque` | A conta gerada na entrada de estoque não aponta para o movimento que a originou | Módulo 4 |
-| M08 | Não existe `LogAuditoria` | O NF005 (rastreabilidade) não tem onde gravar | Fase 4 do plano |
+| M08 | ~~Não existe `LogAuditoria`~~ | **Resolvido** — tabela `logs_auditoria`, ver 5.13 e `docs/AUDITORIA.md` | — |
 
-O M05 e o M08 se resolvem juntos: a tabela de auditoria da Fase 4 registra autoria
-de toda operação sensível, o que cobre boa parte do que o M05 pede — embora um
-`usuarioId` direto em `servicos_executados` continue sendo o modelo correto para
-uma informação que é do negócio, não do log.
+Com o M08 resolvido, o M05 ficou parcialmente coberto: o log registra qual usuário
+criou cada serviço executado. Ainda assim, um `usuarioId` direto em
+`servicos_executados` continua sendo o modelo correto — quem executou o serviço é
+informação do negócio, que aparece em relatório e em garantia, não um dado de
+log.
 
 ### 8.3 Exclusão lógica incompleta
 
-Só **4 das 12** tabelas têm coluna `ativo`: `usuarios`, `clientes`,
+Só **4 das 13** tabelas têm coluna `ativo`: `usuarios`, `clientes`,
 `tipos_servico` e `produtos`.
 
 Não têm: `perfis`, `equipamentos`, `ordens_servico`, `servicos_executados`,
-`itens_ordem`, `movimentos_estoque`, `contas_pagar`, `contas_receber`.
+`itens_ordem`, `movimentos_estoque`, `contas_pagar`, `contas_receber` e
+`logs_auditoria`.
 
 Para a maioria isso é correto — OS, serviço, item, movimento e conta são registros
 históricos que não se apagam, e o `RESTRICT` das FKs já impede a exclusão física.
+Em `logs_auditoria` é obrigatório que seja assim: log que se apaga não prova nada.
 A exceção é **`equipamentos`**: um equipamento cadastrado por engano, ou que o
 cliente não traz mais, não tem como sair da lista. É o item a revisar no NF008
 (Fase 5).

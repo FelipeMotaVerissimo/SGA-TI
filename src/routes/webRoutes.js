@@ -10,6 +10,7 @@ const itemOrdemWeb     = require('../controllers/itemOrdemWebController');      
 const financeiroWeb    = require('../controllers/financeiroWebController');       // Módulo 4
 const relatorioWeb     = require('../controllers/relatorioWebController');        // Módulo 5
 const tipoServicoWeb   = require('../controllers/tipoServicoWebController');      // Módulo 5
+const auditoriaWeb     = require('../controllers/auditoriaWebController');        // NF005
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
 
@@ -109,6 +110,11 @@ router.post('/tipos-servico/:id/reativar',  sessaoMiddleware, exigirPerfil(), ti
 // Relatórios (Módulo 5) — UC RF008: "usuário autenticado com permissão gerencial"
 router.get('/relatorios', sessaoMiddleware, exigirPerfil(), relatorioWeb.exibir);
 router.get('/relatorios/:relatorio/csv', sessaoMiddleware, exigirPerfil(), relatorioWeb.exportar);
+
+// Auditoria (NF005) — somente leitura e somente administrador.
+// Existe só o GET de propósito: sem rota de escrita, não há como alterar ou
+// apagar um registro de auditoria pelo sistema.
+router.get('/auditoria', sessaoMiddleware, exigirPerfil(), auditoriaWeb.exibir);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);

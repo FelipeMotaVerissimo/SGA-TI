@@ -8,6 +8,7 @@
 
 const bcrypt = require('bcrypt');
 const prisma = require('../../src/config/database');
+const { aguardarGravacoes } = require('../../src/services/auditoriaExtensao');
 
 const SENHA = 'teste123';
 
@@ -19,6 +20,9 @@ const dias = (n) => {
 };
 
 async function limpar() {
+  // NF005: os logs saem primeiro — referenciam usuarios, e sem limpar aqui um
+  // teste enxergaria a auditoria gerada pelo teste anterior.
+  await prisma.logAuditoria.deleteMany();
   await prisma.contaReceber.deleteMany();
   await prisma.contaPagar.deleteMany();
   await prisma.movimentoEstoque.deleteMany();
@@ -147,6 +151,11 @@ async function semear() {
       data: { descricao: 'Conta a receber aberta', valor: 300.00, vencimento: dias(5), clienteId: cliente.id },
     }),
   };
+
+  // NF005: a gravação do log é disparada sem `await` (ver auditoriaExtensao).
+  // Sem esperar aqui, um teste que conta registros de auditoria contaria junto
+  // os que a própria semeadura ainda estava gravando.
+  await aguardarGravacoes();
 
   return { perfis, usuarios, cliente, equipamento, produtos, ordens, servicos, tiposServico, contas, SENHA };
 }

@@ -16,6 +16,7 @@ const financeiroRoutes   = require('./routes/financeiroRoutes');
 const usuarioRoutes      = require('./routes/usuarioRoutes');
 const errorHandler       = require('./middlewares/errorHandler');
 const { temPermissao }   = require('./middlewares/perfilMiddleware');
+const { contextoMiddleware } = require('./middlewares/contextoMiddleware'); // NF005
 
 const app = express();
 
@@ -56,6 +57,10 @@ app.use(session({
 
 // Flash messages
 app.use(flash());
+
+// NF005 — contexto da requisição (quem e de onde), lido pela auditoria.
+// Depois da sessão, porque é dela que sai a identidade nas telas.
+app.use(contextoMiddleware);
 
 // Variáveis globais para todas as views
 app.use((req, res, next) => {

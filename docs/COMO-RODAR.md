@@ -58,15 +58,16 @@ npm run seed
 | `db:mysql` | Aplica as migrations versionadas (`prisma migrate deploy`) |
 | `seed` | Cria os 6 perfis e o usuário `admin` |
 
-### As três migrations
+### As quatro migrations
 
 | Migration | O que acrescenta |
 |---|---|
 | `20260804231127_inicial` | Schema dos Módulos 1 a 3: perfis, usuários, clientes, equipamentos, ordens de serviço e serviços executados |
 | `20260817133444_modulo4_financeiro_estoque` | Módulo 4: `produtos`, `movimentos_estoque`, `itens_ordem`, `contas_pagar`, `contas_receber`, e as colunas `clientes.bairro`, `movimentos_estoque.usuarioId` e `quitadaPorId` |
 | `20260825120000_modulo5_relatorios` | Módulo 5: `tipos_servico`, `equipamentos.tipo` e `itens_ordem.criadoEm` |
+| `20261005120000_nf005_auditoria` | NF005: `logs_auditoria` e o enum `AcaoAuditoria` |
 
-As três já foram aplicadas num servidor MySQL real, em banco vazio, com o
+As três primeiras já foram aplicadas num servidor MySQL real, em banco vazio, com o
 `prisma migrate diff` do resultado contra o schema voltando vazio. Detalhes em
 `docs/LEIAME-MODULO5.md`, seção 8.1.
 
@@ -118,7 +119,7 @@ mesma convenção:
 
 | Login sugerido | Perfil | O que esse perfil pode fazer no sistema |
 |---|---|---|
-| `admin` | `ADMINISTRADOR` | Tudo. Único que exclui cliente, fatura OS, gerencia usuários, tipos de serviço e relatórios |
+| `admin` | `ADMINISTRADOR` | Tudo. Único que exclui cliente, fatura OS, gerencia usuários, tipos de serviço, relatórios e **auditoria** |
 | `atendente` | `ATENDENTE` | Clientes, equipamentos, abrir e consultar OS, registrar a resposta do cliente ao orçamento |
 | `tecnico` | `TECNICO` | Mudar status da OS, registrar serviços executados e garantia, consultar histórico do equipamento |
 | `vendedor` | `VENDEDOR` | Lançar orçamento, lançar peças na OS, consultar produtos e OS |
@@ -138,8 +139,8 @@ precisa criar os outros cinco à mão antes de conseguir demonstrar o RF022/RF02
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 175 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 162 testes de integração (rota, sessão, JWT e banco)
+npm run test:unit         :: 190 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 192 testes de integração (rota, sessão, JWT e banco)
 npm test                  :: suíte completa
 ```
 
@@ -147,8 +148,8 @@ Resultado atual na `main` consolidada:
 
 | Suíte | Passando | Falhando |
 |---|---|---|
-| Unitários | **175** | 0 |
-| Integração | **159** | 3 (todas em `auth.test.js`, ver abaixo) |
+| Unitários | **190** | 0 |
+| Integração | **189** | 3 (todas em `auth.test.js`, ver abaixo) |
 
 ### Banco dos testes
 
@@ -179,6 +180,7 @@ npm run test:integration
 | `tests/integration/relatorios.test.js` | Relatórios gerenciais por período (RF016/RF018) |
 | `tests/integration/tiposServico.test.js` | Catálogo de tipos e classificação (RF017/RF019) |
 | `tests/integration/dashboard.test.js` | Dashboards por perfil e exportação CSV (UC RF008) |
+| `tests/integration/auditoria.test.js` | Log de auditoria, acesso e somente-leitura (NF005) |
 | `tests/integration/clientes.test.js` | API de clientes (Módulo 1) |
 
 ### As 3 falhas conhecidas

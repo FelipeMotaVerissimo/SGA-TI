@@ -35,143 +35,165 @@ enum TipoEquipamento {
   OUTRO
 }
 
+// NF005 — rastreabilidade. LEITURA existe no catálogo porque o requisito a
+// prevê, mas o registro automático cobre só as operações de escrita: logar toda
+// consulta multiplicaria o volume do log por ordens de grandeza sem acrescentar
+// rastreabilidade de quem alterou o quê.
+enum AcaoAuditoria {
+  LEITURA
+  INCLUSAO
+  ALTERACAO
+  EXCLUSAO
+}
+
 model Usuario {
-  id       Int      @id @default(autoincrement())
-  nome     String   @db.VarChar(150)
-  login    String   @unique @db.VarChar(100)
-  senha    String   @db.VarChar(255)
-  ativo    Boolean  @default(true)
-  perfilId Int
-  perfil   Perfil   @relation(fields: [perfilId], references: [id])
-  criadoEm DateTime @default(now())
-  ordens   OrdemServico[]
+  id              Int                @id @default(autoincrement())
+  nome            String             @db.VarChar(150)
+  login           String             @unique @db.VarChar(100)
+  senha           String             @db.VarChar(255)
+  ativo           Boolean            @default(true)
+  perfilId        Int
+  perfil          Perfil             @relation(fields: [perfilId], references: [id])
+  criadoEm        DateTime           @default(now())
+  ordens          OrdemServico[]
   // Módulo 4: rastreabilidade de estoque e financeiro
-  movimentos     MovimentoEstoque[]
-  contasPagas    ContaPagar[]
+  movimentos      MovimentoEstoque[]
+  contasPagas     ContaPagar[]
   contasRecebidas ContaReceber[]
+  // NF005
+  logsAuditoria   LogAuditoria[]
+
   @@map("usuarios")
 }
 
 model Perfil {
-  id        Int       @id @default(autoincrement())
-  nomePerfil String   @db.VarChar(50)
-  usuarios  Usuario[]
+  id         Int       @id @default(autoincrement())
+  nomePerfil String    @db.VarChar(50)
+  usuarios   Usuario[]
+
   @@map("perfis")
 }
 
 model Cliente {
-  id             Int       @id @default(autoincrement())
-  nome           String    @db.VarChar(150)
-  cpfCnpj        String    @unique @db.VarChar(18)
-  rg             String?   @db.VarChar(20)
+  id             Int            @id @default(autoincrement())
+  nome           String         @db.VarChar(150)
+  cpfCnpj        String         @unique @db.VarChar(18)
+  rg             String?        @db.VarChar(20)
   dataNascimento DateTime?
-  endereco       String?   @db.VarChar(200)
-  numero         String?   @db.VarChar(10)
-  bairro         String?   @db.VarChar(100)
-  cidade         String?   @db.VarChar(100)
-  estado         String?   @db.Char(2)
-  cep            String?   @db.VarChar(9)
-  telefone       String?   @db.VarChar(20)
-  celular        String?   @db.VarChar(20)
-  email          String?   @db.VarChar(150)
-  ativo          Boolean   @default(true)
-  criadoEm      DateTime  @default(now())
+  endereco       String?        @db.VarChar(200)
+  numero         String?        @db.VarChar(10)
+  bairro         String?        @db.VarChar(100)
+  cidade         String?        @db.VarChar(100)
+  estado         String?        @db.Char(2)
+  cep            String?        @db.VarChar(9)
+  telefone       String?        @db.VarChar(20)
+  celular        String?        @db.VarChar(20)
+  email          String?        @db.VarChar(150)
+  ativo          Boolean        @default(true)
+  criadoEm       DateTime       @default(now())
   equipamentos   Equipamento[]
   contasReceber  ContaReceber[]
+
   @@map("clientes")
 }
 
 model Equipamento {
-  id          Int      @id @default(autoincrement())
-  codigo      String   @unique @db.VarChar(50)
+  id          Int             @id @default(autoincrement())
+  codigo      String          @unique @db.VarChar(50)
   // Default OUTRO para os equipamentos já cadastrados não quebrarem: eles
   // aparecem como "Outro" no relatório até serem reclassificados.
   tipo        TipoEquipamento @default(OUTRO)
-  marca       String   @db.VarChar(100)
-  modelo      String   @db.VarChar(100)
-  numeroSerie String?  @db.VarChar(100)
-  defeito     String   @db.Text
+  marca       String          @db.VarChar(100)
+  modelo      String          @db.VarChar(100)
+  numeroSerie String?         @db.VarChar(100)
+  defeito     String          @db.Text
   clienteId   Int
-  cliente     Cliente  @relation(fields: [clienteId], references: [id])
+  cliente     Cliente         @relation(fields: [clienteId], references: [id])
   ordens      OrdemServico[]
-  criadoEm   DateTime @default(now())
+  criadoEm    DateTime        @default(now())
+
   @@map("equipamentos")
 }
 
 model OrdemServico {
-  id              Int       @id @default(autoincrement())
-  numero          String    @unique @db.VarChar(20)
-  status          StatusOS  @default(INICIAL)
-  defeitoRelatado String    @db.Text
-  observacoes     String?   @db.Text
-  valorOrcamento  Decimal?  @db.Decimal(10, 2)
+  id              Int                @id @default(autoincrement())
+  numero          String             @unique @db.VarChar(20)
+  status          StatusOS           @default(INICIAL)
+  defeitoRelatado String             @db.Text
+  observacoes     String?            @db.Text
+  valorOrcamento  Decimal?           @db.Decimal(10, 2)
   dataAprovacao   DateTime?
   previsaoEntrega DateTime?
-  dataAbertura    DateTime  @default(now())
+  dataAbertura    DateTime           @default(now())
   dataFechamento  DateTime?
   equipamentoId   Int
-  equipamento     Equipamento  @relation(fields: [equipamentoId], references: [id])
+  equipamento     Equipamento        @relation(fields: [equipamentoId], references: [id])
   usuarioId       Int
-  usuario         Usuario      @relation(fields: [usuarioId], references: [id])
+  usuario         Usuario            @relation(fields: [usuarioId], references: [id])
   servicos        ServicoExecutado[]
   itens           ItemOrdem[]
   contaReceber    ContaReceber?
+
   @@map("ordens_servico")
 }
 
 model ServicoExecutado {
-  id           Int      @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   // `descricao` continua sendo o relato do técnico, em texto livre.
   // `tipoServicoId` é o que permite AGRUPAR (RF017): sem ele, "Troca de tela",
   // "troca da tela" e "Substituição da tela" viram três serviços distintos.
   // Opcional porque os serviços registrados antes do catálogo não têm tipo —
   // eles aparecem como "Não classificado" no relatório.
-  descricao    String   @db.Text
-  observacoes  String?  @db.Text
-  garantiaDias Int?
-  executadoEm  DateTime @default(now())
-  ordemId      Int
-  ordem        OrdemServico @relation(fields: [ordemId], references: [id])
+  descricao     String       @db.Text
+  observacoes   String?      @db.Text
+  garantiaDias  Int?
+  executadoEm   DateTime     @default(now())
+  ordemId       Int
+  ordem         OrdemServico @relation(fields: [ordemId], references: [id])
   tipoServicoId Int?
   tipoServico   TipoServico? @relation(fields: [tipoServicoId], references: [id])
+
   @@map("servicos_executados")
 }
 
 // Módulo 5 — catálogo de serviços, a granularidade do RF017.
 model TipoServico {
-  id       Int      @id @default(autoincrement())
-  nome     String   @unique @db.VarChar(120)
-  ativo    Boolean  @default(true)
-  criadoEm DateTime @default(now())
+  id       Int                @id @default(autoincrement())
+  nome     String             @unique @db.VarChar(120)
+  ativo    Boolean            @default(true)
+  criadoEm DateTime           @default(now())
   servicos ServicoExecutado[]
+
   @@map("tipos_servico")
 }
 
 model Produto {
-  id         Int      @id @default(autoincrement())
-  nome       String   @db.VarChar(150)
-  descricao  String?  @db.Text
-  preco      Decimal  @db.Decimal(10, 2)
-  estoque    Int      @default(0)
-  ativo      Boolean  @default(true)
-  criadoEm  DateTime @default(now())
+  id         Int                @id @default(autoincrement())
+  nome       String             @db.VarChar(150)
+  descricao  String?            @db.Text
+  preco      Decimal            @db.Decimal(10, 2)
+  estoque    Int                @default(0)
+  ativo      Boolean            @default(true)
+  criadoEm   DateTime           @default(now())
   itens      ItemOrdem[]
   movimentos MovimentoEstoque[]
+
   @@map("produtos")
 }
 
 model ItemOrdem {
-  id         Int     @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   quantidade Int
-  valorUnit  Decimal @db.Decimal(10, 2)
+  valorUnit  Decimal      @db.Decimal(10, 2)
   // Módulo 5: a peça não tinha data própria. Sem isso, "produtos mais vendidos
   // por período" (RF018) teria que usar a data de abertura da OS — uma OS
   // aberta em julho com peça lançada em agosto contaria como julho.
-  criadoEm   DateTime @default(now())
+  criadoEm   DateTime     @default(now())
   ordemId    Int
   ordem      OrdemServico @relation(fields: [ordemId], references: [id])
   produtoId  Int
   produto    Produto      @relation(fields: [produtoId], references: [id])
+
   @@map("itens_ordem")
 }
 
@@ -186,45 +208,74 @@ model MovimentoEstoque {
   // automaticamente pela OS podem não ter um usuário na mão.
   usuarioId  Int?
   usuario    Usuario? @relation(fields: [usuarioId], references: [id])
-  criadoEm  DateTime @default(now())
+  criadoEm   DateTime @default(now())
+
   @@map("movimentos_estoque")
 }
 
 // ===== Módulo 4 (parte 2) — Controle Financeiro (RF020 / RF021) =====
 
 model ContaPagar {
-  id          Int           @id @default(autoincrement())
-  descricao   String        @db.VarChar(200)
-  fornecedor  String?       @db.VarChar(150)
-  valor       Decimal       @db.Decimal(10, 2)
-  vencimento  DateTime
-  situacao    SituacaoConta @default(ABERTA)
-  quitadaEm   DateTime?
-  observacoes String?       @db.Text
-  criadoEm    DateTime      @default(now())
+  id           Int           @id @default(autoincrement())
+  descricao    String        @db.VarChar(200)
+  fornecedor   String?       @db.VarChar(150)
+  valor        Decimal       @db.Decimal(10, 2)
+  vencimento   DateTime
+  situacao     SituacaoConta @default(ABERTA)
+  quitadaEm    DateTime?
+  observacoes  String?       @db.Text
+  criadoEm     DateTime      @default(now())
   // Quem deu baixa no pagamento (RF023 — rastreabilidade)
   quitadaPorId Int?
-  quitadaPor   Usuario?     @relation(fields: [quitadaPorId], references: [id])
+  quitadaPor   Usuario?      @relation(fields: [quitadaPorId], references: [id])
+
   @@map("contas_pagar")
 }
 
 model ContaReceber {
-  id          Int           @id @default(autoincrement())
-  descricao   String        @db.VarChar(200)
-  valor       Decimal       @db.Decimal(10, 2)
-  vencimento  DateTime
-  situacao    SituacaoConta @default(ABERTA)
-  quitadaEm   DateTime?
-  observacoes String?       @db.Text
-  criadoEm    DateTime      @default(now())
+  id           Int           @id @default(autoincrement())
+  descricao    String        @db.VarChar(200)
+  valor        Decimal       @db.Decimal(10, 2)
+  vencimento   DateTime
+  situacao     SituacaoConta @default(ABERTA)
+  quitadaEm    DateTime?
+  observacoes  String?       @db.Text
+  criadoEm     DateTime      @default(now())
   // Vínculo opcional com a OS: preenchido quando a conta é gerada
   // automaticamente no encerramento. @unique garante uma conta por OS.
-  ordemId     Int?          @unique
-  ordem       OrdemServico? @relation(fields: [ordemId], references: [id])
-  clienteId   Int?
-  cliente     Cliente?      @relation(fields: [clienteId], references: [id])
+  ordemId      Int?          @unique
+  ordem        OrdemServico? @relation(fields: [ordemId], references: [id])
+  clienteId    Int?
+  cliente      Cliente?      @relation(fields: [clienteId], references: [id])
   // Quem registrou o recebimento (RF023 — rastreabilidade)
   quitadaPorId Int?
-  quitadaPor   Usuario?     @relation(fields: [quitadaPorId], references: [id])
+  quitadaPor   Usuario?      @relation(fields: [quitadaPorId], references: [id])
+
   @@map("contas_receber")
+}
+
+// ===== NF005 — Rastreabilidade (log de auditoria) =====
+
+model LogAuditoria {
+  id            Int           @id @default(autoincrement())
+  entidade      String        @db.VarChar(60)
+  // Nulo quando a operação não atinge um registro único (p. ex. updateMany).
+  registroId    Int?
+  acao          AcaoAuditoria
+  // Estado antes e depois, em JSON. Campos sensíveis como `senha` nunca entram:
+  // o log registra QUE a senha mudou, nunca o valor.
+  valorAnterior String?       @db.Text
+  valorNovo     String?       @db.Text
+  // 45 caracteres acomodam IPv6.
+  ip            String?       @db.VarChar(45)
+  // Opcional e SET NULL: o log precisa sobreviver à remoção do usuário. Também
+  // é nulo nas operações sem sessão, como o seed.
+  usuarioId     Int?
+  usuario       Usuario?      @relation(fields: [usuarioId], references: [id])
+  criadoEm      DateTime      @default(now())
+
+  @@index([criadoEm])
+  @@index([entidade, registroId])
+  @@index([usuarioId])
+  @@map("logs_auditoria")
 }

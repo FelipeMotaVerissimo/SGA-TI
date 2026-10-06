@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoria — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/auditoria' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Auditoria</h1>
+        <p>Registro de quem alterou o quê, e quando (NF005)</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <%
+        const dataHoraBR = (d) => new Date(d).toLocaleString('pt-BR');
+        const dataBR     = (d) => new Date(d).toLocaleDateString('pt-BR');
+
+        const corDaAcao = {
+          INCLUSAO:  'badge-verde',
+          ALTERACAO: 'badge-azul',
+          EXCLUSAO:  'badge-vermelho',
+          LEITURA:   'badge-cinza',
+        };
+      %>
+
+      <div class="form-box" style="max-width:100%; margin-bottom:24px">
+        <form action="/auditoria" method="GET">
+          <div class="form-row">
+            <div class="form-group">
+              <label>De *</label>
+              <input type="date" name="de" value="<%= formulario.de %>" required>
+            </div>
+            <div class="form-group">
+              <label>Até *</label>
+              <input type="date" name="ate" value="<%= formulario.ate %>" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Usuário</label>
+              <select name="usuarioId">
+                <option value="">Todos</option>
+                <% opcoes.usuarios.forEach(u => { %>
+                <option value="<%= u.id %>" <%= String(filtros.usuarioId) === String(u.id) ? 'selected' : '' %>>
+                  <%= u.nome %> (<%= u.login %>)
+                </option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Entidade</label>
+              <select name="entidade">
+                <option value="">Todas</option>
+                <% opcoes.entidades.forEach(e => { %>
+                <option value="<%= e %>" <%= filtros.entidade === e ? 'selected' : '' %>><%= e %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Ação</label>
+              <select name="acao">
+                <option value="">Todas</option>
+                <% ['INCLUSAO', 'ALTERACAO', 'EXCLUSAO', 'LEITURA'].forEach(a => { %>
+                <option value="<%= a %>" <%= filtros.acao === a ? 'selected' : '' %>><%= a %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+          <div class="form-acoes" style="margin-top:8px">
+            <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+            <a href="/auditoria" class="btn btn-secondary">Últimos 30 dias</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor"><%= total %></div>
+          <div class="card-label">Registros no período</div>
+        </div>
+        <div class="card">
+          <div class="card-valor"><%= opcoes.entidades.length %></div>
+          <div class="card-label">Entidades auditadas</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="font-size:20px"><%= dataBR(periodo.de) %></div>
+          <div class="card-label">Início do período</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="font-size:20px"><%= dataBR(periodo.ate) %></div>
+          <div class="card-label">Fim do período</div>
+        </div>
+      </div>
+
+      <% if (truncado) { %>
+      <div class="alert alert-aviso">
+        ⚠ O período tem <strong><%= total %></strong> registros e a tela mostra os
+        <strong><%= limite %></strong> mais recentes. Estreite o período ou use os
+        filtros para ver o restante.
+      </div>
+      <% } %>
+
+      <div class="alert" style="background:#f7f7f7; color:#555; border:1px solid #ddd">
+        🔒 Esta tela é <strong>somente leitura</strong>. O sistema não oferece
+        nenhum caminho para editar ou excluir um registro de auditoria — é o que
+        dá valor ao registro.
+      </div>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>📜 Registros</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Quando</th>
+              <th>Usuário</th>
+              <th>Ação</th>
+              <th>Entidade</th>
+              <th>Registro</th>
+              <th>O que mudou</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (registros.length === 0) { %>
+            <tr>
+              <td colspan="7" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma operação registrada no período com esses filtros.
+              </td>
+            </tr>
+            <% } else { %>
+            <% registros.forEach(r => { %>
+            <tr>
+              <td style="white-space:nowrap"><%= dataHoraBR(r.criadoEm) %></td>
+              <td>
+                <% if (r.usuario) { %>
+                  <%= r.usuario.nome %><br>
+                  <span style="font-size:12px; color:#888"><%= r.usuario.login %></span>
+                <% } else { %>
+                  <span style="color:#aaa; font-size:12px">sem usuário<br>(seed ou script)</span>
+                <% } %>
+              </td>
+              <td>
+                <span class="badge <%= corDaAcao[r.acao] || 'badge-cinza' %>"><%= r.acao %></span>
+              </td>
+              <td><%= r.entidade %></td>
+              <td><%= r.registroId !== null ? '#' + r.registroId : '—' %></td>
+              <td>
+                <% const mudancas = diferencas(r); %>
+                <% if (mudancas.length === 0) { %>
+                  <span style="color:#aaa">—</span>
+                <% } else { %>
+                  <% mudancas.slice(0, 6).forEach(m => { %>
+                    <div style="font-size:12px">
+                      <strong><%= m.campo %>:</strong>
+                      <% if (r.acao === 'ALTERACAO') { %>
+                        <span style="color:#c53030"><%= m.de %></span>
+                        →
+                        <span style="color:#276749"><%= m.para %></span>
+                      <% } else { %>
+                        <%= m.para %>
+                      <% } %>
+                    </div>
+                  <% }) %>
+                  <% if (mudancas.length > 6) { %>
+                    <div style="font-size:12px; color:#888">
+                      e mais <%= mudancas.length - 6 %> campo(s)
+                    </div>
+                  <% } %>
+                <% } %>
+              </td>
+              <td style="font-size:12px; color:#888"><%= r.ip || '—' %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
