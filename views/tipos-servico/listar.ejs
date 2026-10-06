@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tipos de Serviço — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/tipos-servico' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>Tipos de Serviço</h1>
+        <p>Catálogo que permite contar os serviços mais executados (RF017)</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <div class="alert alert-aviso">
+        ⚠ Este catálogo é a granularidade do relatório. A descrição que o técnico
+        escreve continua livre — mas sem escolher um tipo, o serviço entra como
+        <strong>Não classificado</strong> e não soma com nenhum outro.
+      </div>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>Catálogo</h2>
+          <div style="display:flex; gap:8px">
+            <a href="/tipos-servico<%= incluirInativos ? '' : '?inativos=1' %>" class="btn btn-secondary btn-sm">
+              <%= incluirInativos ? 'Ocultar inativos' : 'Mostrar inativos' %>
+            </a>
+            <a href="/tipos-servico/novo" class="btn btn-primary btn-sm">+ Novo Tipo</a>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Serviços Registrados</th>
+              <th>Situação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (tipos.length === 0) { %>
+            <tr>
+              <td colspan="5" style="text-align:center; color:#aaa; padding:32px">
+                Nenhum tipo de serviço cadastrado ainda.
+              </td>
+            </tr>
+            <% } else { %>
+            <% tipos.forEach(t => { %>
+            <tr>
+              <td><%= t.id %></td>
+              <td><%= t.nome %></td>
+              <td>
+                <% if (usos[t.id]) { %>
+                  <span class="badge badge-azul"><%= usos[t.id] %></span>
+                <% } else { %>
+                  <span style="color:#aaa">—</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (t.ativo) { %>
+                  <span class="badge badge-verde">Ativo</span>
+                <% } else { %>
+                  <span class="badge badge-cinza">Inativo</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/tipos-servico/<%= t.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
+                <% if (t.ativo) { %>
+                <form action="/tipos-servico/<%= t.id %>/desativar" method="POST" style="display:inline"
+                  onsubmit="return confirm('Desativar este tipo? Ele some da lista de escolha, mas o histórico é mantido.')">
+                  <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
+                </form>
+                <% } else { %>
+                <form action="/tipos-servico/<%= t.id %>/reativar" method="POST" style="display:inline">
+                  <button type="submit" class="btn btn-success btn-sm">Reativar</button>
+                </form>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

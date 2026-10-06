@@ -37,9 +37,11 @@ npm run seed
 - `seed` cria os 6 perfis e o usuário `admin` (senha `admin123`)
 
 As migrations são duas: `20260804231127_inicial` monta o schema dos Módulos 1 a 3,
-e `20260817133444_modulo4_financeiro_estoque` acrescenta o Módulo 4 —
+`20260817133444_modulo4_financeiro_estoque` acrescenta o Módulo 4 —
 `contas_pagar`, `contas_receber` e as colunas `clientes.bairro`,
-`movimentos_estoque.usuarioId` e `quitadaPorId`.
+`movimentos_estoque.usuarioId` e `quitadaPorId` — e
+`20260825120000_modulo5_relatorios` acrescenta o Módulo 5: `tipos_servico`,
+`equipamentos.tipo` e `itens_ordem.criadoEm`.
 
 > Se você já tinha um banco criado à mão, antes das migrations serem
 > versionadas, marque a primeira como aplicada para o Prisma não tentar recriar
@@ -68,8 +70,8 @@ A consulta pública de OS fica em `http://localhost:3000/consulta` e **não pede
 ## 4. Testes
 
 ```cmd
-npm run test:unit         :: 135 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 94 testes de integração (rota, sessão, JWT e banco)
+npm run test:unit         :: 165 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 145 testes de integração (rota, sessão, JWT e banco)
 npm test                  :: suíte completa
 ```
 
@@ -97,6 +99,9 @@ npm run test:integration
 | `tests/integration/financeiro.test.js` | contas a pagar/receber e a conta gerada no encerramento (RF020/RF021) |
 | `tests/integration/garantia.test.js` | serviços executados e garantia (Módulo 3) |
 | `tests/integration/api.test.js` | API REST de produtos e financeiro, com JWT (Módulo 4) |
+| `tests/integration/relatorios.test.js` | relatórios gerenciais por período (RF016/RF018) |
+| `tests/integration/tiposServico.test.js` | catálogo de tipos e classificação (RF017/RF019) |
+| `tests/integration/dashboard.test.js` | dashboards por perfil e exportação CSV (UC RF008) |
 | `tests/integration/clientes.test.js` | API de clientes (Módulo 1) |
 
 > `tests/integration/auth.test.js` falha de propósito: foi escrito para um schema
@@ -109,6 +114,7 @@ npm run test:integration
 
 - O `.env` não vai para o repositório (correto). Quem clonar precisa criar o seu,
   conforme o modelo da seção 1.
-- As migrations nunca foram aplicadas num MySQL real — foram geradas a partir do
-  schema. A validação da entrega precisa rodar `npm run db:mysql` num banco
-  MySQL de verdade e conferir o resultado.
+- As migrations já foram validadas num servidor MySQL: aplicadas em banco vazio,
+  com `prisma migrate diff` do resultado contra o schema voltando vazio, e a
+  suíte completa passando contra ele. Detalhes em
+  `docs/LEIAME-MODULO5.md`, seção 8.1.

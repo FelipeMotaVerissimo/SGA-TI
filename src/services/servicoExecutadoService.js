@@ -103,7 +103,17 @@ function validarDados(dados) {
     if (garantiaDias === 0) garantiaDias = null; // 0 dia = sem garantia
   }
 
-  return { descricao, observacoes, garantiaDias };
+  // Módulo 5: o tipo é o que permite agrupar no RF017. Opcional — o técnico
+  // pode registrar um serviço que ainda não está no catálogo.
+  let tipoServicoId = null;
+  if (dados.tipoServicoId !== undefined && String(dados.tipoServicoId).trim() !== '') {
+    tipoServicoId = Number(dados.tipoServicoId);
+    if (!Number.isInteger(tipoServicoId) || tipoServicoId <= 0) {
+      throw erro('Tipo de serviço inválido.');
+    }
+  }
+
+  return { descricao, observacoes, garantiaDias, tipoServicoId };
 }
 
 async function buscarOrdem(ordemId) {
@@ -118,6 +128,7 @@ async function buscarOrdem(ordemId) {
 async function listarPorOrdem(ordemId) {
   const servicos = await prisma.servicoExecutado.findMany({
     where:   { ordemId: Number(ordemId) },
+    include: { tipoServico: true },
     orderBy: { executadoEm: 'desc' },
   });
   return enriquecerComGarantia(servicos);
@@ -138,11 +149,11 @@ async function registrarServico(ordemId, dados) {
     );
   }
 
-  const { descricao, observacoes, garantiaDias } = validarDados(dados);
+  const { descricao, observacoes, garantiaDias, tipoServicoId } = validarDados(dados);
 
   return prisma.$transaction(async (tx) => {
     const servico = await tx.servicoExecutado.create({
-      data: { descricao, observacoes, garantiaDias, ordemId: ordem.id },
+      data: { descricao, observacoes, garantiaDias, tipoServicoId, ordemId: ordem.id },
     });
 
     if (ordem.status === 'AUTORIZADO') {

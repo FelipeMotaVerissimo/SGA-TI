@@ -8,6 +8,8 @@ const servicoWeb       = require('../controllers/servicoExecutadoWebController')
 const produtoWeb       = require('../controllers/produtoWebController');          // Módulo 4
 const itemOrdemWeb     = require('../controllers/itemOrdemWebController');        // Módulo 4
 const financeiroWeb    = require('../controllers/financeiroWebController');       // Módulo 4
+const relatorioWeb     = require('../controllers/relatorioWebController');        // Módulo 5
+const tipoServicoWeb   = require('../controllers/tipoServicoWebController');      // Módulo 5
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
 
@@ -50,6 +52,9 @@ router.get('/equipamentos/novo',         sessaoMiddleware, exigirPerfil(...PERFI
 router.post('/equipamentos',             sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.criar);
 router.get('/equipamentos/:id/editar',   sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.exibirEditar);
 router.post('/equipamentos/:id',         sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.atualizar);
+// RF012 — histórico de serviços por equipamento. O TECNICO entra aqui vindo da
+// OS: é ele quem precisa saber o que já foi feito na máquina antes de mexer.
+router.get('/equipamentos/:id/historico', sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO, 'TECNICO'), equipamentoWeb.exibirHistorico);
 
 // Ordens de Serviço
 router.get('/ordens',                sessaoMiddleware, exigirPerfil(...PERFIS_OS, 'VENDEDOR'), ordemServicoWeb.listar);
@@ -91,6 +96,19 @@ router.get('/financeiro/:tipo/:id/editar',      sessaoMiddleware, exigirPerfil(.
 router.post('/financeiro/:tipo/:id/editar',     sessaoMiddleware, exigirPerfil(...PERFIS_FINANCEIRO), financeiroWeb.atualizar);
 router.post('/financeiro/:tipo/:id/quitar',     sessaoMiddleware, exigirPerfil(...PERFIS_FINANCEIRO), financeiroWeb.quitar);
 router.post('/financeiro/:tipo/:id/cancelar',   sessaoMiddleware, exigirPerfil(...PERFIS_FINANCEIRO), financeiroWeb.cancelar);
+
+// Catálogo de tipos de serviço (Módulo 5) — configuração, perfil gerencial
+router.get('/tipos-servico',                sessaoMiddleware, exigirPerfil(), tipoServicoWeb.listar);
+router.get('/tipos-servico/novo',           sessaoMiddleware, exigirPerfil(), tipoServicoWeb.exibirForm);
+router.post('/tipos-servico',               sessaoMiddleware, exigirPerfil(), tipoServicoWeb.criar);
+router.get('/tipos-servico/:id/editar',     sessaoMiddleware, exigirPerfil(), tipoServicoWeb.exibirEditar);
+router.post('/tipos-servico/:id',           sessaoMiddleware, exigirPerfil(), tipoServicoWeb.atualizar);
+router.post('/tipos-servico/:id/desativar', sessaoMiddleware, exigirPerfil(), tipoServicoWeb.desativar);
+router.post('/tipos-servico/:id/reativar',  sessaoMiddleware, exigirPerfil(), tipoServicoWeb.reativar);
+
+// Relatórios (Módulo 5) — UC RF008: "usuário autenticado com permissão gerencial"
+router.get('/relatorios', sessaoMiddleware, exigirPerfil(), relatorioWeb.exibir);
+router.get('/relatorios/:relatorio/csv', sessaoMiddleware, exigirPerfil(), relatorioWeb.exportar);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);

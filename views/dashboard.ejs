@@ -18,6 +18,7 @@
 
       <%- include('partials/alertas') %>
 
+      <h2 style="font-size:15px; color:#185FA5; margin:0 0 12px">📋 Ordens de Serviço</h2>
       <div class="cards">
         <div class="card">
           <div class="card-valor"><%= resumo.abertas %></div>
@@ -36,6 +37,92 @@
           <div class="card-label">Finalizadas (Mês)</div>
         </div>
       </div>
+
+      <%
+        const real = (v) => 'R$ ' + Number(v).toFixed(2);
+      %>
+
+      <!-- ===== Módulo 5: dashboards de acompanhamento ===== -->
+      <!-- Cada bloco só existe para quem tem perfil de ver aquele dado. -->
+
+      <% if (locals.financeiro) { %>
+      <h2 style="font-size:15px; color:#185FA5; margin:24px 0 12px">💰 Financeiro</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor" style="color:#276749"><%= real(financeiro.aReceber) %></div>
+          <div class="card-label">
+            A receber em aberto
+            <% if (financeiro.vencidasReceber > 0) { %>
+            — <span style="color:#c53030"><%= financeiro.vencidasReceber %> vencida(s)</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="color:#c53030"><%= real(financeiro.aPagar) %></div>
+          <div class="card-label">
+            A pagar em aberto
+            <% if (financeiro.vencidasPagar > 0) { %>
+            — <span style="color:#c53030"><%= financeiro.vencidasPagar %> vencida(s)</span>
+            <% } %>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="<%= financeiro.saldo < 0 ? 'color:#c53030' : '' %>">
+            <%= real(financeiro.saldo) %>
+          </div>
+          <div class="card-label">Saldo previsto</div>
+        </div>
+      </div>
+      <% } %>
+
+      <% if (locals.estoque) { %>
+      <h2 style="font-size:15px; color:#185FA5; margin:24px 0 12px">📦 Estoque</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor"><%= estoque.ativos %></div>
+          <div class="card-label">Produtos ativos</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="<%= estoque.negativos > 0 ? 'color:#c53030' : '' %>">
+            <%= estoque.negativos %>
+          </div>
+          <div class="card-label">Com saldo negativo</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="<%= estoque.zerados > 0 ? 'color:#975a16' : '' %>">
+            <%= estoque.zerados %>
+          </div>
+          <div class="card-label">Sem estoque</div>
+        </div>
+        <div class="card">
+          <div class="card-valor"><%= real(estoque.valorEmEstoque) %></div>
+          <div class="card-label">Valor em estoque</div>
+        </div>
+      </div>
+
+      <% if (estoque.aRegularizar.length > 0) { %>
+      <div class="alert alert-aviso">
+        ⚠ <strong>A regularizar:</strong>
+        <% estoque.aRegularizar.forEach((p, i) => { %><%= i > 0 ? ' · ' : '' %><a href="/produtos/<%= p.id %>/estoque"><%= p.nome %></a> (<%= p.estoque %>)<% }) %>
+      </div>
+      <% } %>
+      <% } %>
+
+      <% if (locals.garantia && garantia.vigentes > 0) { %>
+      <h2 style="font-size:15px; color:#185FA5; margin:24px 0 12px">🛡️ Garantias</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="card-valor"><%= garantia.vigentes %></div>
+          <div class="card-label">Serviços em garantia vigente</div>
+        </div>
+        <div class="card">
+          <div class="card-valor" style="<%= garantia.vencendoEm15Dias > 0 ? 'color:#975a16' : '' %>">
+            <%= garantia.vencendoEm15Dias %>
+          </div>
+          <div class="card-label">Vencendo em até 15 dias</div>
+        </div>
+      </div>
+      <% } %>
 
       <%
         // O menu já esconde o que o perfil não acessa; aqui a tabela faz o mesmo

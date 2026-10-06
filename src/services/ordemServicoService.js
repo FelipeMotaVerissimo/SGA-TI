@@ -72,7 +72,7 @@ async function buscarOrdemPorId(id) {
     where: { id: Number(id) },
     include: {
       equipamento: { include: { cliente: true } },
-      servicos:    true,
+      servicos:    { include: { tipoServico: true } },   // Módulo 5
       itens:       { include: { produto: true } },
       usuario:     { select: { id: true, nome: true } },
     },
@@ -86,7 +86,7 @@ async function buscarOrdemPorNumero(numero) {
     where: { numero },
     include: {
       equipamento: { include: { cliente: true } },
-      servicos:    { orderBy: { executadoEm: 'desc' } },   // Módulo 3 - parte 2
+      servicos:    { include: { tipoServico: true }, orderBy: { executadoEm: 'desc' } }, // M3 p2 + M5
     },
   });
   if (!ordem) throw Object.assign(new Error('Ordem de serviço não encontrada.'), { status: 404 });

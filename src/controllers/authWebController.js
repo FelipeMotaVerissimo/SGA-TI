@@ -1,5 +1,8 @@
-const authService = require('../services/authService');
-const prisma      = require('../config/database');
+const authService      = require('../services/authService');
+const prisma           = require('../config/database');
+const financeiroService = require('../services/financeiroService');  // Módulo 5
+const relatorioService  = require('../services/relatorioService');   // Módulo 5
+const { temPermissao }  = require('../middlewares/perfilMiddleware');
 
 function exibirLogin(req, res) {
   if (req.session.usuario) return res.redirect('/dashboard');
@@ -53,10 +56,27 @@ async function dashboard(req, res) {
         }),
       ]);
 
+    // Módulo 5 — dashboards de acompanhamento.
+    // Cada bloco só é consultado para quem pode vê-lo: não faz sentido carregar
+    // (nem exibir) o caixa da empresa para o técnico.
+    const usuario = req.session.usuario;
+    const veFinanceiro = temPermissao(usuario, ['FINANCEIRO']);
+    const veEstoque    = temPermissao(usuario, ['COMPRAS', 'VENDEDOR']);
+    const veGarantia   = temPermissao(usuario, ['TECNICO']);
+
+    const [financeiro, estoque, garantia] = await Promise.all([
+      veFinanceiro ? financeiroService.resumo()             : null,
+      veEstoque    ? relatorioService.indicadoresEstoque()  : null,
+      veGarantia   ? relatorioService.indicadoresGarantia() : null,
+    ]);
+
     res.render('dashboard', {
       titulo: 'Dashboard',
       resumo: { abertas, aguardandoOrcamento, emAndamento, finalizadasNoMes },
       recentes,
+      financeiro,
+      estoque,
+      garantia,
     });
   } catch (err) {
     // O dashboard é a tela pós-login: falhar aqui deixaria o usuário preso.
@@ -65,6 +85,9 @@ async function dashboard(req, res) {
       titulo: 'Dashboard',
       resumo: { abertas: 0, aguardandoOrcamento: 0, emAndamento: 0, finalizadasNoMes: 0 },
       recentes: [],
+      financeiro: null,
+      estoque: null,
+      garantia: null,
     });
   }
 }

@@ -24,6 +24,7 @@ async function limpar() {
   await prisma.movimentoEstoque.deleteMany();
   await prisma.itemOrdem.deleteMany();
   await prisma.servicoExecutado.deleteMany();
+  await prisma.tipoServico.deleteMany();
   await prisma.ordemServico.deleteMany();
   await prisma.equipamento.deleteMany();
   await prisma.cliente.deleteMany();
@@ -66,10 +67,17 @@ async function semear() {
 
   const equipamento = await prisma.equipamento.create({
     data: {
-      codigo: 'EQ-TESTE-1', marca: 'Dell', modelo: 'Inspiron',
+      codigo: 'EQ-TESTE-1', tipo: 'NOTEBOOK', marca: 'Dell', modelo: 'Inspiron',
       defeito: 'Não liga', clienteId: cliente.id,
     },
   });
+
+  // ------------------------------------------- catálogo de tipos (Módulo 5)
+  const tiposServico = {
+    tela:    await prisma.tipoServico.create({ data: { nome: 'Troca de tela' } }),
+    limpeza: await prisma.tipoServico.create({ data: { nome: 'Limpeza interna' } }),
+    inativo: await prisma.tipoServico.create({ data: { nome: 'Tipo aposentado', ativo: false } }),
+  };
 
   // ------------------------------------------------------------------ produtos
   // O saldo nasce de um movimento de ENTRADA, como no cadastro real — senão o
@@ -112,13 +120,21 @@ async function semear() {
   // ------------------------------------------- serviços cobrindo as garantias
   const servicos = {
     emGarantia: await prisma.servicoExecutado.create({
-      data: { ordemId: ordens.andamento.id, descricao: 'Servico com garantia vigente', garantiaDias: 90, executadoEm: dias(-10) },
+      data: { ordemId: ordens.andamento.id, descricao: 'Servico com garantia vigente', garantiaDias: 90,
+              executadoEm: dias(-10), tipoServicoId: tiposServico.tela.id },
     }),
     vencida: await prisma.servicoExecutado.create({
-      data: { ordemId: ordens.andamento.id, descricao: 'Servico com garantia vencida', garantiaDias: 7, executadoEm: dias(-30) },
+      data: { ordemId: ordens.andamento.id, descricao: 'Servico com garantia vencida', garantiaDias: 7,
+              executadoEm: dias(-30), tipoServicoId: tiposServico.tela.id },
     }),
     semGarantia: await prisma.servicoExecutado.create({
-      data: { ordemId: ordens.andamento.id, descricao: 'Servico sem garantia', garantiaDias: null, executadoEm: dias(-3) },
+      data: { ordemId: ordens.andamento.id, descricao: 'Servico sem garantia', garantiaDias: null,
+              executadoEm: dias(-3), tipoServicoId: tiposServico.limpeza.id },
+    }),
+    // sem tipo, de propósito: alimenta a linha "Não classificado" do RF017
+    naoClassificado: await prisma.servicoExecutado.create({
+      data: { ordemId: ordens.andamento.id, descricao: 'Servico sem classificacao', garantiaDias: null,
+              executadoEm: dias(-5) },
     }),
   };
 
@@ -132,7 +148,7 @@ async function semear() {
     }),
   };
 
-  return { perfis, usuarios, cliente, equipamento, produtos, ordens, servicos, contas, SENHA };
+  return { perfis, usuarios, cliente, equipamento, produtos, ordens, servicos, tiposServico, contas, SENHA };
 }
 
 /** Faz login e devolve um agente do Supertest com a sessão já ativa. */
