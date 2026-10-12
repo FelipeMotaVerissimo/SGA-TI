@@ -1,0 +1,174 @@
+# Matriz de rastreabilidade de requisitos
+
+**Versão:** V01 · 12/10/2026
+**Commit medido:** `923acea`
+**Suíte de referência:** 223 testes unitários + 226 de integração (449 no total)
+
+---
+
+## 0. Limitação deste documento
+
+> **A monografia não estava disponível.** O arquivo `sandbox/tcc.html`, apontado
+> como "o documento", é um painel de acompanhamento de 04/08/2026 e não contém a
+> lista numerada de requisitos (ver `docs/DIVERGENCIAS-DOC.md`, seção 0).
+
+Consequência prática para esta matriz:
+
+| Situação | Quantos | Como foi tratado |
+|---|---|---|
+| Requisito **citado no código ou nos LEIAMEs**, com enunciado conhecido | 16 RF + 5 NF | Enunciado transcrito como aparece no projeto |
+| Requisito cujo número é conhecido, mas **o enunciado não** | 7 RF + 3 NF | Marcado `[VALIDAR]`, com a funcionalidade correspondente **inferida** e identificada como inferência |
+
+**Nada foi inventado.** Onde o enunciado não era conhecido, está escrito que não
+era conhecido. Onde não há teste, está escrito que não há.
+
+---
+
+## 1. Legenda
+
+| Status | Significado |
+|---|---|
+| ✅ **Completo** | Implementado e com teste automatizado que exercita a regra |
+| ⚠️ **Sem teste** | Implementado, mas sem teste automatizado que o cubra diretamente |
+| 🔶 **Parcial** | Implementado em parte, com lacuna registrada |
+| ❌ **Não implementado** | Previsto e ausente |
+| ❓ **A validar** | Enunciado desconhecido — depende da monografia |
+
+---
+
+## 2. Requisitos funcionais
+
+### 2.1 Módulos 1 e 2 — enunciados não disponíveis
+
+> `[VALIDAR: RF001, RF002, RF003, RF005, RF009, RF010 e RF011 não aparecem
+> citados em nenhum comentário do código nem nos LEIAMEs, ao contrário dos
+> demais.]` São, muito provavelmente, os Módulos 1 e 2 — implementados pelo
+> Felipe antes de a convenção de marcar o RF no comentário existir. A coluna
+> "funcionalidade correspondente" abaixo é **inferência a partir do que o sistema
+> faz**, não transcrição do documento.
+
+| ID | Funcionalidade correspondente (inferida) | Onde está | Teste que cobre | Status |
+|---|---|---|---|---|
+| RF001 | ❓ Autenticação de usuário (login com sessão) | `authWebController.realizarLogin`, `sessaoMiddleware` | `perfis.test.js` (login em todos os cenários), `seguranca.test.js` (cookie da sessão) | ❓ a validar |
+| RF002 | ❓ Cadastro de clientes | `clienteService`, telas `/clientes` | `unit/clienteService.test.js` (5), `clientes.test.js` (7, via API) | ❓ a validar |
+| RF003 | ❓ Cadastro de equipamentos | `equipamentoService`, telas `/equipamentos` | `unit/equipamentoService.test.js` (validação de tipo) | ❓ a validar |
+| RF005 | ❓ Cadastro de usuários | `usuarioWebController`, `authService.criarUsuario` | `api.test.js` — criação restrita ao administrador | ❓ a validar |
+| RF009 | ❓ Abertura de ordem de serviço | `ordemServicoService.abrirOrdem` | `unit/ordemServicoService.test.js` — OS nasce `INICIAL` | ❓ a validar |
+| RF010 | ❓ Atualização de status da OS | `ordemServicoService.atualizarStatus` | `unit/ordemServicoService.test.js`, `garantia.test.js` | ❓ a validar |
+| RF011 | ❓ Consulta pública de OS pelo número | `ordemServicoWeb.consultaPublica`, `/consulta` | `garantia.test.js` — consulta com número válido e inexistente | ❓ a validar |
+
+### 2.2 Requisitos com enunciado conhecido
+
+| ID | Enunciado (como citado no projeto) | Onde está | Teste que cobre | Status |
+|---|---|---|---|---|
+| **RF004** | Excluir cliente — **só administrador** (UC RF004) | `clienteService.excluirCliente`; rota `POST /clientes/:id/excluir` com `exigirPerfil()` | `clientes.test.js` — `DELETE /api/clientes/:id` desativa. **A rota web e a trava de perfil não têm teste** | ⚠️ sem teste |
+| **RF006** | Controlar Produtos/Estoques — cadastro → entrada → saída na OS (UC) | `produtoService`, `itemOrdemService`, telas `/produtos` | `unit/produtoService.test.js` (34), `unit/itemOrdemService.test.js` (29), `estoque.test.js` (16) | ✅ completo |
+| **RF007** | Controlar Financeiro — contas a pagar/receber com quitação e cancelamento (UC) | `financeiroService`, telas `/financeiro` | `unit/financeiroService.test.js` (30), `financeiro.test.js` (15) | ✅ completo |
+| **RF008** | Emitir Relatórios — por período, com filtros, **exibido ou exportado** (UC) | `relatorioService`, `csvService`, tela `/relatorios` | `unit/relatorioService.test.js` (18), `unit/csvService.test.js` (12), `relatorios.test.js` (17), `dashboard.test.js` (CSV) | ✅ completo |
+| **RF012** | Histórico de serviços por equipamento | `equipamentoService.historicoDeServicos`, tela `/equipamentos/:id/historico` | `unit/equipamentoService.test.js` (10), `historicoEquipamento.test.js` (14) | ✅ completo |
+| **RF013** | Controle de garantia | `servicoExecutadoService.calcularGarantia` | `unit/servicoExecutadoService.test.js` (16), `garantia.test.js` (13) | ✅ completo |
+| **RF014** | Cadastro de produtos utilizados nos serviços | `produtoService`, telas `/produtos` | `unit/produtoService.test.js`, `estoque.test.js`, `api.test.js` | ✅ completo |
+| **RF015** | Entrada de produtos no estoque **pelo setor de Compras** | `produtoService.movimentarEstoque`, tela `/produtos/:id/estoque` | `estoque.test.js`, `perfis.test.js` — VENDEDOR não movimenta por POST direto | ✅ completo |
+| **RF016** | Maiores clientes por período | `relatorioService.maioresClientes` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |
+| **RF017** | Serviços mais executados por período | `relatorioService.servicosMaisExecutados`, `tipoServicoService` | `tiposServico.test.js` (18) | ✅ completo |
+| **RF018** | Produtos mais vendidos | `relatorioService.produtosMaisVendidos` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |
+| **RF019** | Serviços e produtos vendidos por tipo de equipamento | `relatorioService.porTipoDeEquipamento` | `tiposServico.test.js` | ✅ completo |
+| **RF020** | Registro de contas a pagar | `financeiroService` | `unit/financeiroService.test.js`, `financeiro.test.js` | ✅ completo |
+| **RF021** | Registro de contas a receber | `financeiroService`; geração automática no encerramento da OS | `unit/financeiroService.test.js`, `financeiro.test.js`, `unit/ordemServicoService.test.js` (conta gerada em transação) | ✅ completo |
+| **RF022** | Usuários com níveis de acesso | `perfilMiddleware`, model `Perfil` | `perfis.test.js` (19), `api.test.js` (32) | ✅ completo |
+| **RF023** | Permissões específicas por perfil | `exigirPerfil` / `exigirPerfilApi`, rota a rota em `webRoutes.js` | `perfis.test.js`, `api.test.js`, `auditoria.test.js`, `retencao.test.js` | ✅ completo |
+
+---
+
+## 3. Requisitos não funcionais
+
+| ID | Enunciado | Onde está | Teste que cobre | Status |
+|---|---|---|---|---|
+| **NF001** | `[VALIDAR: não citado no plano nem no código]` | — | — | ❓ a validar |
+| **NF002** | `[VALIDAR: idem]` | — | — | ❓ a validar |
+| **NF003** | `[VALIDAR: idem]` | — | — | ❓ a validar |
+| **NF004** | Análise geográfica | `Cliente.cidade`, `Cliente.estado` existem no schema; **nenhum relatório agrupa por eles** | — | ❌ não implementado |
+| **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
+| **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos. **O ciclo dump → restauração não foi executado** | 🔶 parcial |
+| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS | `unit/seguranca.test.js` (18), `seguranca.test.js` (13) | 🔶 parcial |
+| **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `docs/RETENCAO.md` | `retencao.test.js` (21) | 🔶 parcial |
+
+### Por que NF006, NF007 e NF008 são parciais
+
+| ID | O que falta | Onde está registrado |
+|---|---|---|
+| NF006 | O ciclo dump → restauração nunca foi executado: exige `mysqldump` e um MySQL no ar, que não existem na máquina de desenvolvimento. A lógica do script está testada; o backup de verdade, não | `docs/BACKUP.md`, seções 5 e 6 |
+| NF007 | `'unsafe-inline'` em `script-src` (há 2 blocos `<script>` e 11 `onclick` nas views), **sem limite de tentativas de login**, sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado | `docs/SEGURANCA.md`, seção 7 |
+| NF008 | A anonimização não alcança o log de auditoria: os dados pessoais sobrevivem em `logs_auditoria.valorAnterior`. Também não há expurgo automático nem registro de consentimento | `docs/RETENCAO.md`, seção 7 |
+
+---
+
+## 4. Requisitos sem teste automatizado
+
+> Esta seção existe porque o plano pede que a ausência de teste seja dita
+> abertamente, em vez de preenchida.
+
+| ID | O que não tem teste | Gravidade | Comentário |
+|---|---|---|---|
+| **RF004** | A rota web `POST /clientes/:id/excluir` e sua trava de administrador | **Média** | O caminho equivalente pela API (`DELETE /api/clientes/:id`) é testado em `clientes.test.js`, e a desativação lógica funciona. O que não é verificado é se um perfil não administrativo é barrado nessa rota específica. `perfis.test.js` testa o bloqueio de POST em orçamento, itens e estoque — não neste |
+| **NF004** | Não há teste porque **não há implementação** | Baixa | É trabalho futuro, ver `docs/CONCLUSAO.md` |
+| **NF006** | O ciclo real de backup e restauração | **Alta** | Backup que nunca foi restaurado não é backup. Roteiro pronto em `docs/BACKUP.md`, seção 5 |
+| **NF007** | Comportamento sob TLS de verdade; ausência de rate limiting | Média | A lógica de produção × desenvolvimento está testada; o tráfego cifrado não |
+| RF001–RF011 | Os sete requisitos de enunciado desconhecido têm testes que **provavelmente** os cobrem, mas a correspondência não pode ser afirmada sem o documento | — | Resolve-se com a monografia em mãos |
+
+### Lacunas de teste que não são de requisito
+
+Registradas em `docs/TESTES.md`, seção 1.6: renderização no navegador, HTTPS
+real, carga e concorrência, e compatibilidade entre navegadores.
+
+---
+
+## 5. Resumo
+
+### Requisitos funcionais
+
+| Status | Quantidade |
+|---|---|
+| ✅ Completo | 15 |
+| ⚠️ Implementado sem teste direto | 1 (RF004) |
+| ❓ A validar com a monografia | 7 |
+| ❌ Não implementado | 0 |
+| **Total** | **23** |
+
+**Nenhum requisito funcional conhecido ficou sem implementação.**
+
+### Requisitos não funcionais
+
+| Status | Quantidade |
+|---|---|
+| ✅ Completo | 1 (NF005) |
+| 🔶 Parcial | 3 (NF006, NF007, NF008) |
+| ❌ Não implementado | 1 (NF004) |
+| ❓ A validar | 3 (NF001–NF003) |
+| **Total** | **8** |
+
+### Cobertura por módulo
+
+| Módulo | Requisitos | Testes dedicados |
+|---|---|---|
+| 1 — Base | RF001–RF005 (inferido) | `clienteService`, `clientes`, `equipamentoService`, `perfis` |
+| 2 — Ordens de serviço | RF009–RF011 (inferido) | `ordemServicoService`, `garantia` (consulta pública) |
+| 3 — Orçamento, serviços e garantia | RF012, RF013 | `servicoExecutadoService`, `garantia`, `historicoEquipamento` |
+| 4 — Produtos, estoque, financeiro, perfis | RF006, RF007, RF014, RF015, RF020–RF023 | `produtoService`, `itemOrdemService`, `financeiroService`, `estoque`, `financeiro`, `perfis`, `api` |
+| 5 — Relatórios | RF008, RF016–RF019 | `relatorioService`, `csvService`, `relatorios`, `tiposServico`, `dashboard` |
+| NF005 — Auditoria | NF005 | `auditoriaExtensao`, `auditoria` |
+| NF006–NF008 | NF006, NF007, NF008 | `backup`, `seguranca` (×2), `retencao` |
+
+---
+
+## 6. Como esta matriz se mantém verdadeira
+
+Os números desta matriz foram conferidos arquivo por arquivo contra a execução
+real da suíte, não estimados. Para refazer a conferência:
+
+```cmd
+npx jest --json --outputFile=resultados.json
+```
+
+O CI roda as duas suítes contra MySQL 8 a cada push, então **divergência entre
+esta matriz e a realidade aparece no GitHub Actions antes de aparecer na banca**.
