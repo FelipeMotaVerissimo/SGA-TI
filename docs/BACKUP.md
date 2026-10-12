@@ -13,7 +13,7 @@
 | Script de dump | `scripts/backup.js` |
 | Comando | `npm run backup` |
 | Destino padrão | `./backups/` (no `.gitignore` — dump é cópia do banco de produção e nunca vai para o repositório) |
-| Testes | `tests/unit/backup.test.js` — 16 casos |
+| Testes | `tests/unit/backup.test.js` — 15 casos |
 
 O script usa a mesma `DATABASE_URL` da aplicação. **Não há credencial duplicada
 em lugar nenhum:** se a aplicação conecta, o backup conecta.
@@ -133,7 +133,7 @@ schtasks /delete /tn "Backup SGA TI" /f
 
 ## 5. O que foi testado, e o que não foi
 
-**Testado** (`tests/unit/backup.test.js`, 16 casos): leitura da `DATABASE_URL`
+**Testado** (`tests/unit/backup.test.js`, 15 casos): leitura da `DATABASE_URL`
 incluindo senha com caractere especial, recusa de URL de SQLite com explicação,
 recusa de URL sem nome de banco, nome do arquivo com zero à esquerda e no fuso
 local, e a montagem dos argumentos — em especial que **a senha nunca aparece

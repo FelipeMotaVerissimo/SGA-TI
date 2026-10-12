@@ -158,7 +158,7 @@ não dependem disto. O CORS existe só para a API `/api/*`.
 
 | Suíte | Arquivo | Casos |
 |---|---|---|
-| Unitários | `tests/unit/seguranca.test.js` | 19 |
+| Unitários | `tests/unit/seguranca.test.js` | 18 |
 | Integração | `tests/integration/seguranca.test.js` | 13 |
 
 Os unitários cobrem a decisão produção × desenvolvimento de cada proteção. Os de
