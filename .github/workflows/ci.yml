@@ -7,7 +7,7 @@ on:
 
 jobs:
   testes:
-    name: Testes e migrations (MySQL real)
+    name: Testes, migrations e backup (MySQL real)
     runs-on: ubuntu-latest
 
     # O ganho principal deste CI: a suíte de integração passa a rodar contra um
@@ -35,6 +35,9 @@ jobs:
       SESSION_SECRET: segredo_de_sessao_do_ci
       JWT_SECRET: segredo_jwt_do_ci
       NODE_ENV: test
+      # Lida pelo mysql/mysqldump no passo de backup. Senha por variavel de
+      # ambiente, nunca por argumento.
+      MYSQL_PWD: raiz_do_ci
 
     steps:
       - name: Checkout
@@ -90,6 +93,22 @@ jobs:
         # A decisão sobre o destino desse arquivo está aberta — ver
         # docs/DIVERGENCIAS-DOC.md, defeito D06.
         run: npx jest tests/integration --runInBand --forceExit --testPathIgnorePatterns "node_modules" "auth\.test\.js"
+
+      # --------------------------------------------------------------------
+      # NF006 - ciclo completo de backup e restauracao
+      # --------------------------------------------------------------------
+      # Responde a pendencia P01 do docs/BACKUP.md: o ciclo nunca tinha sido
+      # executado, por falta de mysqldump e de um MySQL na maquina de
+      # desenvolvimento. Aqui os dois existem, e a prova passa a ser continua.
+      #
+      # Roda depois dos testes de proposito: o banco fica com dados espalhados
+      # pelas tabelas, e nao so com o seed. O que se compara e origem contra
+      # copia, entao os numeros em si nao importam - importa que sejam iguais.
+      - name: NF006 - gerar o dump
+        run: npm run backup
+
+      - name: NF006 - restaurar num banco novo e comparar
+        run: bash scripts/conferir-restauracao.sh
 
       - name: Falha conhecida (auth.test.js) — não bloqueia
         continue-on-error: true

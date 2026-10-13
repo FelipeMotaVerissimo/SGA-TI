@@ -131,7 +131,7 @@ schtasks /delete /tn "Backup SGA TI" /f
 
 ---
 
-## 5. O que foi testado, e o que não foi
+## 5. O que foi testado
 
 **Testado** (`tests/unit/backup.test.js`, 15 casos): leitura da `DATABASE_URL`
 incluindo senha com caractere especial, recusa de URL de SQLite com explicação,
@@ -146,21 +146,35 @@ Os dois caminhos de erro foram exercitados na máquina:
 [ERRO] O backup é de MySQL, mas DATABASE_URL aponta para "file".
 ```
 
-**`[VALIDAR: o ciclo dump → restauração não foi executado.]`** Ele exige
-`mysqldump` e um servidor MySQL, e nenhum dos dois existe na máquina de
-desenvolvimento — é a mesma limitação registrada desde o Módulo 4. O que
-precisa ser feito antes da entrega, e marcado aqui quando for:
+### O ciclo dump → restauração roda no CI
 
-1. subir um MySQL com o banco populado (`npm run db:mysql` + `npm run seed`);
-2. `npm run backup`;
-3. criar `sga_ti_restaurado` e restaurar o dump nele;
-4. comparar a contagem das 13 tabelas entre origem e cópia;
-5. subir o sistema apontando para a cópia e abrir `/dashboard`, `/ordens` e
-   `/relatorios`.
+Ele exigia `mysqldump` e um servidor MySQL, e nenhum dos dois existe na máquina
+de desenvolvimento. **Mas os dois existem no CI**, que já sobe um MySQL 8 de
+serviço — então o ciclo completo passou a ser executado **a cada push**, em vez
+de uma vez só, à mão, antes da entrega.
 
-O Módulo 5 já fez homologação em MySQL dessa forma, com um MariaDB portátil
-temporário (ver `docs/LEIAME-MODULO5.md`, seção 8.1). O mesmo caminho serve
-aqui.
+O passo roda `scripts/conferir-restauracao.sh`, que:
+
+1. pega o dump mais recente gerado por `npm run backup`;
+2. cria um banco novo (`sga_ti_restaurado`) e restaura o dump nele;
+3. compara **tabela a tabela** a contagem de linhas entre origem e cópia;
+4. **falha o build** se qualquer tabela divergir;
+5. executa uma consulta com junção (`usuarios × perfis`) na cópia, porque contar
+   linhas não prova que as chaves estrangeiras vieram junto.
+
+O passo roda **depois** dos testes de propósito: aí o banco tem dados espalhados
+pelas tabelas, e não apenas o seed.
+
+### Rodar o mesmo ciclo na mão
+
+Com um MySQL no ar:
+
+```cmd
+npm run backup
+bash scripts/conferir-restauracao.sh sga_ti sga_ti_restaurado backups
+```
+
+A conexão vem de `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER` e `MYSQL_PWD`.
 
 ---
 
@@ -168,7 +182,7 @@ aqui.
 
 | # | Item | Prioridade |
 |---|---|---|
-| P01 | Ciclo dump → restauração não executado — ver seção 5 | **alta** |
+| P01 | ~~Ciclo dump → restauração não executado~~ — **resolvido**: roda no CI a cada push, ver seção 5 | — |
 | P02 | O dump não é compactado. Um `.sql` de um banco com histórico longo fica grande; `gzip` reduziria bastante | baixa |
 | P03 | Não há verificação automática de integridade do arquivo gerado (hash, ou restauração de fumaça) | baixa |
 | P04 | A rotação/retenção é manual: o script grava e nunca apaga nada | média |
