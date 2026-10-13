@@ -18,6 +18,7 @@
     "db:mysql": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:mysql:client": "prisma generate --schema prisma/schema.prisma",
     "seed": "node prisma/seed.js",
+    "seed:demo": "node prisma/seed.js --com-usuarios-demo",
     "backup": "node scripts/backup.js"
   },
   "jest": {
@@ -40,6 +41,7 @@
     "dotenv": "^17.4.2",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
     "express-session": "^1.19.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",

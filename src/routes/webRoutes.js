@@ -13,6 +13,7 @@ const tipoServicoWeb   = require('../controllers/tipoServicoWebController');    
 const auditoriaWeb     = require('../controllers/auditoriaWebController');        // NF005
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
+const { limitadorLogin }   = require('../config/seguranca');                     // NF007
 
 /**
  * Módulo 4 — perfis por rota (RF023).
@@ -33,7 +34,7 @@ router.get('/', (req, res) => res.redirect('/login'));
 
 // Auth
 router.get('/login',  authWeb.exibirLogin);
-router.post('/login', authWeb.realizarLogin);
+router.post('/login', limitadorLogin, authWeb.realizarLogin); // NF007: trava força bruta
 router.get('/logout', authWeb.logout);
 
 // Dashboard — todo usuário autenticado

@@ -64,9 +64,10 @@ npm run seed
 | `db:mysql:client` | Gera o Prisma Client a partir de `prisma/schema.prisma` |
 | `db:mysql` | Aplica as migrations versionadas (`prisma migrate deploy`) |
 | `seed` | Cria os 6 perfis e o usuário `admin` |
+| `seed:demo` | O mesmo, **mais um usuário por perfil** (ver seção 5) |
 | `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
 
-### As cinco migrations
+### As seis migrations
 
 | Migration | O que acrescenta |
 |---|---|
@@ -75,10 +76,15 @@ npm run seed
 | `20260825120000_modulo5_relatorios` | Módulo 5: `tipos_servico`, `equipamentos.tipo` e `itens_ordem.criadoEm` |
 | `20261005120000_nf005_auditoria` | NF005: `logs_auditoria` e o enum `AcaoAuditoria` |
 | `20261006120000_nf008_retencao` | NF008: `equipamentos.ativo` e `clientes.anonimizadoEm` |
+| `20261013120000_perfil_nome_unico` | Torna `perfis.nomePerfil` único — ver aviso abaixo |
 
 As três primeiras já foram aplicadas num servidor MySQL real, em banco vazio, com o
 `prisma migrate diff` do resultado contra o schema voltando vazio. Detalhes em
 `docs/LEIAME-MODULO5.md`, seção 8.1.
+
+> **Atenção na migration `20261013120000_perfil_nome_unico`:** se o banco já em
+> uso tiver nome de perfil repetido, ela falha. Conferir antes com
+> `SELECT nomePerfil, COUNT(*) FROM perfis GROUP BY nomePerfil HAVING COUNT(*) > 1;`
 
 > Se você já tinha um banco criado à mão, antes de as migrations serem
 > versionadas, marque a primeira como aplicada para o Prisma não tentar recriar
@@ -115,16 +121,35 @@ login** — é a tela que o cliente usa para acompanhar o conserto pelo número 
 |---|---|---|
 | `admin` | `admin123` | `ADMINISTRADOR` |
 
+Para criar **um usuário por perfil**, use o comando próprio:
+
+```cmd
+npm run seed:demo
+```
+
+| Login | Senha | Perfil |
+|---|---|---|
+| `admin` | `admin123` | `ADMINISTRADOR` |
+| `atendente` | `admin123` | `ATENDENTE` |
+| `tecnico` | `admin123` | `TECNICO` |
+| `vendedor` | `admin123` | `VENDEDOR` |
+| `financeiro` | `admin123` | `FINANCEIRO` |
+| `compras` | `admin123` | `COMPRAS` |
+
+> Os usuários de demonstração ficam atrás de um comando próprio **de propósito**.
+> Criar seis contas com senha conhecida é aceitável numa máquina de demonstração
+> e inaceitável em produção — e um seed que faz isso por padrão acaba rodando em
+> produção mais cedo ou mais tarde. Ambos os comandos são idempotentes: rodar
+> duas vezes não duplica nada.
+
 O `ADMINISTRADOR` enxerga e executa tudo, então esse usuário basta para subir o
 sistema e navegar. Ele **não** basta para testar o controle de acesso: o RF023 só
 aparece quando se entra com um perfil restrito e se vê o menu encolher.
 
-### Criando um usuário por perfil
+### O que cada perfil faz
 
-Para exercitar cada perfil, entre como `admin` e use **⚙️ Usuários → + Novo
-Usuário**, criando um para cada um dos perfis abaixo. A suíte de integração usa
-exatamente esses seis logins (`tests/helpers/fixture.js`), então vale seguir a
-mesma convenção:
+A suíte de integração usa exatamente esses seis logins
+(`tests/helpers/fixture.js`).
 
 | Login sugerido | Perfil | O que esse perfil pode fazer no sistema |
 |---|---|---|
@@ -139,9 +164,8 @@ mesma convenção:
 > rota a rota em `src/routes/webRoutes.js`. O `ADMINISTRADOR` passa em todas sem
 > precisar ser listado.
 
-**[VALIDAR: decidir se o `prisma/seed.js` deve passar a criar os seis usuários
-automaticamente.]** Hoje ele cria só o `admin`, então quem clonar o repositório
-precisa criar os outros cinco à mão antes de conseguir demonstrar o RF022/RF023.
+> ~~Decidir se o seed deve criar os seis usuários~~ — **resolvido**: criado o
+> comando `npm run seed:demo`, que não roda por padrão.
 
 ---
 
@@ -149,7 +173,7 @@ precisa criar os outros cinco à mão antes de conseguir demonstrar o RF022/RF02
 
 ```cmd
 npm run test:unit         :: 223 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 226 testes de integração (rota, sessão, JWT e banco)
+npm run test:integration  :: 238 testes de integração (rota, sessão, JWT e banco)
 npm test                  :: suíte completa
 ```
 
@@ -158,7 +182,7 @@ Resultado atual na `main` consolidada:
 | Suíte | Passando | Falhando |
 |---|---|---|
 | Unitários | **223** | 0 |
-| Integração | **223** | 3 (todas em `auth.test.js`, ver abaixo) |
+| Integração | **235** | 3 (todas em `auth.test.js`, ver abaixo) |
 
 ### Banco dos testes
 

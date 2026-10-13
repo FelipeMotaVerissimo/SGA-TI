@@ -147,3 +147,75 @@ describe('bloqueio vale para o POST, não só para a tela', () => {
     expect(await prisma.movimentoEstoque.count()).toBe(antes);
   });
 });
+
+/**
+ * RF004 — excluir cliente é ato exclusivo do administrador.
+ *
+ * Esta rota não tinha teste: o caminho equivalente pela API é coberto em
+ * `clientes.test.js`, mas a trava de perfil da rota web não era verificada por
+ * ninguém (ver docs/MATRIZ-REQUISITOS.md, seção 4).
+ */
+describe('exclusão de cliente pela web (RF004)', () => {
+  /** Cliente próprio: esta suíte semeia uma vez só, então não dá para mexer na massa. */
+  const clienteNovo = (sufixo) => prisma.cliente.create({
+    data: { nome: `Cliente RF004 ${sufixo}`, cpfCnpj: `RF004-${sufixo}-${Date.now()}` },
+  });
+
+  test('ADMINISTRADOR desativa o cliente, sem apagar o registro', async () => {
+    const cliente = await clienteNovo('admin');
+    const agente  = await logar(request, app, 'admin');
+
+    const r = await agente.post(`/clientes/${cliente.id}/excluir`).type('form').send({});
+    expect(r.headers.location).toBe('/clientes');
+
+    const depois = await prisma.cliente.findUnique({ where: { id: cliente.id } });
+    expect(depois).not.toBeNull();     // exclusão é lógica: o histórico depende dele
+    expect(depois.ativo).toBe(false);
+  });
+
+  test.each(['atendente', 'tecnico', 'vendedor', 'financeiro', 'compras'])(
+    '%s não exclui cliente, mesmo por POST direto',
+    async (login) => {
+      const cliente = await clienteNovo(login);
+      const agente  = await logar(request, app, login);
+
+      const r = await agente.post(`/clientes/${cliente.id}/excluir`).type('form').send({});
+
+      expect(r.headers.location).toBe('/dashboard');
+      expect((await prisma.cliente.findUnique({ where: { id: cliente.id } })).ativo).toBe(true);
+    }
+  );
+
+  test('sem sessão, vai para o login e nada muda', async () => {
+    const cliente = await clienteNovo('anonimo');
+
+    const r = await request(app).post(`/clientes/${cliente.id}/excluir`).type('form').send({});
+
+    expect(r.headers.location).toBe('/login');
+    expect((await prisma.cliente.findUnique({ where: { id: cliente.id } })).ativo).toBe(true);
+  });
+});
+
+/**
+ * O banco aceitava dois perfis com o mesmo nome. Com `ADMINISTRADOR`
+ * duplicado, parte dos usuários aponta para um e parte para o outro, e o
+ * controle de acesso fica imprevisível. A restrição agora está no banco, não
+ * só no código do seed.
+ */
+describe('nome de perfil é único no banco', () => {
+  test('criar um segundo perfil com o mesmo nome é recusado', async () => {
+    await expect(
+      prisma.perfil.create({ data: { nomePerfil: 'ADMINISTRADOR' } })
+    ).rejects.toThrow();
+  });
+
+  test('os seis perfis continuam existindo, um de cada', async () => {
+    const perfis = await prisma.perfil.findMany();
+    const nomes  = perfis.map((p) => p.nomePerfil);
+
+    expect(nomes).toHaveLength(new Set(nomes).size);
+    expect(new Set(nomes)).toEqual(new Set(
+      ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS']
+    ));
+  });
+});

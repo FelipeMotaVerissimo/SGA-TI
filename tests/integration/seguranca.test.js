@@ -119,3 +119,69 @@ describe('CORS', () => {
     expect(res.status).toBe(401);
   });
 });
+
+/**
+ * NF007 — limite de tentativas de autenticação.
+ *
+ * Antes disto nada impedia força bruta contra `/login` e `/api/auth/login`.
+ */
+describe('limite de tentativas de login', () => {
+  const { TENTATIVAS_LOGIN } = require('../../src/config/seguranca');
+
+  /** Uma tentativa com senha errada. */
+  const errar = (agente) =>
+    agente.post('/login').type('form').send({ login: 'admin', senha: 'senha-errada' });
+
+  test('erra até o limite e a próxima é barrada', async () => {
+    const agente = request.agent(app);
+
+    // O GET depois de cada tentativa não é enfeite: o connect-flash enfileira
+    // as mensagens, e a tela mostra a primeira da fila. Sem consumir a cada
+    // volta — como o navegador faz ao seguir o redirect — o teste leria a
+    // mensagem de senha inválida da primeira tentativa, não a do limitador.
+    for (let i = 0; i < TENTATIVAS_LOGIN; i += 1) {
+      const r = await errar(agente);
+      expect(r.headers.location).toBe('/login');
+
+      const tela = await agente.get('/login');
+      expect(tela.text).toMatch(/inválid/i);          // recusado pela senha
+      expect(tela.text).not.toMatch(/Muitas tentativas/i);
+    }
+
+    // A seguinte é barrada pelo limitador, não mais pela senha.
+    const barrada = await errar(agente);
+    expect(barrada.headers.location).toBe('/login');
+
+    const tela = await agente.get('/login');
+    expect(tela.text).toMatch(/Muitas tentativas/i);
+  });
+
+  test('a API barrada devolve 429 em JSON, não HTML', async () => {
+    for (let i = 0; i < TENTATIVAS_LOGIN; i += 1) {
+      await request(app).post('/api/auth/login').send({ login: 'admin', senha: 'errada' });
+    }
+
+    const r = await request(app).post('/api/auth/login').send({ login: 'admin', senha: 'errada' });
+
+    expect(r.status).toBe(429);
+    expect(r.body.erro).toMatch(/Muitas tentativas/i);
+  });
+
+  test('login correto NÃO consome a cota', async () => {
+    const agente = request.agent(app);
+
+    // Muito mais logins válidos do que o limite permitiria se contassem.
+    for (let i = 0; i < TENTATIVAS_LOGIN + 5; i += 1) {
+      const r = await agente.post('/login').type('form')
+        .send({ login: 'admin', senha: dados.SENHA });
+      expect(r.headers.location).toBe('/dashboard');
+    }
+
+    // E uma tentativa errada depois disso ainda é tratada como senha errada,
+    // não como excesso: a cota está intacta.
+    const r = await errar(agente);
+    expect(r.headers.location).toBe('/login');
+    const tela = await agente.get('/login');
+    expect(tela.text).not.toMatch(/Muitas tentativas/i);
+  });
+});

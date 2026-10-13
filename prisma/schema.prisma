@@ -67,9 +67,14 @@ model Usuario {
 }
 
 model Perfil {
-  id         Int       @id @default(autoincrement())
-  nomePerfil String    @db.VarChar(50)
-  usuarios   Usuario[]
+  id         Int    @id @default(autoincrement())
+  // Único: sem esta restrição o banco aceitava dois perfis ADMINISTRADOR, e com
+  // perfil duplicado parte dos usuários aponta para um e parte para o outro —
+  // o controle de acesso fica imprevisível. O seed se protegia no código, mas
+  // nada impedia a duplicata por outro caminho.
+  nomePerfil String @unique @db.VarChar(50)
+
+  usuarios Usuario[]
 
   @@map("perfis")
 }

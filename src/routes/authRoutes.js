@@ -2,9 +2,10 @@ const router         = require('express').Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { exigirPerfilApi } = require('../middlewares/perfilMiddleware');
+const { limitadorLogin }  = require('../config/seguranca');
 
 // Única rota pública da API: é por onde se obtém o token.
-router.post('/login', authController.login);
+router.post('/login', limitadorLogin, authController.login); // NF007: trava força bruta
 
 /**
  * Criação de usuário — RF022/RF023.

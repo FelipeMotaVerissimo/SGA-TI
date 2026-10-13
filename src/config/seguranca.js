@@ -1,3 +1,5 @@
+const { rateLimit, MemoryStore } = require('express-rate-limit');
+
 /**
  * NF007 — segurança na comunicação.
  *
@@ -171,8 +173,82 @@ function redirecionarParaHttps(req, res, next) {
   return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
 }
 
+/**
+ * Limite de tentativas de autenticação.
+ *
+ * Antes disto nada impedia força bruta: dava para disparar senhas contra
+ * `/login` e `/api/auth/login` indefinidamente, e o bcrypt — que é lento de
+ * propósito — virava vetor de negação de serviço em vez de defesa.
+ *
+ * **Só as tentativas que falham contam** (`skipSuccessfulRequests`). Isso é o
+ * que define força bruta: errar muitas vezes seguidas. Quem acerta a senha não
+ * consome a cota, então o balcão com vários atendentes entrando e saindo no
+ * mesmo IP não é penalizado — e a suíte de testes, que faz centenas de logins
+ * válidos, também não.
+ *
+ * A contagem é por IP. Atrás de proxy isso depende do `trust proxy`, ligado em
+ * produção; sem ele, todo mundo compartilharia a cota do proxy.
+ */
+const TENTATIVAS_LOGIN = 10;
+const JANELA_LOGIN_MS  = 15 * 60 * 1000;
+
+/**
+ * O store é instanciado aqui, e não deixado implícito, só para poder ser zerado
+ * entre as suítes de teste: elas rodam no mesmo processo (`--runInBand`), e as
+ * tentativas falhas que um arquivo cria de propósito contaminariam o seguinte.
+ */
+const memoriaLogin = new MemoryStore();
+
+const limitadorLogin = rateLimit({
+  store:    memoriaLogin,
+  windowMs: JANELA_LOGIN_MS,
+  limit:    TENTATIVAS_LOGIN,
+  skipSuccessfulRequests: true,
+
+  /**
+   * O que conta como tentativa bem-sucedida.
+   *
+   * O padrão da biblioteca é "status abaixo de 400", e isso está **errado para
+   * este sistema**: o login recusado pela tela responde `302` redirecionando de
+   * volta para `/login`. Pelo critério padrão, errar a senha pela interface web
+   * era contabilizado como acerto, e a trava nunca disparava — só funcionava na
+   * API, que responde `401`. Descoberto em teste.
+   *
+   * Aqui o critério é o destino: só `/dashboard` significa que entrou.
+   */
+  requestWasSuccessful(req, res) {
+    if (res.statusCode >= 400) return false;
+
+    const destino = res.getHeader('location');
+    if (destino) return String(destino).startsWith('/dashboard');
+
+    return true; // a API responde 200 com o token, sem redirect
+  },
+
+  standardHeaders: 'draft-7',
+  legacyHeaders:   false,
+
+  // A resposta muda conforme a rota: a tela devolve o usuário ao login com a
+  // mensagem, a API devolve JSON. Responder HTML para a API confundiria o
+  // cliente que a consome.
+  handler(req, res) {
+    const mensagem =
+      'Muitas tentativas de login. Aguarde 15 minutos e tente novamente.';
+
+    if (req.originalUrl.startsWith('/api/')) {
+      return res.status(429).json({ erro: mensagem });
+    }
+    req.flash('erro', mensagem);
+    return res.redirect('/login');
+  },
+});
+
 module.exports = {
   emProducao,
+  TENTATIVAS_LOGIN,
+  JANELA_LOGIN_MS,
+  limitadorLogin,
+  memoriaLogin,
   DIRETIVAS_CSP,
   diretivasDoAmbiente,
   opcoesHelmet,

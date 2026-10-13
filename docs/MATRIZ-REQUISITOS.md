@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 223 testes unitários + 226 de integração (449 no total)
+**Suíte de referência:** 223 testes unitários + 238 de integração (461 no total)
 
 ---
 
@@ -61,7 +61,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 
 | ID | Enunciado (como citado no projeto) | Onde está | Teste que cobre | Status |
 |---|---|---|---|---|
-| **RF004** | Excluir cliente — **só administrador** (UC RF004) | `clienteService.excluirCliente`; rota `POST /clientes/:id/excluir` com `exigirPerfil()` | `clientes.test.js` — `DELETE /api/clientes/:id` desativa. **A rota web e a trava de perfil não têm teste** | ⚠️ sem teste |
+| **RF004** | Excluir cliente — **só administrador** (UC RF004) | `clienteService.excluirCliente`; rota `POST /clientes/:id/excluir` com `exigirPerfil()` | `clientes.test.js` (API) e `perfis.test.js` — administrador desativa, os cinco perfis são barrados mesmo por POST direto, e sem sessão nada muda | ✅ completo |
 | **RF006** | Controlar Produtos/Estoques — cadastro → entrada → saída na OS (UC) | `produtoService`, `itemOrdemService`, telas `/produtos` | `unit/produtoService.test.js` (34), `unit/itemOrdemService.test.js` (29), `estoque.test.js` (16) | ✅ completo |
 | **RF007** | Controlar Financeiro — contas a pagar/receber com quitação e cancelamento (UC) | `financeiroService`, telas `/financeiro` | `unit/financeiroService.test.js` (30), `financeiro.test.js` (15) | ✅ completo |
 | **RF008** | Emitir Relatórios — por período, com filtros, **exibido ou exportado** (UC) | `relatorioService`, `csvService`, tela `/relatorios` | `unit/relatorioService.test.js` (18), `unit/csvService.test.js` (12), `relatorios.test.js` (17), `dashboard.test.js` (CSV) | ✅ completo |
@@ -98,7 +98,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 | ID | O que falta | Onde está registrado |
 |---|---|---|
 | NF006 | O ciclo dump → restauração nunca foi executado: exige `mysqldump` e um MySQL no ar, que não existem na máquina de desenvolvimento. A lógica do script está testada; o backup de verdade, não | `docs/BACKUP.md`, seções 5 e 6 |
-| NF007 | `'unsafe-inline'` em `script-src` (há 2 blocos `<script>` e 11 `onclick` nas views), **sem limite de tentativas de login**, sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado | `docs/SEGURANCA.md`, seção 7 |
+| NF007 | `'unsafe-inline'` em `script-src` (há 2 blocos `<script>` e 11 `onclick` nas views), sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login **foi implementado** — ver `docs/SEGURANCA.md`, seção 4.1 | `docs/SEGURANCA.md`, seção 7 |
 | NF008 | A anonimização não alcança o log de auditoria: os dados pessoais sobrevivem em `logs_auditoria.valorAnterior`. Também não há expurgo automático nem registro de consentimento | `docs/RETENCAO.md`, seção 7 |
 
 ---
@@ -110,10 +110,10 @@ era conhecido. Onde não há teste, está escrito que não há.
 
 | ID | O que não tem teste | Gravidade | Comentário |
 |---|---|---|---|
-| **RF004** | A rota web `POST /clientes/:id/excluir` e sua trava de administrador | **Média** | O caminho equivalente pela API (`DELETE /api/clientes/:id`) é testado em `clientes.test.js`, e a desativação lógica funciona. O que não é verificado é se um perfil não administrativo é barrado nessa rota específica. `perfis.test.js` testa o bloqueio de POST em orçamento, itens e estoque — não neste |
+| ~~RF004~~ | ~~A rota web e sua trava de administrador~~ | — | **Resolvido**: 7 casos novos em `perfis.test.js` cobrem o administrador desativando, os cinco perfis barrados por POST direto e o acesso sem sessão |
 | **NF004** | Não há teste porque **não há implementação** | Baixa | É trabalho futuro, ver `docs/CONCLUSAO.md` |
 | **NF006** | O ciclo real de backup e restauração | **Alta** | Backup que nunca foi restaurado não é backup. Roteiro pronto em `docs/BACKUP.md`, seção 5 |
-| **NF007** | Comportamento sob TLS de verdade; ausência de rate limiting | Média | A lógica de produção × desenvolvimento está testada; o tráfego cifrado não |
+| **NF007** | Comportamento sob TLS de verdade | Média | A lógica está testada e o limite de tentativas de login **passou a ter cobertura** (3 casos). O que falta é o tráfego cifrado real |
 | RF001–RF011 | Os sete requisitos de enunciado desconhecido têm testes que **provavelmente** os cobrem, mas a correspondência não pode ser afirmada sem o documento | — | Resolve-se com a monografia em mãos |
 
 ### Lacunas de teste que não são de requisito
@@ -129,13 +129,13 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 
 | Status | Quantidade |
 |---|---|
-| ✅ Completo | 15 |
-| ⚠️ Implementado sem teste direto | 1 (RF004) |
+| ✅ Completo | 16 |
+| ⚠️ Implementado sem teste direto | 0 |
 | ❓ A validar com a monografia | 7 |
 | ❌ Não implementado | 0 |
 | **Total** | **23** |
 
-**Nenhum requisito funcional conhecido ficou sem implementação.**
+**Nenhum requisito funcional conhecido ficou sem implementação, e nenhum ficou sem teste.**
 
 ### Requisitos não funcionais
 

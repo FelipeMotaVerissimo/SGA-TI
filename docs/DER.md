@@ -1,7 +1,7 @@
 # DER — Diagrama Entidade-Relacionamento
 
 **Sistema:** SGA TI — Sistema de Gerenciamento de Assistência Técnica
-**Origem:** gerado a partir de `prisma/schema.prisma` e das cinco migrations em
+**Origem:** gerado a partir de `prisma/schema.prisma` e das seis migrations em
 `prisma/migrations/`, na `main` consolidada
 **Data:** 05/10/2026
 **SGBD:** MySQL 8 (`provider = "mysql"`)
@@ -62,7 +62,7 @@ erDiagram
 
     PERFIS {
         int id PK
-        varchar nomePerfil
+        varchar nomePerfil UK
     }
 
     USUARIOS {
@@ -288,12 +288,12 @@ multiplicaria o volume sem acrescentar rastreabilidade de quem alterou o quê.
 | Campo | Tipo | Nulo | Chave | Padrão |
 |---|---|---|---|---|
 | `id` | `INT` | não | PK | auto |
-| `nomePerfil` | `VARCHAR(50)` | não | — | — |
+| `nomePerfil` | `VARCHAR(50)` | não | **UK** | — |
 
 Valores em uso: `ADMINISTRADOR`, `ATENDENTE`, `TECNICO`, `VENDEDOR`,
 `FINANCEIRO`, `COMPRAS`.
 
-> **Observação:** `nomePerfil` **não** é único no banco (ver 8.1).
+> `nomePerfil` é único desde a migration `20261013120000_perfil_nome_unico`.
 
 ### 5.2 `usuarios` (`Usuario`)
 
@@ -617,7 +617,7 @@ Pontos verificados no schema que merecem decisão. Nenhum impede a entrega.
 
 | # | Ponto | Situação | Recomendação |
 |---|---|---|---|
-| M01 | `perfis.nomePerfil` **não é único** | O banco aceita dois perfis `ADMINISTRADOR`. O `prisma/seed.js` se protege com `findFirst` antes de criar, mas nada impede a duplicata por outro caminho. Com perfil duplicado, parte dos usuários aponta para um e parte para outro, e o controle de acesso fica imprevisível | Acrescentar `@unique`. É uma migration de uma linha |
+| M01 | ~~`perfis.nomePerfil` não é único~~ | **Resolvido** na migration `20261013120000_perfil_nome_unico`. O seed passou a usar `upsert`, e há teste que recusa o nome repetido | — |
 | M02 | `movimentos_estoque.tipo` é `VARCHAR(10)`, não enum | As outras três classificações fechadas do sistema (`StatusOS`, `SituacaoConta`, `TipoEquipamento`) são enum. Esta aceita qualquer string de 10 caracteres; a validação existe só no service | Converter para `enum TipoMovimento { ENTRADA, SAIDA }`, por coerência |
 | M03 | `produtos.nome` não é único | Dois produtos com o mesmo nome convivem | Provavelmente **correto** — duas peças iguais de fornecedores diferentes são produtos distintos. Registrar a decisão |
 | M04 | `perfis` não tem `ativo` nem `criadoEm` | É a única tabela sem data de criação | Baixa prioridade: o catálogo é fixo, criado pelo seed |

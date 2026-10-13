@@ -143,6 +143,37 @@ não dependem disto. O CORS existe só para a API `/api/*`.
 
 ---
 
+## 4.1 Limite de tentativas de login
+
+Antes disto nada impedia força bruta: dava para disparar senhas contra `/login`
+e `/api/auth/login` indefinidamente, e o `bcrypt` — lento de propósito — virava
+vetor de negação de serviço em vez de defesa.
+
+**10 tentativas falhas por IP, em janela de 15 minutos.** Implementado com
+`express-rate-limit` em `src/config/seguranca.js`.
+
+| Decisão | Motivo |
+|---|---|
+| Só contam as tentativas **que falham** | É isso que define força bruta. Quem acerta a senha não consome cota, então um balcão com vários atendentes no mesmo IP não é penalizado |
+| A resposta muda conforme a rota | A tela devolve ao login com mensagem; a API devolve `429` em JSON. Responder HTML para a API confundiria quem a consome |
+| O `store` é instanciado explicitamente | Para poder ser zerado entre as suítes, que rodam no mesmo processo |
+
+### O critério de sucesso teve de ser redefinido
+
+O padrão da biblioteca considera bem-sucedida toda resposta com status abaixo de
+400. **Isso está errado para este sistema:** o login recusado pela tela responde
+`302`, redirecionando de volta para `/login`. Pelo critério padrão, errar a senha
+pela interface web contava como acerto e a trava **nunca disparava** — funcionava
+apenas na API, que responde `401`.
+
+Foi descoberto em teste, e a correção é a função `requestWasSuccessful`: só
+redirecionar para `/dashboard` significa que entrou.
+
+> Vale como registro de método: o primeiro teste da trava passava na API e
+> falhava na web. A tentação seria ajustar o teste; a causa era o código.
+
+---
+
 ## 5. Variáveis de ambiente
 
 | Variável | Efeito |
@@ -159,7 +190,7 @@ não dependem disto. O CORS existe só para a API `/api/*`.
 | Suíte | Arquivo | Casos |
 |---|---|---|
 | Unitários | `tests/unit/seguranca.test.js` | 18 |
-| Integração | `tests/integration/seguranca.test.js` | 13 |
+| Integração | `tests/integration/seguranca.test.js` | 16 |
 
 Os unitários cobrem a decisão produção × desenvolvimento de cada proteção. Os de
 integração verificam o que a aplicação **de fato responde**: CSP presente,
@@ -176,7 +207,7 @@ o sistema continuando a responder em HTTP.
 |---|---|---|
 | P01 | `'unsafe-inline'` em `script-src` — ver seção 3 | média |
 | P02 | **Não há proteção CSRF por token.** O `sameSite=lax` cobre o caso comum, mas não substitui um token por formulário (`csurf` ou equivalente) | média |
-| P03 | **Não há limite de tentativas de login.** Nada impede força bruta em `/login` nem em `/api/auth/login`. `express-rate-limit` resolveria | **alta** |
+| P03 | ~~Não há limite de tentativas de login~~ — **resolvido**, ver seção 4.1 | — |
 | P04 | A sessão vive em memória (`MemoryStore`): cai a cada reinício e não funciona com mais de uma instância. Em produção precisa de store externo | média |
 | P05 | O ciclo HTTPS real não foi exercitado — não há ambiente com TLS. A lógica está testada, o comportamento sob TLS de verdade não | média |
 | P06 | Sem cabeçalho `Permissions-Policy` nem `Cross-Origin-*` | baixa |
