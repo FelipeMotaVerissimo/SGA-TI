@@ -1,6 +1,6 @@
 # Capítulo 4 — Conclusão
 
-> **Rascunho para o documento do TCC.** Extensão: 548 palavras, dentro da faixa
+> **Rascunho para o documento do TCC.** Extensão: 573 palavras, dentro da faixa
 > de 400 a 600. As dificuldades relatadas saíram dos LEIAMEs de cada módulo e do
 > histórico de commits — são defeitos e decisões registrados no momento em que
 > aconteceram, não reconstituídos depois.
