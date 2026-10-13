@@ -208,7 +208,8 @@ Preencher com: **OK** · **Falha** (descrever) · **—** (não aplicável ao pe
 
 | # | Navegador | Versão | Sistema | Testado em |
 |---|---|---|---|---|
-| N1 | Google Chrome | | Windows 11 | ___/___/______ |
+| N1 | Chromium (motor do Chrome e do Edge) | — | Windows 11 | **13/10/2026** |
+| N1b | Google Chrome (instalado) | | Windows 11 | ___/___/______ |
 | N2 | Mozilla Firefox | | Windows 11 | ___/___/______ |
 | N3 | Microsoft Edge | | Windows 11 | ___/___/______ |
 | N4 | Chrome — Android | | Android | ___/___/______ |
@@ -216,31 +217,33 @@ Preencher com: **OK** · **Falha** (descrever) · **—** (não aplicável ao pe
 
 ### 3.3 Matriz
 
-> **Em branco de propósito.** Preencher ao executar.
+> A coluna **Chromium** foi executada em 13/10/2026 (resultado na seção 3.6). As
+> demais continuam em branco, para preencher ao executar. As colunas de celular
+> remetem à seção 3.7, onde o comportamento foi medido.
 
-| # | Tela | Chrome | Firefox | Edge | Chrome Android | Safari iOS |
+| # | Tela | Chromium | Firefox | Edge | Android | iOS |
 |---|---|:-:|:-:|:-:|:-:|:-:|
-| 1 | Login | | | | | |
-| 2 | Dashboard — administrador | | | | | |
-| 3 | Dashboard — técnico | | | | | |
-| 4 | Lista de clientes | | | | | |
-| 5 | Cadastro de cliente | | | | | |
-| 6 | Lista de equipamentos | | | | | |
-| 7 | Cadastro de equipamento | | | | | |
-| 8 | **Histórico do equipamento** | | | | | |
-| 9 | Lista de ordens de serviço | | | | | |
-| 10 | Abertura de OS | | | | | |
-| 11 | **Detalhe da OS** (a tela mais densa) | | | | | |
-| 12 | Lista de produtos | | | | | |
-| 13 | Estoque do produto | | | | | |
-| 14 | Painel financeiro | | | | | |
-| 15 | Lançamento de conta | | | | | |
-| 16 | **Relatórios** | | | | | |
-| 17 | Exportação CSV | | | | | |
-| 18 | Tipos de serviço | | | | | |
-| 19 | **Auditoria** | | | | | |
-| 20 | Usuários | | | | | |
-| 21 | **Consulta pública** | | | | | |
+| 1 | Login | **OK** | | | ver 3.7 | ver 3.7 |
+| 2 | Dashboard — administrador | **OK** | | | ver 3.7 | ver 3.7 |
+| 3 | Dashboard — técnico | *não verificado* | | | ver 3.7 | ver 3.7 |
+| 4 | Lista de clientes | **OK** | | | ver 3.7 | ver 3.7 |
+| 5 | Cadastro de cliente | **OK** | | | ver 3.7 | ver 3.7 |
+| 6 | Lista de equipamentos | **OK** | | | ver 3.7 | ver 3.7 |
+| 7 | Cadastro de equipamento | **OK** | | | ver 3.7 | ver 3.7 |
+| 8 | **Histórico do equipamento** | **OK** | | | ver 3.7 | ver 3.7 |
+| 9 | Lista de ordens de serviço | **OK** | | | ver 3.7 | ver 3.7 |
+| 10 | Abertura de OS | **OK** | | | ver 3.7 | ver 3.7 |
+| 11 | **Detalhe da OS** (a tela mais densa) | **OK** | | | ver 3.7 | ver 3.7 |
+| 12 | Lista de produtos | **OK** | | | ver 3.7 | ver 3.7 |
+| 13 | Estoque do produto | **OK** | | | ver 3.7 | ver 3.7 |
+| 14 | Painel financeiro | **OK** | | | ver 3.7 | ver 3.7 |
+| 15 | Lançamento de conta | **OK** | | | ver 3.7 | ver 3.7 |
+| 16 | **Relatórios** | **OK** | | | ver 3.7 | ver 3.7 |
+| 17 | Exportação CSV | **OK** | | | ver 3.7 | ver 3.7 |
+| 18 | Tipos de serviço | **OK** | | | ver 3.7 | ver 3.7 |
+| 19 | **Auditoria** | **OK** | | | ver 3.7 | ver 3.7 |
+| 20 | Usuários | **OK** | | | ver 3.7 | ver 3.7 |
+| 21 | **Consulta pública** | **OK** | | | ver 3.7 | ver 3.7 |
 
 ### 3.4 Pontos de atenção
 
@@ -251,27 +254,61 @@ Itens que têm maior chance de divergir entre navegadores — verificar com cuid
 | A1 | Campo `<input type="date">` | Orçamento, relatórios, auditoria, financeiro | Cada navegador desenha seu próprio seletor; o Safari historicamente diverge mais |
 | A2 | Download do CSV | Relatórios | Nome do arquivo e codificação |
 | A3 | `confirm()` nas exclusões | Clientes, produtos, serviços, anonimização | Alguns navegadores suprimem diálogos em certas condições |
-| A4 | Menu lateral em tela estreita | Todas | O layout não foi projetado para celular — **ver L06 abaixo** |
+| A4 | Menu lateral em tela estreita | Todas | O layout não foi projetado para celular — **medido na seção 3.7** |
 | A5 | Tabela do detalhe da OS | Detalhe da OS | É a tabela mais larga do sistema |
 | A6 | Emojis dos rótulos | Todas | Renderizam diferente por sistema operacional |
 
-### 3.5 Limitação conhecida
+### 3.6 Resultados
+
+**Chromium — executado em 13/10/2026.** Vinte das 21 telas verificadas (a de nº 3
+é a mesma da nº 2 com outro perfil e foi deixada para a execução manual):
+
+| Verificação | Resultado |
+|---|---|
+| Resposta HTTP | **20 de 20 em `200`**, com o conteúdo esperado presente |
+| Erros de JavaScript no console | **nenhum**, incluindo as duas telas com `<script>` embutido (abertura de OS e estoque) |
+| Transbordo horizontal em 1280 px | **nenhum** |
+| Exportação CSV | cabeçalho e separador corretos |
+
+**Falhas encontradas:** nenhuma em Chromium na largura de desktop.
+
+> **Firefox, Edge instalado, Safari e aparelho real continuam por fazer.** O
+> ambiente de desenvolvimento tem apenas um navegador baseado em Chromium, que
+> é o mesmo motor do Chrome e do Edge — então a linha N1 cobre o motor, não as
+> três marcas. Divergências entre Chrome e Edge são improváveis; entre esses e
+> o Firefox ou o Safari, não.
+
+### 3.7 Comportamento em tela de celular — medido
+
+Esta é a constatação mais relevante da seção, e não é uma impressão: foi medida
+emulando um aparelho de **375 px** de largura.
+
+| Tela | Viewport que o navegador precisou adotar | Escala aplicada |
+|---|---|---|
+| Abertura de OS | 702 px | **53 %** |
+| Relatórios | 798 px | **47 %** |
+| Dashboard | 805 px | **47 %** |
+| Estoque do produto | 843 px | **44 %** |
+| Detalhe da OS | 873 px | **43 %** |
+| **Consulta pública** | **375 px** | **100 %** |
+
+**O que isso significa.** O menu lateral tem largura fixa de 220 px — sozinho,
+59 % da tela de um celular. Como o CSS não tem ponto de quebra, o navegador não
+quebra o layout: ele **encolhe a página inteira** até caber. O resultado é que
+um texto de 14 px é desenhado com 6 a 7 px no aparelho. Não há barra de rolagem
+horizontal, e é justamente por isso que o problema passa despercebido numa
+verificação superficial — a página "cabe", mas não se lê.
+
+A **consulta pública é a exceção**, e pela razão certa: é a única tela sem menu
+lateral, então ela já funciona em celular na escala natural. É também a única
+que um cliente abriria do telefone, o que reduz bastante a gravidade prática do
+problema.
+
+### 3.8 Limitação conhecida
 
 | # | Limitação |
 |---|---|
-| L06 | **O sistema não foi projetado para telas de celular.** O CSS não tem breakpoints responsivos; o layout é de duas colunas fixas. As linhas N4 e N5 da matriz devem ser preenchidas registrando isso honestamente, não omitidas. Se o uso em celular for requisito, é trabalho futuro |
-
-### 3.6 Resultados
-
-> **Ainda não executado.** Preencher a matriz da seção 3.3.
-
-**Resumo:** ____ de ____ combinações OK.
-
-**Falhas encontradas:**
-
-| # | Navegador | Tela | Descrição | Gravidade | Correção |
-|---|---|---|---|---|---|
-| | | | | | |
+| L06 | **O sistema não foi projetado para telas de celular.** Medido na seção 3.7: as telas internas são renderizadas entre 43 % e 53 % do tamanho. A correção é um ponto de quebra que recolha o menu lateral abaixo de 768 px e deixe as tabelas rolarem na horizontal. Registrado como trabalho futuro em `docs/CONCLUSAO.md` |
 
 ---
 
@@ -283,8 +320,8 @@ Itens que têm maior chance de divergir entre navegadores — verificar com cuid
 | **Software — integração** | ✅ Executado | 223 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 5 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
-| **Navegadores** | ⬜ Não executado | Matriz pronta — seção 3 |
-| **Backup e restauração** | ⬜ Não executado | Roteiro pronto — `docs/BACKUP.md`, seção 5 |
+| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas); Firefox, Safari e aparelho real pendentes |
+| **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 14 tabelas comparadas, 0 divergências |
 | **Carga e concorrência** | ⬜ Fora de escopo | — |
 
 As três atividades não executadas dependem de ação fora do código: agenda do

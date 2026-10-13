@@ -61,8 +61,10 @@ Os caminhos identificados: estender a anonimização de dados pessoais ao
 registro de auditoria, que hoje preserva o estado anterior das alterações;
 limitar tentativas de autenticação; vincular cada peça ao serviço em que foi
 utilizada e registrar qual técnico o executou, informações que hoje existem
-apenas em nível de ordem de serviço; e adaptar a interface para telas de celular,
-já que o layout atual pressupõe um monitor.
+apenas em nível de ordem de serviço; e adaptar a interface para telas de
+celular: medições com um aparelho emulado mostraram que as telas internas são
+reduzidas a cerca de metade do tamanho, porque o menu lateral tem largura fixa e
+o estilo não prevê pontos de quebra.
 
 O sistema também não trata o caso de uma rede com mais de uma instância: a
 sessão e o controle de tentativas de login vivem na memória do processo, o que
