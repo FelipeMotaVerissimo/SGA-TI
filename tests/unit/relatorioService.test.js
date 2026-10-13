@@ -192,3 +192,117 @@ describe('relatorioService', () => {
     });
   });
 });
+
+/**
+ * NF004 — análise geográfica.
+ *
+ * Requisito que existia no documento desde o começo e nunca tinha sido
+ * implementado: os campos já estavam no cadastro e nenhum relatório os usava.
+ */
+describe('porRegiao (NF004)', () => {
+  /** OS com o cliente já posicionado numa cidade. */
+  const osEm = (cidade, estado, valor, status = 'FINALIZADO', clienteId = 1) => ({
+    valorOrcamento: valor,
+    status,
+    dataAbertura: new Date(),
+    equipamento: { cliente: { id: clienteId, nome: 'Cliente', cidade, estado } },
+  });
+
+  beforeEach(() => jest.clearAllMocks());
+
+  test('agrupa por cidade e soma o orçado', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('Dourados', 'MS', 1000, 'FINALIZADO', 1),
+      osEm('Dourados', 'MS', 500,  'FINALIZADO', 2),
+      osEm('Campo Grande', 'MS', 300, 'FINALIZADO', 3),
+    ]);
+
+    const linhas = await relatorio.porRegiao();
+
+    expect(linhas).toHaveLength(2);
+    expect(linhas[0]).toMatchObject({
+      cidade: 'Dourados', estado: 'MS', ordens: 2, clientes: 2, total: 1500,
+    });
+    expect(linhas[1]).toMatchObject({ cidade: 'Campo Grande', ordens: 1, total: 300 });
+  });
+
+  test('conta clientes distintos, não ordens', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('Dourados', 'MS', 100, 'FINALIZADO', 7),
+      osEm('Dourados', 'MS', 100, 'FINALIZADO', 7), // mesmo cliente, outra OS
+    ]);
+
+    const [linha] = await relatorio.porRegiao();
+    expect(linha.ordens).toBe(2);
+    expect(linha.clientes).toBe(1);
+  });
+
+  test('cidades de mesmo nome em UF diferente não se misturam', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('Santa Rita', 'MS', 100, 'FINALIZADO', 1),
+      osEm('Santa Rita', 'PB', 200, 'FINALIZADO', 2),
+    ]);
+
+    const linhas = await relatorio.porRegiao();
+    expect(linhas).toHaveLength(2);
+    expect(linhas.map((l) => l.estado).sort()).toEqual(['MS', 'PB']);
+  });
+
+  test('variação de espaço e caixa é a mesma cidade', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('Dourados', 'MS', 100, 'FINALIZADO', 1),
+      osEm(' dourados ', 'ms', 100, 'FINALIZADO', 2),
+    ]);
+
+    const linhas = await relatorio.porRegiao();
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].ordens).toBe(2);
+  });
+
+  test('cliente sem cidade vira "Não informado", nunca some', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('Dourados', 'MS', 100, 'FINALIZADO', 1),
+      osEm(null, null, 900, 'FINALIZADO', 2),
+      osEm('', '', 50, 'FINALIZADO', 3),
+    ]);
+
+    const linhas = await relatorio.porRegiao();
+    const semCidade = linhas.find((l) => l.cidade === relatorio.CIDADE_NAO_INFORMADA);
+
+    expect(semCidade).toBeDefined();
+    expect(semCidade.ordens).toBe(2);
+    expect(semCidade.total).toBe(950);
+
+    // O total do relatório tem que fechar com o que entrou.
+    expect(linhas.reduce((t, l) => t + l.total, 0)).toBe(1050);
+  });
+
+  test('OS cancelada não entra — mesma regra do RF016', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([]);
+    await relatorio.porRegiao();
+
+    const where = prisma.ordemServico.findMany.mock.calls[0][0].where;
+    expect(where.status.notIn).toEqual(expect.arrayContaining(['CANCELADO']));
+  });
+
+  test('ordena pelo total e respeita o limite', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('A', 'MS', 100, 'FINALIZADO', 1),
+      osEm('B', 'MS', 900, 'FINALIZADO', 2),
+      osEm('C', 'MS', 500, 'FINALIZADO', 3),
+    ]);
+
+    const linhas = await relatorio.porRegiao({ limite: 2 });
+    expect(linhas.map((l) => l.cidade)).toEqual(['B', 'C']);
+  });
+
+  test('ticket médio é o total dividido pelas ordens', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([
+      osEm('Dourados', 'MS', 300, 'FINALIZADO', 1),
+      osEm('Dourados', 'MS', 100, 'FINALIZADO', 2),
+    ]);
+
+    const [linha] = await relatorio.porRegiao();
+    expect(linha.ticketMedio).toBe(200);
+  });
+});

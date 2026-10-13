@@ -242,6 +242,66 @@
           </tbody>
         </table>
       </div>
+
+      <!-- NF004 -->
+      <div class="tabela-box" style="margin-top:24px">
+        <div class="tabela-header">
+          <h2>🗺️ Demanda por Região</h2>
+          <div style="display:flex; gap:12px; align-items:center">
+            <span style="font-size:12px; color:#888">
+              De onde vêm as ordens de serviço, pela cidade do cliente
+            </span>
+            <a href="/relatorios/regiao/csv<%= qs %>" class="btn btn-secondary btn-sm">⭳ CSV</a>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Cidade</th>
+              <th>UF</th>
+              <th>Clientes</th>
+              <th>Ordens</th>
+              <th>Total Orçado</th>
+              <th>Já Aprovado</th>
+              <th>Ticket Médio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (regiao.length === 0) { %>
+            <tr>
+              <td colspan="7" style="text-align:center; color:#aaa; padding:32px">
+                Nenhuma ordem de serviço no período selecionado.
+              </td>
+            </tr>
+            <% } else { %>
+            <% regiao.forEach(r => { %>
+            <tr>
+              <td>
+                <% if (r.cidade === 'Não informado') { %>
+                  <span style="color:#aaa" title="Clientes sem cidade no cadastro">
+                    <%= r.cidade %>
+                  </span>
+                <% } else { %>
+                  <%= r.cidade %>
+                <% } %>
+              </td>
+              <td><span class="badge badge-cinza"><%= r.estado %></span></td>
+              <td><%= r.clientes %></td>
+              <td><%= r.ordens %></td>
+              <td><%= real(r.total) %></td>
+              <td><%= real(r.aprovado) %></td>
+              <td><%= real(r.ticketMedio) %></td>
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+        <p style="font-size:12px; color:#888; padding:12px 16px; margin:0">
+          Cliente sem cidade no cadastro aparece como <strong>Não informado</strong>,
+          em vez de ser omitido — escondê-lo faria o total não bater com o
+          faturamento, e o tamanho dessa linha mede a qualidade do cadastro.
+        </p>
+      </div>
     </div>
   </div>
 </body>

@@ -104,7 +104,7 @@ marcados nos comentários. Isso por si só é uma divergência de rastreabilidad
 
 | # | O documento promete | O que existe no código | Recomendação | Justificativa |
 |---|---|---|---|---|
-| C1 | **NF004** — análise geográfica | `Cliente` tem `cidade`, `estado`, `cep`, `bairro`, mas **nenhum relatório agrupa por eles**. Os quatro relatórios do Módulo 5 agrupam por cliente, produto, tipo de serviço e tipo de equipamento | **Ajustar o texto**, movendo para trabalhos futuros | O dado está modelado; falta só a consulta. Mas é um relatório novo a dez minutos da entrega. O plano já prevê isso como trabalho futuro na Fase 8 |
+| C1 | **NF004** — análise geográfica | ~~Nenhum relatório agrupa por cidade~~ — **implementado**: bloco 🗺️ Demanda por Região em `/relatorios`, com exportação CSV | — | Resolvido |
 | C2 | **NF005** — rastreabilidade / log de auditoria | **Não existe.** Nenhum model `LogAuditoria`, nenhum middleware de log. Nem sequer se registra quem executou um serviço | **Ajustar o código** | É a Fase 4 do plano. Diferente dos demais, este tem escopo fechado e cabe no prazo |
 | C3 | **NF006** — backup | **Não existe.** Nenhum script, nenhuma documentação, nenhuma menção a `mysqldump` | **Ajustar o código** (é a Fase 5) | Um script de dump e um `docs/BACKUP.md` são baratos e verificáveis |
 | C4 | **NF007** — segurança na comunicação | Parcial e frouxo: `helmet` está instalado mas com **`contentSecurityPolicy: false`**; `cors()` está **aberto a qualquer origem**; o cookie de sessão define só `maxAge`, sem `secure` nem `sameSite`; não há redirecionamento HTTP→HTTPS | **Ajustar o código** (é a Fase 5) | O texto promete segurança de comunicação e hoje o que existe é a configuração padrão com a proteção mais importante desligada |

@@ -11,11 +11,12 @@ async function exibir(req, res) {
   try {
     const periodo = relatorioService.resolverPeriodo(req.query);
 
-    const [clientes, produtos, servicos, equipamentos] = await Promise.all([
+    const [clientes, produtos, servicos, equipamentos, regiao] = await Promise.all([
       relatorioService.maioresClientes(req.query),
       relatorioService.produtosMaisVendidos(req.query),
       relatorioService.servicosMaisExecutados(req.query),
       relatorioService.porTipoDeEquipamento(req.query),
+      relatorioService.porRegiao(req.query), // NF004
     ]);
 
     res.render('relatorios/index', {
@@ -29,6 +30,7 @@ async function exibir(req, res) {
       produtos,
       servicos,
       equipamentos,
+      regiao,
     });
   } catch (err) {
     // Período inválido não pode derrubar a tela: volta para o padrão e avisa.
@@ -70,6 +72,19 @@ const EXPORTAVEIS = {
       { titulo: 'Tipo de Serviço', campo: 'tipo' },
       { titulo: 'Execuções',       campo: 'quantidade' },
       { titulo: 'Com Garantia',    campo: 'comGarantia' },
+    ],
+  },
+  regiao: {
+    arquivo: 'por-regiao',
+    buscar:  (q) => relatorioService.porRegiao(q),
+    colunas: [
+      { titulo: 'Cidade',       campo: 'cidade' },
+      { titulo: 'UF',           campo: 'estado' },
+      { titulo: 'Clientes',     campo: 'clientes' },
+      { titulo: 'Ordens',       campo: 'ordens' },
+      { titulo: 'Total Orçado', campo: 'total',       tipo: 'numero' },
+      { titulo: 'Já Aprovado',  campo: 'aprovado',    tipo: 'numero' },
+      { titulo: 'Ticket Médio', campo: 'ticketMedio', tipo: 'numero' },
     ],
   },
   equipamentos: {

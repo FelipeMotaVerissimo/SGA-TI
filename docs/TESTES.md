@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 223 | 223 | 0 |
-| Integração | 226 | 223 | **3** |
-| **Total** | **449** | **446** | **3** |
+| Unitários | 231 | 231 | 0 |
+| Integração | 242 | 239 | **3** |
+| **Total** | **473** | **470** | **3** |
 
 As 3 falhas estão todas em `tests/integration/auth.test.js` e são anteriores a
 toda esta fase de fechamento. Ver 1.5.
@@ -25,8 +25,8 @@ toda esta fase de fechamento. Ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 223 testes
-npm run test:integration  :: 226 testes, 223 passando
+npm run test:unit         :: 231 testes
+npm run test:integration  :: 242 testes, 239 passando
 npm test                  :: suíte completa — sai vermelho por causa do auth.test.js
 ```
 
@@ -41,7 +41,7 @@ banco, rodam em cerca de 3 segundos.
 | `financeiroService.test.js` | 30 | Contas a pagar/receber, quitação, cancelamento |
 | `itemOrdemService.test.js` | 29 | Peças na OS, baixa de estoque, valor negociado |
 | `ordemServicoService.test.js` | 18 | Travas de status, validação do orçamento, fuso da previsão |
-| `relatorioService.test.js` | 18 | Período, agregações dos quatro relatórios |
+| `relatorioService.test.js` | 26 | Período, agregações dos quatro relatórios |
 | `seguranca.test.js` | 18 | NF007 — produção × desenvolvimento de cada proteção |
 | `servicoExecutadoService.test.js` | 16 | Garantia derivada, travas de registro e exclusão |
 | `auditoriaExtensao.test.js` | 15 | NF005 — gravação automática, senha omitida, contexto |
@@ -61,15 +61,15 @@ isolado, recriado a cada suíte.
 | `api.test.js` | 32 | API REST com JWT, inclusive a criação de usuário restrita ao admin |
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
 | `retencao.test.js` | 21 | NF008 — anonimização LGPD e exclusão lógica |
-| `perfis.test.js` | 19 | RF022/RF023 — controle de acesso dos 6 perfis |
+| `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 6 perfis |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
-| `relatorios.test.js` | 17 | RF016/RF018 — relatórios por período |
+| `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
 | `dashboard.test.js` | 16 | Blocos por perfil e exportação CSV |
 | `estoque.test.js` | 16 | RF014/RF015 — movimentações, saldo × razão |
 | `financeiro.test.js` | 15 | RF020/RF021 — contas e a gerada no encerramento |
 | `historicoEquipamento.test.js` | 14 | RF012 — histórico por equipamento |
 | `garantia.test.js` | 13 | Serviços executados e garantia |
-| `seguranca.test.js` | 13 | NF007 — cabeçalhos, cookie e CORS reais |
+| `seguranca.test.js` | 16 | NF007 — cabeçalhos, cookie e CORS reais |
 | `clientes.test.js` | 7 | API de clientes |
 | `auth.test.js` | 3 | **As 3 falhas conhecidas** — ver 1.5 |
 
@@ -81,7 +81,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **223 unitários e 223 de integração passando**. Isso importa porque o
+números: **231 unitários e 239 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 

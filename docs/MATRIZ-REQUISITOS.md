@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 223 testes unitários + 238 de integração (461 no total)
+**Suíte de referência:** 231 testes unitários + 242 de integração (473 no total)
 
 ---
 
@@ -87,9 +87,9 @@ era conhecido. Onde não há teste, está escrito que não há.
 | **NF001** | `[VALIDAR: não citado no plano nem no código]` | — | — | ❓ a validar |
 | **NF002** | `[VALIDAR: idem]` | — | — | ❓ a validar |
 | **NF003** | `[VALIDAR: idem]` | — | — | ❓ a validar |
-| **NF004** | Análise geográfica | `Cliente.cidade`, `Cliente.estado` existem no schema; **nenhum relatório agrupa por eles** | — | ❌ não implementado |
+| **NF004** | Análise geográfica | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
 | **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
-| **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos. **O ciclo dump → restauração não foi executado** | 🔶 parcial |
+| **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `scripts/conferir-restauracao.sh`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos; o **ciclo dump → restauração roda no CI a cada push**, comparando tabela a tabela | ✅ completo |
 | **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS | `unit/seguranca.test.js` (18), `seguranca.test.js` (13) | 🔶 parcial |
 | **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `docs/RETENCAO.md` | `retencao.test.js` (21) | 🔶 parcial |
 
@@ -97,7 +97,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 
 | ID | O que falta | Onde está registrado |
 |---|---|---|
-| NF006 | O ciclo dump → restauração nunca foi executado: exige `mysqldump` e um MySQL no ar, que não existem na máquina de desenvolvimento. A lógica do script está testada; o backup de verdade, não | `docs/BACKUP.md`, seções 5 e 6 |
+| ~~NF006~~ | ~~O ciclo nunca foi executado~~ — **resolvido**: roda no CI, que tem `mysqldump` e MySQL | `docs/BACKUP.md`, seção 5 |
 | NF007 | `'unsafe-inline'` em `script-src` (há 2 blocos `<script>` e 11 `onclick` nas views), sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login **foi implementado** — ver `docs/SEGURANCA.md`, seção 4.1 | `docs/SEGURANCA.md`, seção 7 |
 | NF008 | A anonimização não alcança o log de auditoria: os dados pessoais sobrevivem em `logs_auditoria.valorAnterior`. Também não há expurgo automático nem registro de consentimento | `docs/RETENCAO.md`, seção 7 |
 
@@ -111,8 +111,8 @@ era conhecido. Onde não há teste, está escrito que não há.
 | ID | O que não tem teste | Gravidade | Comentário |
 |---|---|---|---|
 | ~~RF004~~ | ~~A rota web e sua trava de administrador~~ | — | **Resolvido**: 7 casos novos em `perfis.test.js` cobrem o administrador desativando, os cinco perfis barrados por POST direto e o acesso sem sessão |
-| **NF004** | Não há teste porque **não há implementação** | Baixa | É trabalho futuro, ver `docs/CONCLUSAO.md` |
-| **NF006** | O ciclo real de backup e restauração | **Alta** | Backup que nunca foi restaurado não é backup. Roteiro pronto em `docs/BACKUP.md`, seção 5 |
+| ~~NF004~~ | ~~Não há teste porque não há implementação~~ | — | **Resolvido**: implementado e coberto por 12 casos |
+| ~~NF006~~ | ~~O ciclo real de backup e restauração~~ | — | **Resolvido**: `scripts/conferir-restauracao.sh` roda no CI a cada push |
 | **NF007** | Comportamento sob TLS de verdade | Média | A lógica está testada e o limite de tentativas de login **passou a ter cobertura** (3 casos). O que falta é o tráfego cifrado real |
 | RF001–RF011 | Os sete requisitos de enunciado desconhecido têm testes que **provavelmente** os cobrem, mas a correspondência não pode ser afirmada sem o documento | — | Resolve-se com a monografia em mãos |
 
@@ -141,9 +141,9 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 
 | Status | Quantidade |
 |---|---|
-| ✅ Completo | 1 (NF005) |
-| 🔶 Parcial | 3 (NF006, NF007, NF008) |
-| ❌ Não implementado | 1 (NF004) |
+| ✅ Completo | 3 (NF004, NF005, NF006) |
+| 🔶 Parcial | 2 (NF007, NF008) |
+| ❌ Não implementado | 0 |
 | ❓ A validar | 3 (NF001–NF003) |
 | **Total** | **8** |
 
@@ -155,7 +155,7 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 | 2 — Ordens de serviço | RF009–RF011 (inferido) | `ordemServicoService`, `garantia` (consulta pública) |
 | 3 — Orçamento, serviços e garantia | RF012, RF013 | `servicoExecutadoService`, `garantia`, `historicoEquipamento` |
 | 4 — Produtos, estoque, financeiro, perfis | RF006, RF007, RF014, RF015, RF020–RF023 | `produtoService`, `itemOrdemService`, `financeiroService`, `estoque`, `financeiro`, `perfis`, `api` |
-| 5 — Relatórios | RF008, RF016–RF019 | `relatorioService`, `csvService`, `relatorios`, `tiposServico`, `dashboard` |
+| 5 — Relatórios | RF008, RF016–RF019, NF004 | `relatorioService`, `csvService`, `relatorios`, `tiposServico`, `dashboard` |
 | NF005 — Auditoria | NF005 | `auditoriaExtensao`, `auditoria` |
 | NF006–NF008 | NF006, NF007, NF008 | `backup`, `seguranca` (×2), `retencao` |
 

@@ -1,6 +1,6 @@
 # Capítulo 4 — Conclusão
 
-> **Rascunho para o documento do TCC.** Extensão: 545 palavras, dentro da faixa
+> **Rascunho para o documento do TCC.** Extensão: 548 palavras, dentro da faixa
 > de 400 a 600. As dificuldades relatadas saíram dos LEIAMEs de cada módulo e do
 > histórico de commits — são defeitos e decisões registrados no momento em que
 > aconteceram, não reconstituídos depois.
@@ -57,13 +57,13 @@ corrigidas no código, por serem questão de redação.
 
 ## 4.3 Trabalhos futuros
 
-O requisito de análise geográfica permanece em aberto: os campos de cidade e
-estado já existem no cadastro, mas nenhum relatório os utiliza. Implementá-lo
-exige apenas uma consulta adicional e indicaria de quais regiões vem a demanda.
-
-Outros caminhos identificados: estender a anonimização de dados pessoais ao
+Os caminhos identificados: estender a anonimização de dados pessoais ao
 registro de auditoria, que hoje preserva o estado anterior das alterações;
 limitar tentativas de autenticação; vincular cada peça ao serviço em que foi
 utilizada e registrar qual técnico o executou, informações que hoje existem
 apenas em nível de ordem de serviço; e adaptar a interface para telas de celular,
 já que o layout atual pressupõe um monitor.
+
+O sistema também não trata o caso de uma rede com mais de uma instância: a
+sessão e o controle de tentativas de login vivem na memória do processo, o que
+basta para uma assistência mas não para operação distribuída.

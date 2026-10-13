@@ -299,6 +299,86 @@ async function indicadoresEstoque() {
 }
 
 /**
+ * NF004 — Análise geográfica.
+ *
+ * Tabela: OrdemServico -> Equipamento -> Cliente
+ * Granularidade: uma linha por cidade/UF
+ * Período: data de abertura da OS
+ *
+ * O requisito existia desde o documento, mas nunca tinha sido implementado: os
+ * campos `cidade` e `estado` já estavam no cadastro de cliente e nenhum
+ * relatório os usava. Responde "de onde vem a demanda", que é a pergunta que
+ * decide onde anunciar e se vale abrir ponto de atendimento.
+ *
+ * Decisões:
+ *  - cliente **sem cidade informada** vira "Não informado" em vez de sumir.
+ *    Esconder faria o total do relatório não bater com o faturamento, e o
+ *    tamanho dessa linha é justamente o que mede a qualidade do cadastro;
+ *  - a chave é cidade **+ UF**: existem dezenas de "Santa Rita" no país, e
+ *    somá-las daria um número que não significa nada;
+ *  - o nome da cidade é normalizado só no espaçamento e no caixa da
+ *    comparação, não no acento — "dourados" e "Dourados " são a mesma cidade,
+ *    e o relatório mostra a primeira grafia encontrada;
+ *  - OS cancelada fica de fora, como no RF016: orçamento recusado não é venda.
+ */
+const CIDADE_NAO_INFORMADA = 'Não informado';
+
+async function porRegiao(filtros = {}) {
+  const { de, ate } = resolverPeriodo(filtros);
+  const limite = Number(filtros.limite) || LIMITE_PADRAO;
+
+  const ordens = await prisma.ordemServico.findMany({
+    where: {
+      dataAbertura: { gte: de, lte: ate },
+      status:       { notIn: STATUS_FORA_DO_FATURAMENTO },
+    },
+    include: { equipamento: { include: { cliente: true } } },
+  });
+
+  const porLugar = new Map();
+
+  for (const os of ordens) {
+    const cliente = os.equipamento.cliente;
+
+    const cidadeBruta = String(cliente.cidade || '').trim();
+    const uf          = String(cliente.estado || '').trim().toUpperCase();
+
+    const cidade = cidadeBruta || CIDADE_NAO_INFORMADA;
+    const chave  = `${cidade.toLowerCase()}|${uf}`;
+
+    const atual = porLugar.get(chave) || {
+      cidade,
+      estado:   uf || '—',
+      ordens:   0,
+      clientes: new Set(),
+      total:    0,
+      aprovado: 0,
+    };
+
+    const valor = Number(os.valorOrcamento || 0);
+    atual.ordens += 1;
+    atual.clientes.add(cliente.id);
+    atual.total += valor;
+    if (STATUS_APROVADOS.includes(os.status)) atual.aprovado += valor;
+
+    porLugar.set(chave, atual);
+  }
+
+  return [...porLugar.values()]
+    .map((linha) => ({
+      cidade:      linha.cidade,
+      estado:      linha.estado,
+      ordens:      linha.ordens,
+      clientes:    linha.clientes.size,
+      total:       arredondar(linha.total),
+      aprovado:    arredondar(linha.aprovado),
+      ticketMedio: arredondar(linha.ordens ? linha.total / linha.ordens : 0),
+    }))
+    .sort((a, b) => b.total - a.total || b.ordens - a.ordens)
+    .slice(0, limite);
+}
+
+/**
  * Serviços com garantia ainda vigente. Vem do RF013 (controle de garantia) e
  * serve de alerta: é o passivo aberto da assistência.
  */
@@ -341,6 +421,8 @@ module.exports = {
   produtosMaisVendidos,
   servicosMaisExecutados,
   porTipoDeEquipamento,
+  porRegiao,
+  CIDADE_NAO_INFORMADA,
   indicadoresEstoque,
   indicadoresGarantia,
 };

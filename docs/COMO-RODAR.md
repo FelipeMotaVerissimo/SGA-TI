@@ -172,8 +172,8 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 223 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 238 testes de integração (rota, sessão, JWT e banco)
+npm run test:unit         :: 231 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 242 testes de integração (rota, sessão, JWT e banco)
 npm test                  :: suíte completa
 ```
 
@@ -181,8 +181,8 @@ Resultado atual na `main` consolidada:
 
 | Suíte | Passando | Falhando |
 |---|---|---|
-| Unitários | **223** | 0 |
-| Integração | **235** | 3 (todas em `auth.test.js`, ver abaixo) |
+| Unitários | **231** | 0 |
+| Integração | **239** | 3 (todas em `auth.test.js`, ver abaixo) |
 
 ### Banco dos testes
 

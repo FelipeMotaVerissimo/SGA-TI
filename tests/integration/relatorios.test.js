@@ -153,3 +153,60 @@ describe('RF018 — produtos mais vendidos', () => {
     expect(texto(r.text)).toContain('Nenhuma peça lançada no período');
   });
 });
+
+/**
+ * NF004 — análise geográfica, de ponta a ponta.
+ */
+describe('demanda por região (NF004)', () => {
+  test('a tela traz o bloco e a cidade do cliente da massa', async () => {
+    const agente = await logar(request, app, 'admin');
+    const res    = await agente.get('/relatorios');
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Demanda por Região');
+    expect(res.text).toContain('Dourados'); // cidade do cliente da fixture
+  });
+
+  test('cliente sem cidade aparece como Não informado', async () => {
+    // Um segundo cliente, sem cidade, com equipamento e OS próprios.
+    const cliente = await prisma.cliente.create({
+      data: { nome: 'Cliente Sem Cidade', cpfCnpj: 'NF004-001' },
+    });
+    const equipamento = await prisma.equipamento.create({
+      data: {
+        codigo: 'EQ-NF004', tipo: 'DESKTOP', marca: 'Generica', modelo: 'X',
+        defeito: 'Teste NF004', clienteId: cliente.id,
+      },
+    });
+    await prisma.ordemServico.create({
+      data: {
+        numero: 'OS-NF004-1', status: 'FINALIZADO', defeitoRelatado: 'Teste',
+        valorOrcamento: 700, equipamentoId: equipamento.id,
+        usuarioId: dados.usuarios.atendente.id,
+      },
+    });
+
+    const agente = await logar(request, app, 'admin');
+    const res    = await agente.get('/relatorios');
+
+    expect(res.text).toContain('Não informado');
+  });
+
+  test('exporta o CSV da região', async () => {
+    const agente = await logar(request, app, 'admin');
+    const res    = await agente.get('/relatorios/regiao/csv');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/csv/);
+    expect(res.headers['content-disposition']).toMatch(/por-regiao/);
+    expect(res.text).toContain('Cidade;UF;Clientes;Ordens');
+  });
+
+  test('só perfil gerencial acessa', async () => {
+    const agente = await logar(request, app, 'atendente');
+    const res    = await agente.get('/relatorios/regiao/csv');
+
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/dashboard');
+  });
+});

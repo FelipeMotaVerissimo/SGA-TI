@@ -74,7 +74,7 @@ consulta direta ao banco.
 ### 3.1 Por que cidade e estado permanecem
 
 Decisão consciente, não esquecimento. Um município, isolado, não identifica
-ninguém — e é o campo que sustenta a análise geográfica prevista no NF004.
+ninguém — e é o campo que sustenta a análise geográfica do NF004, hoje implementada no relatório 🗺️ Demanda por Região.
 Apagá-lo destruiria valor estatístico sem ganho real de privacidade.
 
 O endereço **dentro** do município é identificável, e esse sai.
