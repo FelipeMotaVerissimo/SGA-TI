@@ -156,10 +156,24 @@ describe('bloqueio vale para o POST, não só para a tela', () => {
  * ninguém (ver docs/MATRIZ-REQUISITOS.md, seção 4).
  */
 describe('exclusão de cliente pela web (RF004)', () => {
-  /** Cliente próprio: esta suíte semeia uma vez só, então não dá para mexer na massa. */
-  const clienteNovo = (sufixo) => prisma.cliente.create({
-    data: { nome: `Cliente RF004 ${sufixo}`, cpfCnpj: `RF004-${sufixo}-${Date.now()}` },
-  });
+  /**
+   * Cliente próprio: esta suíte semeia uma vez só, então não dá para mexer na
+   * massa compartilhada.
+   *
+   * O `cpfCnpj` precisa caber em `VARCHAR(18)`. A primeira versão deste teste
+   * usava `Date.now()` no valor e passava no SQLite, que ignora o limite de
+   * tamanho — e quebrava no MySQL do CI, que não ignora. Daí o contador curto.
+   */
+  let contador = 0;
+  const clienteNovo = (sufixo) => {
+    contador += 1;
+    return prisma.cliente.create({
+      data: {
+        nome:    `Cliente RF004 ${sufixo}`,
+        cpfCnpj: `RF004-${String(contador).padStart(3, '0')}`, // 9 caracteres
+      },
+    });
+  };
 
   test('ADMINISTRADOR desativa o cliente, sem apagar o registro', async () => {
     const cliente = await clienteNovo('admin');
