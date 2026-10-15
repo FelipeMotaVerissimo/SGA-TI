@@ -94,6 +94,7 @@ usuário. Perde-se quem fez, nunca o registro de que foi feito.
 | RN05 | Falha ao gravar o log **nunca** propaga para a operação de negócio | Auditoria não pode derrubar atendimento no balcão |
 | RN06 | A tela mostra **só o que mudou**, comparando anterior e novo | Numa alteração que muda o telefone, o gestor quer ver o telefone, não os quinze campos que vieram iguais no `data` |
 | RN07 | Não existe rota de escrita em `/auditoria` | Um log que o operador pode editar não prova nada |
+| RN08 | **Exceção única:** a anonimização de um cliente (NF008) redige os valores pessoais dele no log | O direito do titular (art. 18 da LGPD) prevalece sobre a imutabilidade do log. O registro não é apagado — só os valores pessoais são trocados por uma marca —, e a própria anonimização fica registrada com autor e data. Ver `docs/RETENCAO.md`, seção 3.3 |
 
 ### Por que a gravação não usa `await`
 

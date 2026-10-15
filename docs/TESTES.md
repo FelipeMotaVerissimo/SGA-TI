@@ -15,22 +15,22 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 231 | 231 | 0 |
-| Integração | 242 | 239 | **3** |
-| **Total** | **473** | **470** | **3** |
+| Unitários | 243 | 243 | 0 |
+| Integração | 261 | 261 | 0 |
+| **Total** | **504** | **504** | **0** |
 
-As 3 falhas estão todas em `tests/integration/auth.test.js` e são anteriores a
-toda esta fase de fechamento. Ver 1.5.
+**A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
+permanentes em `tests/integration/auth.test.js` — ver 1.5.
 
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 231 testes
-npm run test:integration  :: 242 testes, 239 passando
-npm test                  :: suíte completa — sai vermelho por causa do auth.test.js
+npm run test:unit         :: 243 testes
+npm run test:integration  :: 261 testes
+npm test                  :: suíte completa — 504 testes
 ```
 
-### 1.2 Testes unitários — 223 casos
+### 1.2 Testes unitários — 243 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -46,12 +46,13 @@ banco, rodam em cerca de 3 segundos.
 | `servicoExecutadoService.test.js` | 16 | Garantia derivada, travas de registro e exclusão |
 | `auditoriaExtensao.test.js` | 15 | NF005 — gravação automática, senha omitida, contexto |
 | `backup.test.js` | 15 | NF006 — leitura da URL, nome do arquivo, argumentos |
+| `retencaoService.test.js` | 12 | NF008 — busca do dado pessoal em texto livre |
 | `csvService.test.js` | 12 | Separador, BOM, decimal com vírgula |
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 226 casos
+### 1.3 Testes de integração — 261 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -60,7 +61,7 @@ isolado, recriado a cada suíte.
 |---|---|---|
 | `api.test.js` | 32 | API REST com JWT, inclusive a criação de usuário restrita ao admin |
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
-| `retencao.test.js` | 21 | NF008 — anonimização LGPD e exclusão lógica |
+| `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 6 perfis |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
@@ -71,7 +72,7 @@ isolado, recriado a cada suíte.
 | `garantia.test.js` | 13 | Serviços executados e garantia |
 | `seguranca.test.js` | 16 | NF007 — cabeçalhos, cookie e CORS reais |
 | `clientes.test.js` | 7 | API de clientes |
-| `auth.test.js` | 3 | **As 3 falhas conhecidas** — ver 1.5 |
+| `auth.test.js` | 9 | Login da API: token, senha errada, usuário inexistente e desativado, campos ausentes |
 
 ### 1.4 Onde os testes rodam
 
@@ -81,7 +82,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **231 unitários e 239 de integração passando**. Isso importa porque o
+números: **243 unitários e 261 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -91,30 +92,27 @@ O CI também roda `prisma migrate deploy` num banco vazio e um
 
 `[PRINT: execução do CI no GitHub Actions, com todos os passos verdes]`
 
-### 1.5 As 3 falhas conhecidas
+### 1.5 O `auth.test.js`, que falhava desde o início
 
-`tests/integration/auth.test.js` falha nos seus 3 casos:
+Até 14/10/2026 este arquivo falhava nos seus 3 casos, e por isso `npm test`
+sempre saía vermelho:
 
 ```
 PrismaClientValidationError: Invalid `prisma.usuario.upsert()` invocation
   where: { email: "teste@sgati.com" }
-                  ~~~~~
 ```
 
-**Causa:** o arquivo foi escrito contra um schema que nunca existiu neste
-projeto. O model `Usuario` não tem `email` nem um campo `perfil` em texto — tem
-`login` e `perfilId`. A rota que ele testa **funciona**: o login pela API é
-exercitado e passa em `api.test.js`.
+O arquivo tinha sido escrito contra um schema que nunca existiu neste projeto,
+com `usuario.email` e um campo `perfil` em texto. O model real tem `login` e
+`perfilId`. **A rota sempre funcionou** — o teste é que não conseguia nem montar
+o cenário.
 
-**Consequência:** `npm test` sai vermelho sempre. Por isso a prova da suíte é
-`npm run test:integration`.
-
-**No CI**, o arquivo fica fora do passo bloqueante e roda num passo
-`continue-on-error`: a falha continua visível, sem contaminar o resultado.
-
-> `[VALIDAR: decisão da dupla.]` Corrigir para o schema real, remover, ou manter
-> como está. Manter deixa a suíte permanentemente vermelha, o que é difícil de
-> defender numa banca.
+Foi reescrito contra o schema real, mantendo os três casos originais e
+acrescentando os que o serviço já tratava e ninguém verificava: login
+inexistente recebendo **a mesma resposta** da senha errada (para não revelar
+quais logins existem), usuário desativado barrado mesmo com a senha certa, e o
+conteúdo do token sem dado sensível. Passou de 3 casos falhando para 9 passando,
+e o CI deixou de precisar excluí-lo.
 
 ### 1.6 O que os testes **não** cobrem
 
@@ -254,7 +252,7 @@ Itens que têm maior chance de divergir entre navegadores — verificar com cuid
 | A1 | Campo `<input type="date">` | Orçamento, relatórios, auditoria, financeiro | Cada navegador desenha seu próprio seletor; o Safari historicamente diverge mais |
 | A2 | Download do CSV | Relatórios | Nome do arquivo e codificação |
 | A3 | `confirm()` nas exclusões | Clientes, produtos, serviços, anonimização | Alguns navegadores suprimem diálogos em certas condições |
-| A4 | Menu lateral em tela estreita | Todas | O layout não foi projetado para celular — **medido na seção 3.7** |
+| A4 | Menu lateral em tela estreita | Todas | Recolhido abaixo de 768 px — **medido antes e depois na seção 3.7** |
 | A5 | Tabela do detalhe da OS | Detalhe da OS | É a tabela mais larga do sistema |
 | A6 | Emojis dos rótulos | Todas | Renderizam diferente por sistema operacional |
 
@@ -278,37 +276,65 @@ Itens que têm maior chance de divergir entre navegadores — verificar com cuid
 > três marcas. Divergências entre Chrome e Edge são improváveis; entre esses e
 > o Firefox ou o Safari, não.
 
-### 3.7 Comportamento em tela de celular — medido
+### 3.7 Comportamento em tela de celular — medido antes e depois
 
-Esta é a constatação mais relevante da seção, e não é uma impressão: foi medida
-emulando um aparelho de **375 px** de largura.
+Medido emulando um aparelho de **375 px** de largura.
 
-| Tela | Viewport que o navegador precisou adotar | Escala aplicada |
-|---|---|---|
-| Abertura de OS | 702 px | **53 %** |
-| Relatórios | 798 px | **47 %** |
-| Dashboard | 805 px | **47 %** |
-| Estoque do produto | 843 px | **44 %** |
-| Detalhe da OS | 873 px | **43 %** |
-| **Consulta pública** | **375 px** | **100 %** |
+**Antes** (até 13/10/2026), o menu lateral tinha 220 px fixos — sozinho, 59 % da
+tela — e o CSS não tinha ponto de quebra. O navegador não quebrava o layout:
+**encolhia a página inteira** até caber. Um texto de 14 px era desenhado com 6 a
+7 px. Não aparecia barra de rolagem horizontal, e era por isso que o problema
+passava despercebido — a página "cabia", mas não se lia.
 
-**O que isso significa.** O menu lateral tem largura fixa de 220 px — sozinho,
-59 % da tela de um celular. Como o CSS não tem ponto de quebra, o navegador não
-quebra o layout: ele **encolhe a página inteira** até caber. O resultado é que
-um texto de 14 px é desenhado com 6 a 7 px no aparelho. Não há barra de rolagem
-horizontal, e é justamente por isso que o problema passa despercebido numa
-verificação superficial — a página "cabe", mas não se lê.
+**Depois** de acrescentar o ponto de quebra em 768 px:
 
-A **consulta pública é a exceção**, e pela razão certa: é a única tela sem menu
-lateral, então ela já funciona em celular na escala natural. É também a única
-que um cliente abriria do telefone, o que reduz bastante a gravidade prática do
-problema.
+| Tela | Antes: viewport | Antes: escala | **Depois: viewport** | **Depois: escala** |
+|---|---|---|---|---|
+| Abertura de OS | 702 px | 53 % | **375 px** | **100 %** |
+| Relatórios | 798 px | 47 % | **375 px** | **100 %** |
+| Dashboard | 805 px | 47 % | **375 px** | **100 %** |
+| Estoque do produto | 843 px | 44 % | **375 px** | **100 %** |
+| Detalhe da OS | 873 px | 43 % | **375 px** | **100 %** |
+| Lista de clientes | — | — | **375 px** | **100 %** |
+| Auditoria | — | — | **375 px** | **100 %** |
+| Financeiro | — | — | **375 px** | **100 %** |
+| Histórico do equipamento | — | — | **375 px** | **100 %** |
+| Consulta pública | 375 px | 100 % | 375 px | 100 % |
+
+Nenhuma tela com transbordo horizontal.
+
+**O que mudou** (`public/css/style.css`, seção de responsividade, e
+`public/js/menu.js`):
+
+- abaixo de 768 px o menu lateral vira uma barra no topo, recolhida atrás de um
+  botão ☰ — com `aria-expanded` e `aria-controls`, para leitor de tela;
+- a tabela larga **rola dentro da própria caixa**. Antes a `.tabela-box` tinha
+  `overflow: hidden`, que **cortava** a tabela;
+- formulário de duas colunas vira uma coluna.
+
+**O que se encontrou no caminho.** Depois do ponto de quebra, a abertura de OS
+ainda ficava em 94 %. A causa era um `<select>`: por padrão ele assume a largura
+da maior opção, e o nome mais comprido de cliente esticava a coluna 26 px além
+da tela. Resolvido com `min-width: 0` na coluna da grade.
+
+**Melhoria progressiva.** O menu só fica recolhível depois que o JavaScript
+carrega. Se o script falhar, o menu aparece aberto — mais comprido, mas ninguém
+fica sem acesso às telas.
+
+**Desktop inalterado.** Conferido em 1024 px: menu de 220 px fixo, botão ☰
+oculto, margem de 220 px no conteúdo — exatamente como antes.
+
+![Dashboard em celular, menu recolhido](prints/31-celular-menu-fechado.png)
+
+![Dashboard em celular, menu aberto](prints/32-celular-menu-aberto.png)
+
+![Detalhe da OS em celular, com a tabela rolando dentro da caixa](prints/33-celular-detalhe-os.png)
 
 ### 3.8 Limitação conhecida
 
 | # | Limitação |
 |---|---|
-| L06 | **O sistema não foi projetado para telas de celular.** Medido na seção 3.7: as telas internas são renderizadas entre 43 % e 53 % do tamanho. A correção é um ponto de quebra que recolha o menu lateral abaixo de 768 px e deixe as tabelas rolarem na horizontal. Registrado como trabalho futuro em `docs/CONCLUSAO.md` |
+| L06 | ~~O sistema não foi projetado para telas de celular~~ — **resolvido**, ver 3.7. O que continua valendo: a emulação reproduz a largura e o toque, mas não substitui um aparelho de verdade. As colunas Android e iOS da matriz ainda pedem teste em aparelho físico |
 
 ---
 
@@ -320,7 +346,7 @@ problema.
 | **Software — integração** | ✅ Executado | 223 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 5 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
-| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas); Firefox, Safari e aparelho real pendentes |
+| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); Firefox, Safari e aparelho real pendentes |
 | **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 14 tabelas comparadas, 0 divergências |
 | **Carga e concorrência** | ⬜ Fora de escopo | — |
 

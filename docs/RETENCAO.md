@@ -1,6 +1,6 @@
 # NF008 — Retenção e descarte de dados pessoais
 
-**Versão:** V01
+**Versão:** V02 (14/10/2026 — a anonimização passa a alcançar as contas e o log)
 **Data:** 06/10/2026
 **Requisito:** NF008 — política de retenção e descarte
 **Base legal:** Lei 13.709/2018 (LGPD), em especial os artigos 12, 16 e 18
@@ -38,7 +38,8 @@ pessoa identificável.
 | **Dado pessoal identificável** | `clientes`: nome, CPF/CNPJ, RG, data de nascimento, endereço, número, bairro, CEP, telefone, celular, e-mail | Apagado na anonimização |
 | **Dado pessoal não identificável isoladamente** | `clientes`: cidade, estado | **Mantido** — ver 3.1 |
 | **Dado operacional** | `ordens_servico`, `servicos_executados`, `itens_ordem`, `equipamentos` | Mantido integralmente |
-| **Dado fiscal** | `contas_receber`, `contas_pagar` | Mantido integralmente |
+| **Dado fiscal** | `contas_receber`, `contas_pagar` | Mantido — mas a descrição da conta gerada no faturamento **contém o nome do cliente**, e esse trecho é apagado (RN07) |
+| **Registro de auditoria** | `logs_auditoria` | Mantido — os valores pessoais dentro dele são redigidos (RN06) |
 | **Credencial** | `usuarios.senha` | Hash bcrypt; nunca aparece em log nem em tela (ver `docs/AUDITORIA.md`) |
 
 ---
@@ -61,8 +62,9 @@ pessoa identificável.
 | `ativo` | `false` |
 | `anonimizadoEm` | data e hora da operação |
 
-Equipamentos, ordens de serviço, serviços executados, itens e contas **não são
-tocados**.
+Equipamentos, ordens de serviço, serviços executados e itens **não são
+tocados**. As contas a receber e o log de auditoria **permanecem**, mas perdem o
+dado pessoal — ver 3.3.
 
 ### Por que o CPF vira `ANON-<id>` em vez de ficar vazio
 
@@ -92,6 +94,69 @@ permite reidentificação num município pequeno, basta acrescentar `cidade` e
 | RN03 | Anonimizar duas vezes é recusado | Para a data do primeiro atendimento ao titular não ser sobrescrita |
 | RN04 | O cliente é desativado | Anonimizado não entra em OS nova |
 | RN05 | A operação é auditada (NF005) | Fica registrado quem atendeu ao pedido e quando |
+| RN06 | O dado pessoal sai também do **log de auditoria** | O log guarda o estado anterior de cada alteração. Sem isto, o nome, o CPF e os contatos sobreviveriam em `logs_auditoria.valorAnterior` e a eliminação seria só aparente |
+| RN07 | E de onde o sistema o **copiou**: a descrição das contas a receber geradas no faturamento, e o log dessas contas | O faturamento monta a descrição como `OS 108 — Joana Silva`. Ver 3.3 |
+
+---
+
+### 3.3 Onde o dado pessoal vive — e como foi descoberto
+
+Anonimizar o cadastro não basta: o sistema **copia** o dado para outros lugares.
+
+| Onde | Como chegou lá | Tratamento |
+|---|---|---|
+| `clientes` | o próprio cadastro | campos sobrescritos |
+| `contas_receber.descricao` | o faturamento copia o nome: `OS 108 — Joana Silva` | o nome vira `Cliente anonimizado` |
+| `logs_auditoria` do cliente | estado anterior de cada alteração | valores redigidos, campo a campo |
+| `logs_auditoria` das contas | a descrição acima, gravada no log | o nome é procurado e substituído |
+
+As duas linhas do meio **não estavam na primeira versão** desta rotina. O
+vazamento foi encontrado numa captura de tela do manual: a lista de contas a
+receber mostrava "Cliente anonimizado" na coluna do cliente e **o nome completo
+na descrição**. O teste que procurava o nome no log inteiro passava porque a
+conta da massa de teste não tinha o nome na descrição — **o caminho do
+faturamento não estava coberto**. Hoje está, e há prova de que o teste falha
+quando a correção é desligada.
+
+**Redigir, não apagar.** Apagar as contas ou as linhas do log destruiria o
+histórico fiscal e a rastreabilidade (NF005). Só os *valores* pessoais são
+trocados. Continua visível **que** o telefone mudou em tal data, por tal
+usuário — deixa de ser visível **qual** era.
+
+**A tensão com a auditoria.** Esta é a única escrita que o sistema faz em
+`logs_auditoria` fora da gravação automática, e ela é deliberada: o direito do
+titular (art. 18 da LGPD) prevalece sobre a imutabilidade do log. A regra de que
+ninguém edita log continua valendo para as pessoas — não há rota para isso, e a
+própria anonimização fica registrada, com autor e data.
+
+**Busca em texto livre.** Os valores originais — nome, CPF, RG, e-mail,
+telefones, endereço, CEP — são procurados nos textos e substituídos. Duas
+cautelas: valores com menos de 4 caracteres não são procurados, e o número da
+casa e a data de nascimento ficam de fora, porque "12" ou uma data apagariam
+números que não têm nada a ver com o titular. A substituição é por texto, não
+por expressão regular, porque um telefone como `(67) 99911-2233` tem caracteres
+que uma expressão regular interpretaria.
+
+### 3.4 Reparo de anonimizações antigas
+
+Clientes anonimizados antes das regras RN06 e RN07 ficaram com o nome nas
+contas e no log — e o nome original já foi sobrescrito no cadastro. O reparo o
+recupera do único lugar onde ainda existe: o `valorAnterior` do registro da
+própria anonimização. Se esse registro já tiver sido redigido, a descrição
+gerada pelo faturamento é normalizada mesmo sem saber o nome, porque o formato
+`OS <número> — <nome>` é conhecido.
+
+```cmd
+npm run reparar:anonimizacoes
+```
+
+É idempotente: rodar de novo não muda nada. Foi aplicado ao banco de
+demonstração em 14/10/2026, onde havia um caso:
+
+```
+cliente #24     contas: 1 | log do cliente: 1 | log das contas: 1
+conta #18: "OS OS-2026-000108 — Joana Ribeiro Silva"  →  "OS OS-2026-000108 — Cliente anonimizado"
+```
 
 ---
 
@@ -140,7 +205,7 @@ confirmação com o consultor e com o orientador antes de virarem política.]`
 
 ## 6. Testes
 
-`tests/integration/retencao.test.js` — 21 casos. O que fica provado:
+`tests/integration/retencao.test.js` (34 casos) e `tests/unit/retencaoService.test.js` (12). O que fica provado:
 
 - os dados pessoais somem **do banco**, não só da tela — o teste procura o
   e-mail e o CPF originais no registro inteiro e não os encontra;
@@ -152,6 +217,19 @@ confirmação com o consultor e com o orientador antes de virarem política.]`
 - dois clientes anonimizados não colidem no `cpfCnpj` único;
 - os cinco perfis não administrativos recebem 302 e **nada é alterado**;
 - a operação aparece no log de auditoria, com o usuário que a executou;
+- **depois de anonimizar, nenhum dado pessoal sobra em lugar nenhum do log** —
+  a busca é no log inteiro, de todas as entidades;
+- o log é **redigido, não apagado**: nenhum registro some, e continua visível
+  quem alterou e que campos mudaram;
+- **faturar e depois anonimizar** tira o nome da descrição da conta e do log
+  dela, preservando valor e vínculo com a OS;
+- conta lançada à mão perde só o dado pessoal — o resto do texto fica;
+- o reparo recupera o nome pelo log, limpa conta e log, e é idempotente;
+- valores curtos demais e caracteres especiais não causam substituição errada.
+
+**Os dois testes centrais foram verificados ao contrário:** com a limpeza
+desligada no código, eles falham mostrando exatamente o vazamento. Um teste que
+passa com ou sem a correção não prova nada.
 - equipamento desativado some da lista, volta com o filtro, não entra em OS
   nova, preserva o histórico e pode ser reativado.
 
@@ -163,12 +241,7 @@ confirmação com o consultor e com o orientador antes de virarem política.]`
 |---|---|---|
 | P01 | **Não há expurgo automático.** A anonimização é sempre manual, a pedido. A política da seção 5 não é aplicada por rotina nenhuma | média |
 | P02 | Não existe tela de consentimento nem registro da base legal de cada tratamento (art. 7º e 8º) | média |
-| P03 | **O log de auditoria guarda o estado anterior das alterações**, então os dados pessoais apagados sobrevivem dentro de `logs_auditoria.valorAnterior`. Para a eliminação ser completa, o log da própria operação de anonimização precisa ser tratado — hoje não é | **alta** |
+| P03 | ~~Os dados pessoais sobreviviam no log de auditoria~~ — **resolvido** pelas regras RN06 e RN07, ver 3.3 | — |
 | P04 | Os backups anteriores à anonimização continuam com os dados pessoais. É limitação inerente a backup, mas precisa estar escrita na política | média |
 | P05 | Não há exportação dos dados do titular (direito de portabilidade, art. 18, V) | baixa |
 
-> **Sobre a P03:** é a pendência mais relevante deste requisito e não deve ser
-> escondida numa defesa. A anonimização atende ao pedido do titular na base
-> operacional, mas o sistema ainda guarda os dados no log. Resolver exige
-> decidir o que vale mais — a rastreabilidade de quem anonimizou o quê, ou a
-> eliminação completa — e implementar a limpeza seletiva do log daquele titular.

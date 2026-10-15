@@ -1,6 +1,6 @@
 # Capítulo 4 — Conclusão
 
-> **Rascunho para o documento do TCC.** Extensão: 573 palavras, dentro da faixa
+> **Rascunho para o documento do TCC.** Extensão: 580 palavras, dentro da faixa
 > de 400 a 600. As dificuldades relatadas saíram dos LEIAMEs de cada módulo e do
 > histórico de commits — são defeitos e decisões registrados no momento em que
 > aconteceram, não reconstituídos depois.
@@ -49,23 +49,24 @@ distintos — na previsão de entrega, no nome do arquivo exportado e no do back
 sempre pela mesma causa: converter a data para UTC quando a intenção era o
 horário local.
 
-Houve ainda divergências entre o documento e o sistema construído. O texto citava
-bibliotecas que o projeto não utiliza e descrevia a autenticação apenas por
-tokens, quando as telas usam sessão e o token vale somente para a interface de
-programação. Essas divergências foram levantadas e documentadas em vez de
-corrigidas no código, por serem questão de redação.
+Houve também divergências entre o documento e o sistema, como bibliotecas
+citadas que o projeto não utiliza; foram registradas e tratadas como questão de
+redação, sem alterar a arquitetura.
+
+A última dificuldade foi perceber que dado pessoal não fica só onde é
+cadastrado. A rotina de anonimização apagava o cliente, mas o faturamento já
+havia copiado o nome para a descrição da conta a receber, e o registro de
+auditoria guardava ambos. O vazamento apareceu numa captura de tela do manual,
+não nos testes, que não cobriam aquele caminho.
 
 ## 4.3 Trabalhos futuros
 
-Os caminhos identificados: estender a anonimização de dados pessoais ao
-registro de auditoria, que hoje preserva o estado anterior das alterações;
-limitar tentativas de autenticação; vincular cada peça ao serviço em que foi
-utilizada e registrar qual técnico o executou, informações que hoje existem
-apenas em nível de ordem de serviço; e adaptar a interface para telas de
-celular: medições com um aparelho emulado mostraram que as telas internas são
-reduzidas a cerca de metade do tamanho, porque o menu lateral tem largura fixa e
-o estilo não prevê pontos de quebra.
-
-O sistema também não trata o caso de uma rede com mais de uma instância: a
-sessão e o controle de tentativas de login vivem na memória do processo, o que
-basta para uma assistência mas não para operação distribuída.
+Alguns caminhos permanecem abertos. A política de retenção define prazos, mas
+nenhuma rotina os aplica: a anonimização ainda depende de pedido. Peça utilizada
+e técnico responsável existem apenas em nível de ordem de serviço, e não de cada
+serviço executado. A política de segurança de conteúdo admite scripts embutidos
+nas páginas, o que enfraquece a defesa contra injeção. A sessão e o controle de
+tentativas de login vivem na memória do processo, o que basta para uma
+assistência, mas não para operação com mais de uma instância. Por fim, a
+avaliação de usabilidade com os usuários e os testes em navegadores e aparelhos
+reais ainda precisam ser aplicados.

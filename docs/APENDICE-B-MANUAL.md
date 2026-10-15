@@ -18,9 +18,11 @@ Versão 1 · Outubro de 2026
 9. [Para o cliente — consulta pública](#9-para-o-cliente--consulta-pública)
 10. [Perguntas frequentes](#10-perguntas-frequentes)
 
-> **Sobre as imagens:** os marcadores `[PRINT: ...]` indicam onde entra a captura
-> de tela na versão final do documento. Capturar com o sistema populado pela
-> massa de demonstração, em janela maximizada.
+> **Sobre as imagens:** as capturas estão em `docs/prints/`, em PNG com o dobro
+> da resolução de tela (2560 px de largura na página inteira), adequadas para
+> impressão. Foram feitas com a massa de demonstração, cada uma com o perfil a
+> que a seção se refere. Uma única captura depende de programa externo e ficou
+> marcada como `[PRINT: ...]`: o CSV aberto no Excel.
 
 ---
 
@@ -31,7 +33,7 @@ Versão 1 · Outubro de 2026
 Acesse o endereço do sistema e informe **login** e **senha**. Não há cadastro
 público: quem cria usuários é o administrador.
 
-`[PRINT: tela de login]`
+![Tela de login](prints/01-login.png)
 
 Se errar, a mensagem aparece acima do formulário. Senha esquecida se resolve com
 o administrador — não há recuperação automática.
@@ -42,14 +44,26 @@ Depois de entrar, você cai no **Dashboard**. Ele mostra blocos diferentes
 conforme o seu perfil: o técnico vê garantias, o financeiro vê o caixa, o setor
 de compras vê o estoque. Não é falha — **cada um vê o que lhe diz respeito**.
 
-`[PRINT: dashboard do administrador, com todos os blocos]`
+![Dashboard do administrador, com todos os blocos](prints/02-dashboard-administrador.png)
 
 ### O menu lateral
 
 O menu à esquerda mostra **apenas o que o seu perfil pode acessar**. Se um colega
 tem um item que você não tem, é porque o perfil dele é outro.
 
-`[PRINT: menu lateral — comparação entre o do atendente e o do administrador]`
+![Menu do atendente](prints/03a-menu-atendente.png)
+
+![Menu do administrador](prints/03b-menu-administrador.png)
+
+### No celular
+
+Em telas pequenas o menu lateral vira uma barra no topo, recolhida. Toque em
+**☰** para abrir e de novo para fechar. As tabelas largas rolam para o lado
+dentro da própria caixa, sem empurrar a página.
+
+![Dashboard no celular, menu recolhido](prints/31-celular-menu-fechado.png)
+
+![Dashboard no celular, menu aberto](prints/32-celular-menu-aberto.png)
 
 ### Os seis perfis
 
@@ -126,7 +140,7 @@ Você é a porta de entrada. Seu menu tem **Clientes**, **Equipamentos** e
 Obrigatórios: **nome** e **CPF/CNPJ**. O resto ajuda depois — telefone e celular
 são como você avisa que o conserto ficou pronto.
 
-`[PRINT: formulário de cadastro de cliente]`
+![Formulário de cadastro de cliente](prints/04-cadastro-cliente.png)
 
 > O CPF/CNPJ **não se repete**. Se o sistema recusar, o cliente provavelmente já
 > está cadastrado: procure antes de criar outro.
@@ -143,7 +157,7 @@ são como você avisa que o conserto ficou pronto.
 | Número de série | Opcional, mas é o que distingue dois aparelhos iguais |
 | Defeito | O defeito **do cadastro** — a descrição geral do aparelho |
 
-`[PRINT: formulário de cadastro de equipamento, com o select de tipo aberto]`
+![Formulário de cadastro de equipamento, com o select de tipo aberto](prints/05-cadastro-equipamento.png)
 
 > **O tipo importa.** É por ele que a gerência descobre se a oficina conserta
 > mais notebook ou mais impressora. "Outro" funciona, mas não ajuda ninguém.
@@ -157,13 +171,13 @@ Escolha o cliente; a lista de equipamentos se ajusta sozinha aos aparelhos dele.
 No **defeito relatado**, escreva o que o cliente falou, com as palavras dele.
 Não confunda com o defeito do cadastro: aqui é o problema **desta visita**.
 
-`[PRINT: formulário de abertura de OS]`
+![Formulário de abertura de OS](prints/06-abertura-os.png)
 
 O sistema gera o **número da OS** automaticamente. **Anote e entregue ao
 cliente** — é com ele que o cliente acompanha o conserto pela internet, sem
 precisar ligar.
 
-`[PRINT: lista de ordens de serviço, com os status coloridos]`
+![Lista de ordens de serviço, com os status coloridos](prints/07-lista-os.png)
 
 ### 3.4 Registrar a resposta do cliente
 
@@ -172,7 +186,7 @@ Quando o cliente retornar sobre o orçamento, abra a OS e use:
 - **✅ Aprovar orçamento** → a OS vai para `AUTORIZADO` e o técnico pode começar;
 - **❌ Rejeitar orçamento** → a OS vai para `CANCELADO`.
 
-`[PRINT: detalhe da OS em status ORCAMENTO, com os botões de aprovar e rejeitar]`
+![Detalhe da OS em status ORCAMENTO, com os botões de aprovar e rejeitar](prints/08-os-orcamento-aprovar.png)
 
 > Só dá para aprovar uma OS que **tenha orçamento lançado**. Se os botões não
 > aparecem, o vendedor ainda não lançou o valor.
@@ -184,7 +198,7 @@ Em **Equipamentos**, botão **🕓 Histórico**.
 Mostra tudo que já foi feito naquela máquina, em todas as OS, com a situação da
 garantia de cada serviço.
 
-`[PRINT: tela de histórico do equipamento, com um serviço em garantia vigente]`
+![Tela de histórico do equipamento, com um serviço em garantia vigente](prints/09-historico-equipamento.png)
 
 > **Use isto antes de abrir OS de retorno.** Se o cliente volta com o mesmo
 > problema e o serviço ainda está na garantia, é retrabalho coberto — não se
@@ -206,7 +220,7 @@ Abra a OS e preencha o quadro de orçamento:
 | Previsão de entrega | Opcional, mas é o que o cliente pergunta |
 | Observações | O que compõe o valor |
 
-`[PRINT: formulário de orçamento dentro do detalhe da OS]`
+![Formulário de orçamento dentro do detalhe da OS](prints/10-formulario-orcamento.png)
 
 A OS passa para `ORCAMENTO` e o atendente pode registrar a resposta do cliente.
 
@@ -221,7 +235,7 @@ A OS passa para `ORCAMENTO` e o atendente pode registrar a resposta do cliente.
 No detalhe da OS, bloco **📦 Produtos Utilizados**: escolha o produto, a
 quantidade e confirme.
 
-`[PRINT: bloco de produtos utilizados, com uma peça lançada]`
+![Bloco de produtos utilizados, com uma peça lançada](prints/11-produtos-utilizados.png)
 
 O estoque **baixa automaticamente**. Se não houver saldo, o sistema **permite e
 avisa** — o saldo fica negativo e aparece na lista "a regularizar" do setor de
@@ -245,7 +259,7 @@ equipamento pelo link dentro da OS.
 No detalhe da OS, bloco do equipamento, clique em
 **🕓 Ver histórico de serviços deste equipamento**.
 
-`[PRINT: link do histórico dentro do detalhe da OS]`
+![Link do histórico dentro do detalhe da OS](prints/12-link-historico-na-os.png)
 
 Se já houve serviço com garantia vigente, você está diante de um retrabalho.
 
@@ -260,7 +274,7 @@ No detalhe da OS, bloco **🛠️ Serviços Executados**:
 | Garantia (dias) | Opcional, de 0 a 3650. Em branco ou 0 = sem garantia |
 | Observações | Opcional |
 
-`[PRINT: formulário de registro de serviço executado]`
+![Formulário de registro de serviço executado](prints/13-registrar-servico.png)
 
 > **Ao registrar o primeiro serviço numa OS `AUTORIZADO`, ela vira
 > `EM_ANDAMENTO` sozinha.** Você não precisa mudar o status à mão.
@@ -278,7 +292,7 @@ Você informa **quantos dias**; o sistema calcula o resto e mostra a situação:
 | ⌛ **Vencida** | O prazo acabou |
 | **Sem garantia** | Serviço registrado sem prazo |
 
-`[PRINT: tabela de serviços executados, com os três estados de garantia]`
+![Tabela de serviços executados, com os três estados de garantia](prints/14-servicos-garantia.png)
 
 > A data-fim **não é digitada nem armazenada**: sai de `data de execução + dias`.
 > Por isso nunca fica desatualizada.
@@ -306,7 +320,7 @@ Seu menu tem **Produtos**.
 
 **Produtos → + Novo Produto**: nome, preço de venda, estoque inicial.
 
-`[PRINT: formulário de cadastro de produto]`
+![Formulário de cadastro de produto](prints/15-cadastro-produto.png)
 
 ### 6.2 Entrada de estoque
 
@@ -320,7 +334,7 @@ Seu menu tem **Produtos**.
 Na descrição, registre a nota fiscal e o fornecedor — é o que permite conferir
 depois.
 
-`[PRINT: tela de estoque do produto, com o histórico de movimentações]`
+![Tela de estoque do produto, com o histórico de movimentações](prints/16-estoque-produto.png)
 
 > As saídas por OS **não se lançam aqui**: elas acontecem sozinhas quando o
 > vendedor lança a peça na ordem de serviço.
@@ -331,7 +345,7 @@ O dashboard traz a lista **"a regularizar"**, com link direto. Saldo negativo
 significa que a peça saiu pela OS antes de a entrada ser registrada. **Regularize
 com uma ENTRADA.**
 
-`[PRINT: bloco de estoque no dashboard, com a lista a regularizar]`
+![Bloco de estoque no dashboard, com a lista a regularizar](prints/17-dashboard-estoque.png)
 
 ### 6.4 Desativar um produto
 
@@ -350,14 +364,14 @@ Seu menu tem **Financeiro**.
 Mostra contas a pagar e a receber, com totais em aberto, vencidos e o saldo
 previsto.
 
-`[PRINT: painel financeiro, com contas em aberto e vencidas]`
+![Painel financeiro, com contas em aberto e vencidas](prints/18-painel-financeiro.png)
 
 ### 7.2 Lançar uma conta
 
 **+ Nova conta a pagar** ou **+ Nova conta a receber**: descrição, valor,
 vencimento. Na conta a pagar, o fornecedor; na conta a receber, o cliente.
 
-`[PRINT: formulário de conta a pagar]`
+![Formulário de conta a pagar](prints/19-conta-a-pagar.png)
 
 ### 7.3 A conta que aparece sozinha
 
@@ -380,7 +394,7 @@ O valor é:
 
 Nenhuma conta é apagada.
 
-`[PRINT: conta quitada, mostrando a data e o usuário que deu baixa]`
+![Conta quitada, mostrando a data e o usuário que deu baixa](prints/20-conta-quitada.png)
 
 ---
 
@@ -393,7 +407,7 @@ Você vê tudo, mais **Tipos de Serviço**, **Relatórios**, **Auditoria** e
 
 **Usuários → + Novo Usuário**: nome, login, senha e **perfil**.
 
-`[PRINT: formulário de cadastro de usuário, com o select de perfil aberto]`
+![Formulário de cadastro de usuário, com o select de perfil aberto](prints/21-cadastro-usuario.png)
 
 > **Troque a senha do `admin` no primeiro acesso.** A senha padrão está escrita
 > na documentação do projeto — é pública.
@@ -406,7 +420,7 @@ diferentes.
 
 Tipo desativado some da escolha do técnico, mas **o histórico não muda**.
 
-`[PRINT: lista de tipos de serviço]`
+![Lista de tipos de serviço](prints/22-tipos-servico.png)
 
 ### 8.3 Faturar e encerrar a OS
 
@@ -418,12 +432,12 @@ Isso faz três coisas de uma vez, e **ou acontece tudo, ou nada**:
 2. grava a data de fechamento;
 3. **gera a conta a receber**.
 
-`[PRINT: botão de faturar e encerrar no detalhe da OS]`
-`[PRINT: a conta a receber recém-gerada, no painel financeiro]`
+![Botão de faturar e encerrar no detalhe da OS](prints/23-faturar-encerrar.png)
+![A conta a receber recém-gerada, no painel financeiro](prints/24-conta-gerada.png)
 
 ### 8.4 Relatórios
 
-**Relatórios**. Quatro relatórios, um período compartilhado (padrão: últimos 30
+**Relatórios**. Cinco relatórios, um período compartilhado (padrão: últimos 30
 dias):
 
 | Relatório | Responde |
@@ -432,13 +446,14 @@ dias):
 | 📦 Produtos mais vendidos | Quais peças giram |
 | 🛠️ Serviços mais executados | O que a oficina mais faz |
 | 💻 Por tipo de equipamento | Quais aparelhos dão mais trabalho |
+| 🗺️ Demanda por região | De quais cidades vêm os clientes e o faturamento |
 
-`[PRINT: tela de relatórios, com o filtro de período e os quatro blocos]`
+![Tela de relatórios, com o filtro de período e os cinco blocos](prints/25-relatorios.png)
 
 Botão **⭳ CSV** em cada um, respeitando o período da tela. O arquivo abre no
 Excel em português com acento e valores corretos.
 
-`[PRINT: CSV exportado, aberto no Excel]`
+`[PRINT: CSV exportado, aberto no Excel — capturar manualmente, depende do Excel instalado]`
 
 > **"Não classificado"** nos serviços são os registros feitos antes do catálogo
 > existir, ou sem tipo escolhido. Aparecem de propósito — escondê-los falsearia o
@@ -456,7 +471,7 @@ ALTERACAO  Cliente  #26   nome: Cliente da Auditoria → Cliente da Auditoria LT
                           cidade: Dourados → Campo Grande
 ```
 
-`[PRINT: tela de auditoria, com um registro de alteração]`
+![Tela de auditoria, com um registro de alteração](prints/26-auditoria.png)
 
 Filtros de período, usuário, entidade e ação.
 
@@ -469,13 +484,19 @@ Filtros de período, usuário, entidade e ação.
 Se um cliente exigir a exclusão dos dados dele, use **🔒 Anonimizar** na lista de
 clientes.
 
-`[PRINT: confirmação da anonimização]`
+![Botão de anonimizar na lista de clientes](prints/27-botao-anonimizar.png)
+
+> A confirmação que aparece ao clicar é a janela nativa do navegador — por isso
+> não está na captura. Ela repete o que será apagado e o que será preservado, e
+> avisa que a operação não pode ser desfeita.
 
 O que acontece: nome, CPF/CNPJ, RG, data de nascimento, endereço e contatos são
-**apagados**. As ordens de serviço, equipamentos, serviços e contas são
-**preservados** — são registro fiscal.
+**apagados** — do cadastro, da descrição das contas a receber geradas no
+faturamento e do registro de auditoria. As ordens de serviço, equipamentos,
+serviços e contas são **preservados** — são registro fiscal; só perdem o dado
+pessoal.
 
-`[PRINT: cliente anonimizado na lista, com a marca 🔒 e a data]`
+![Cliente anonimizado na lista, com a marca 🔒 e a data](prints/28-cliente-anonimizado.png)
 
 > **A operação não pode ser desfeita.** Confirme o pedido antes.
 > Cidade e estado permanecem: não identificam ninguém sozinhos e sustentam a
@@ -498,7 +519,7 @@ Acompanhe seu conserto pela internet, **sem login e sem precisar ligar**.
 2. Informe o **número da ordem de serviço** que está no seu comprovante;
 3. Veja a situação.
 
-`[PRINT: tela de consulta pública, formulário vazio]`
+![Tela de consulta pública, formulário vazio](prints/29-consulta-publica.png)
 
 O que aparece:
 
@@ -512,7 +533,7 @@ O que aparece:
 | Serviços executados | O que foi feito |
 | **Garantia** | Até quando cada serviço está coberto |
 
-`[PRINT: resultado da consulta pública, com serviço em garantia vigente]`
+![Resultado da consulta pública, com serviço em garantia vigente](prints/30-consulta-resultado.png)
 
 > **Guarde o número da OS.** É só com ele que a consulta funciona — e é o que
 > protege seus dados de quem não deveria vê-los.
@@ -553,6 +574,9 @@ português. Se acontecer, avise a equipe do sistema.
 
 **Esqueci minha senha.**
 Só o administrador redefine. Não há recuperação automática.
+
+**No celular, o menu sumiu.**
+Ele fica recolhido para dar espaço ao conteúdo. Toque em **☰** no topo da tela.
 
 **O sistema demorou para abrir.**
 No ambiente gratuito, o servidor hiberna após 15 minutos sem uso e leva de 30 a

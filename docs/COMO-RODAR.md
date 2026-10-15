@@ -66,6 +66,7 @@ npm run seed
 | `seed` | Cria os 6 perfis e o usuário `admin` |
 | `seed:demo` | O mesmo, **mais um usuário por perfil** (ver seção 5) |
 | `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
+| `reparar:anonimizacoes` | NF008 — limpa contas e log de clientes anonimizados antes de 14/10/2026 (ver `docs/RETENCAO.md`, seção 3.4) |
 
 ### As seis migrations
 
@@ -172,17 +173,17 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 231 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 242 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa
+npm run test:unit         :: 243 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 261 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 504 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
 
 | Suíte | Passando | Falhando |
 |---|---|---|
-| Unitários | **231** | 0 |
-| Integração | **239** | 3 (todas em `auth.test.js`, ver abaixo) |
+| Unitários | **243** | 0 |
+| Integração | **261** | 0 |
 
 ### Banco dos testes
 
@@ -218,25 +219,11 @@ npm run test:integration
 | `tests/integration/retencao.test.js` | Anonimização LGPD e exclusão lógica (NF008) |
 | `tests/integration/clientes.test.js` | API de clientes (Módulo 1) |
 
-### As 3 falhas conhecidas
+### Situação da suíte
 
-`tests/integration/auth.test.js` falha nos seus 3 casos, e isso é anterior à
-consolidação. Ele foi escrito contra um schema antigo:
-
-```
-PrismaClientValidationError: Invalid `prisma.usuario.upsert()` invocation
-  where: { email: "teste@sgati.com" }
-                  ~~~~~
-```
-
-O model `Usuario` não tem `email` nem um campo `perfil` em texto — tem `login` e
-`perfilId`, relação com `Perfil`. Por isso a prova da suíte é
-`npm run test:integration`, e não `npm test`, que sempre sai vermelho.
-
-**[VALIDAR: decidir o destino do `auth.test.js`.]** As opções são corrigi-lo para
-o schema real (o login via API já funciona e é exercitado por `api.test.js`),
-removê-lo, ou mantê-lo vermelho. Manter deixa a suíte do TCC permanentemente
-vermelha, o que é difícil de defender numa banca.
+**Os 504 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+`tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
+contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 
 ---
 

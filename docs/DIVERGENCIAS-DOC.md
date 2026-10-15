@@ -81,7 +81,7 @@ contradiz o sistema entregue.
 | B5 | "**126** unitários e **67** de integração" (seção Testar) | 175 unitários e 162 de integração, dos quais 159 passam | Regerar |
 | B6 | "Testes E2E **39/39** no ambiente de preview" | O E2E do sandbox tem 163 casos — e **não é a prova oficial**: a cobertura passou para `tests/integration/` | Regerar, e não citar o E2E do sandbox na monografia: ele vive em `sandbox/`, que não é versionado |
 | B7 | "O Módulo 4 exige aplicar `docs/migration-modulo4-mysql.sql`" | **Esse arquivo nunca existiu** no repositório. As migrations são versionadas em `prisma/migrations/` e aplicadas com `npm run db:mysql` | Corrigir: a instrução está errada e levaria quem seguir o painel a um arquivo inexistente |
-| B8 | Backlog P01: "testes do Felipe usam `usuario.email`, campo que não existe" | **Continua verdadeiro.** São as 3 falhas de `tests/integration/auth.test.js` | Manter no backlog até decidir (ver D06) |
+| B8 | Backlog P01: "testes do Felipe usam `usuario.email`, campo que não existe" | Era verdade até 14/10/2026 — **resolvido**: o `auth.test.js` foi reescrito contra o schema real (ver D06) | Marcar como resolvido |
 | B9 | Backlog P02: "não há testes do Módulo 3 na suíte Jest" | Resolvido: `tests/integration/garantia.test.js` | Marcar como resolvido |
 | B10 | Backlog P05: "falta tela consolidada de serviços em garantia para a gestão" | Parcialmente resolvido: há o bloco 🛡️ Garantias no dashboard (perfil TECNICO) e o histórico por equipamento (RF012). **Não há** uma listagem geral de todas as garantias vigentes | Manter no backlog, com o escopo reduzido |
 | B11 | Backlog P06: "definir escopo dos Módulos 4 e 5" | Resolvido: ambos entregues e documentados | Marcar como resolvido |
@@ -125,7 +125,7 @@ que a monografia afirma sobre controle de acesso.
 | **D03** | `/api/usuarios` é um namespace **vazio**: `src/routes/usuarioRoutes.js` só tem `router.use(authMiddleware)`, sem nenhuma rota | Baixa | `GET /api/usuarios` com token válido devolve `404` | **Ajustar o código:** implementar ou remover. Um router montado que não atende nada é dívida |
 | **D04** | `src/routes/ordemServicoRoutes.js:6` tem registro aninhado: `router.get('/', router.get('/', ordemServicoController.listar))` — o retorno de `router.get` é o próprio router, que acaba passado como handler | Baixa | `GET /api/ordens` devolve `200` e a lista correta — funciona por acaso, porque o registro interno resolve primeiro | **Ajustar o código:** erro de digitação que hoje não quebra, mas é frágil |
 | **D05** | `src/routes/equipamentoRoutes.js` chama `router.use(authMiddleware)` **depois** da única rota, então o JWT não protege endpoint algum ali | Baixa | `GET /api/equipamentos/cliente/1` sem token devolve `302` (barrado pela sessão, não pelo JWT); `GET /api/equipamentos` devolve `401` apenas porque nada casa | **Ajustar o código:** a rota existente é de uso interno das telas e está corretamente protegida por sessão. O `router.use` ali induz a erro |
-| **D06** | `tests/integration/auth.test.js` falha nos 3 casos desde antes da consolidação, por usar `usuario.email` e `usuario.perfil` como texto | Média | `PrismaClientValidationError` no `upsert` | `[VALIDAR: decisão da dupla.]` Corrigir, remover ou manter. Manter deixa `npm test` permanentemente vermelho, o que é difícil de defender numa banca |
+| **D06** | `tests/integration/auth.test.js` falhava nos 3 casos desde antes da consolidação, por usar `usuario.email` e `usuario.perfil` como texto | Média | **CORRIGIDO** em 14/10/2026: reescrito contra o schema real, 9 casos passando. `npm test` fica verde pela primeira vez | — |
 
 ### 4.1 Correção aplicada no D01 e no D02
 
@@ -172,7 +172,7 @@ lança o erro e não sobe; com o segredo presente, carrega normalmente.
 | ~~Corrigir o código, urgente~~ | ~~D01, D02~~ — **feito**, ver 4.1 | — |
 | **Corrigir o código, quando sobrar fôlego** | D03, D04, D05 | Baixo |
 | **Implementar o que o documento promete** | C2 (Fase 4), C3/C4/C5 (Fase 5) | Médio — já está no plano |
-| **Decidir** | D06, e o escopo de NF001–NF003 | — |
+| **Decidir** | O escopo de NF001–NF003 | — |
 
 ### Princípio aplicado
 
