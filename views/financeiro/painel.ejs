@@ -117,7 +117,7 @@
                 </form>
                 <a href="/financeiro/receber/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/financeiro/receber/<%= c.id %>/cancelar" method="POST" style="display:inline"
-                  onsubmit="return confirm('Cancelar esta conta?')">
+                  data-confirmar="Cancelar esta conta?">
                   <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                 </form>
                 <% } else { %>
@@ -177,7 +177,7 @@
                 </form>
                 <a href="/financeiro/pagar/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/financeiro/pagar/<%= c.id %>/cancelar" method="POST" style="display:inline"
-                  onsubmit="return confirm('Cancelar esta conta?')">
+                  data-confirmar="Cancelar esta conta?">
                   <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                 </form>
                 <% } else { %>

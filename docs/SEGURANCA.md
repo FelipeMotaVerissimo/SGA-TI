@@ -91,7 +91,7 @@ cabeçalho forjável seria o oposto de segurança.
 Cabeçalho efetivamente enviado:
 
 ```
-default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
 img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self';
 frame-ancestors 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'
 ```
@@ -100,23 +100,48 @@ O que isso fecha: o sistema não carrega script, estilo, fonte ou frame de
 **nenhuma origem externa**, não pode ser embutido em iframe de terceiro
 (clickjacking), e formulários só podem postar para o próprio domínio.
 
-### O `'unsafe-inline'`, que é dívida conhecida
+### Scripts: sem `'unsafe-inline'` desde 15/10/2026
 
-Ele aparece duas vezes, e as duas são dívida assumida, não descuido:
+Até 15/10/2026 o `script-src` tinha `'unsafe-inline'`, porque as views dependiam
+de script embutido: dois blocos `<script>` (`views/ordens/form.ejs` e
+`views/produtos/estoque.ejs`), doze handlers `return confirm(...)` em seis
+views e um `onchange`. Com a permissão, o CSP não defendia contra XSS.
 
-| Onde | Motivo |
-|---|---|
-| `style-src` | As views usam `style="..."` em dezenas de pontos, além das classes do `style.css` |
-| `script-src` | Há dois blocos `<script>` embutidos (`views/ordens/form.ejs` e `views/produtos/estoque.ejs`) e onze handlers `onclick` nas listagens, quase todos `return confirm(...)` |
+Tudo isso foi para `public/js/`:
 
-Com `'unsafe-inline'` em `script-src`, o CSP deixa de ser defesa contra XSS
-refletido — essa é a parte honesta a dizer numa defesa. O que ele ainda entrega
-é o bloqueio de origem externa, que não é pouco.
+| Arquivo | O que faz | Substituiu |
+|---|---|---|
+| `confirmar.js` | Um único ouvinte de `submit` no documento: se o formulário tem `data-confirmar="..."`, pergunta antes de enviar | os 12 `onsubmit`/`onclick` com `confirm(...)` |
+| `ordem-form.js` | Carrega os equipamentos do cliente escolhido no formulário de OS | o `<script>` e o `onchange` de `ordens/form.ejs` |
+| `estoque.js` | Mostra o bloco de conta a pagar só em ENTRADA | o `<script>` de `produtos/estoque.ejs` |
+| `menu.js` | Menu recolhível no celular (já existia) | — |
 
-**Como remover** (pendência P01): mover os dois blocos de script e os onze
-handlers para um arquivo em `public/js/`, usando `addEventListener` em vez de
-`onclick`. É trabalho mecânico, de baixo risco, mas toca seis views e não cabia
-no prazo deste requisito sem risco de quebrar tela que funciona.
+O `confirmar.js` é carregado pelo `partials/sidebar.ejs`, junto com o
+`menu.js`, e por isso está em toda tela autenticada.
+
+A troca corrigiu dois defeitos, registrados como D07 e D08 em
+`docs/DIVERGENCIAS-DOC.md`, seção 4.2: confirmações que não apareciam e texto
+de cadastro interpretado como HTML no formulário de OS.
+
+**O que impede a volta.** O `supertest` não executa JavaScript, então um
+handler embutido esquecido passaria por todos os testes de integração e só
+quebraria no navegador. Por isso `tests/unit/seguranca.test.js` varre as
+views e falha se encontrar atributo `on...=`, `<script>` sem `src`, link
+`javascript:` ou `innerHTML`.
+
+**Verificado no navegador** (Chromium, 15/10/2026): cabeçalho com
+`script-src 'self'`; os 12 pontos de confirmação perguntam, barram o envio
+ao cancelar e deixam seguir ao confirmar; o formulário de OS carrega os
+equipamentos; o bloco de conta a pagar do estoque alterna; o menu abre em
+375 px; nenhuma violação de CSP no console. Um handler `onerror` injetado à
+força na página foi bloqueado pelo navegador.
+
+### Estilos: `'unsafe-inline'` continua
+
+As views usam `style="..."` em dezenas de pontos, além das classes do
+`style.css`. Isso continua como dívida conhecida (P07). O risco é bem menor que
+o de script — CSS embutido não executa código —, mas ainda permite que HTML
+injetado altere a aparência da página.
 
 ---
 
@@ -199,15 +224,22 @@ integração verificam o que a aplicação **de fato responde**: CSP presente,
 `SameSite=Lax` mas **não** `Secure`, origem externa sem autorização de CORS, e
 o sistema continuando a responder em HTTP.
 
+Desde 15/10/2026 entram também: `script-src` exatamente `'self'` no cabeçalho
+real; a varredura das views contra script embutido e `innerHTML` (seção 3);
+a presença do `confirmar.js` e do `data-confirmar` na tela de clientes; e a
+mensagem de anonimização com o nome do cliente escapado, apóstrofo e quebras
+de linha preservados.
+
 ---
 
 ## 7. Pendências
 
 | # | Item | Prioridade |
 |---|---|---|
-| P01 | `'unsafe-inline'` em `script-src` — ver seção 3 | média |
+| P01 | ~~`'unsafe-inline'` em `script-src`~~ — **resolvido** em 15/10/2026, ver seção 3 | — |
 | P02 | **Não há proteção CSRF por token.** O `sameSite=lax` cobre o caso comum, mas não substitui um token por formulário (`csurf` ou equivalente) | média |
 | P03 | ~~Não há limite de tentativas de login~~ — **resolvido**, ver seção 4.1 | — |
 | P04 | A sessão vive em memória (`MemoryStore`): cai a cada reinício e não funciona com mais de uma instância. Em produção precisa de store externo | média |
 | P05 | O ciclo HTTPS real não foi exercitado — não há ambiente com TLS. A lógica está testada, o comportamento sob TLS de verdade não | média |
 | P06 | Sem cabeçalho `Permissions-Policy` nem `Cross-Origin-*` | baixa |
+| P07 | `'unsafe-inline'` em `style-src`: as views usam `style="..."` em dezenas de pontos. Remover exige mover esses estilos para classes do `style.css` | baixa |

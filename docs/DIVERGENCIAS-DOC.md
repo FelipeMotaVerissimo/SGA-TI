@@ -126,6 +126,8 @@ que a monografia afirma sobre controle de acesso.
 | **D04** | `src/routes/ordemServicoRoutes.js:6` tem registro aninhado: `router.get('/', router.get('/', ordemServicoController.listar))` — o retorno de `router.get` é o próprio router, que acaba passado como handler | Baixa | `GET /api/ordens` devolve `200` e a lista correta — funciona por acaso, porque o registro interno resolve primeiro | **Ajustar o código:** erro de digitação que hoje não quebra, mas é frágil |
 | **D05** | `src/routes/equipamentoRoutes.js` chama `router.use(authMiddleware)` **depois** da única rota, então o JWT não protege endpoint algum ali | Baixa | `GET /api/equipamentos/cliente/1` sem token devolve `302` (barrado pela sessão, não pelo JWT); `GET /api/equipamentos` devolve `401` apenas porque nada casa | **Ajustar o código:** a rota existente é de uso interno das telas e está corretamente protegida por sessão. O `router.use` ali induz a erro |
 | **D06** | `tests/integration/auth.test.js` falhava nos 3 casos desde antes da consolidação, por usar `usuario.email` e `usuario.perfil` como texto | Média | **CORRIGIDO** em 14/10/2026: reescrito contra o schema real, 9 casos passando. `npm test` fica verde pela primeira vez | — |
+| **D07** | A confirmação de **anonimizar cliente** e de **desativar equipamento** não aparecia: a ação era executada no primeiro clique | Alta | **CORRIGIDO** — ver 4.2 | — |
+| **D08** | O formulário de abertura de OS montava a lista de equipamentos com `innerHTML`, interpolando marca, modelo e código como HTML | Alta | **CORRIGIDO** — ver 4.2 | — |
 
 ### 4.1 Correção aplicada no D01 e no D02
 
@@ -160,6 +162,41 @@ lança o erro e não sobe; com o segredo presente, carrega normalmente.
 > em algum momento para aceitar `login` além de `email`, com comentário
 > explicando que a rota era inusável antes. A correção não alcançou o
 > `auth.test.js`, que continua montando o cenário pelo campo inexistente.
+
+### 4.2 Correção aplicada no D07 e no D08
+
+Achados em 15/10/2026, ao tirar o `'unsafe-inline'` do `script-src` do CSP
+(`docs/SEGURANCA.md`, seção 3). Os dois foram confirmados no navegador antes
+da correção e publicados junto com ela.
+
+**D07 — confirmação que não aparecia.** As duas mensagens tinham várias
+linhas, escritas com quebra de linha real dentro de uma string JavaScript
+num atributo `onsubmit`. Isso é erro de sintaxe: o navegador descarta o
+handler e envia o formulário como se ele não existisse. A anonimização é
+irreversível (art. 18 da LGPD, `docs/RETENCAO.md`). Nos testes, o `supertest`
+não executa JavaScript e não tinha como perceber.
+
+**D08 — texto de cadastro interpretado como HTML.** Quem cadastra
+equipamento podia gravar marcação na marca ou no modelo, e ela era
+interpretada — com os scripts que trouxesse — na tela de quem abrisse uma OS
+para aquele cliente. O serviço grava o texto como veio, o que é correto; o
+erro era tratar o texto como HTML ao exibir.
+
+| Defeito | Correção | Arquivo |
+|---|---|---|
+| D07 | A mensagem saiu do JavaScript e foi para um atributo `data-confirmar`, lido pelo `confirmar.js`. O EJS escapa o texto, e quebras de linha e apóstrofos no nome do cliente não quebram mais nada | `public/js/confirmar.js`, `views/clientes/listar.ejs`, `views/equipamentos/listar.ejs` |
+| D08 | As opções passaram a ser montadas com `textContent`. Além disso, sem `'unsafe-inline'` no CSP o navegador recusa executar handler embutido mesmo que HTML chegue à tela | `public/js/ordem-form.js`, `src/config/seguranca.js` |
+
+**Verificação.** No navegador, antes: o handler do botão de anonimizar não
+compilava (`SyntaxError`), e uma marca com um `<img onerror>` executava o
+handler no formulário de OS. Depois: a anonimização pergunta com a mensagem
+completa e barra o envio ao cancelar; a mesma marca aparece como texto e
+nada executa.
+
+Os testes novos (6 unitários e 3 de integração, em `seguranca.test.js`)
+foram rodados **sem a correção** e 7 deles falharam — os outros dois
+conferem coisas que já eram verdade antes (nenhum link `javascript:` e todo
+script referenciado existe). Com a correção, passam.
 
 ---
 

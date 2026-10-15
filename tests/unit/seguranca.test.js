@@ -105,6 +105,68 @@ describe('helmet', () => {
   });
 });
 
+/**
+ * O CSP só protege contra XSS se `script-src` não tiver `'unsafe-inline'`. E
+ * só dá para tirar a permissão se nenhuma view depender de script embutido —
+ * o `supertest` não executa JavaScript, então quem pega um handler esquecido
+ * é esta varredura, antes do navegador.
+ */
+describe('CSP sem script embutido', () => {
+  const fs   = require('fs');
+  const path = require('path');
+  const RAIZ = path.join(__dirname, '..', '..');
+
+  function arquivos(dir, ext) {
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) return arquivos(p, ext);
+      return p.endsWith(ext) ? [p] : [];
+    });
+  }
+  const views   = arquivos(path.join(RAIZ, 'views'), '.ejs');
+  const scripts = arquivos(path.join(RAIZ, 'public', 'js'), '.js');
+  const ler     = (p) => fs.readFileSync(p, 'utf8');
+  const nome    = (p) => path.relative(RAIZ, p).split(path.sep).join('/');
+
+  /** Lista `arquivo: trecho` de cada ocorrência, para a falha dizer onde está. */
+  function ocorrencias(lista, regex) {
+    return lista.flatMap((p) =>
+      [...ler(p).matchAll(regex)].map((m) => `${nome(p)}: ${m[0].trim()}`));
+  }
+
+  test("script-src é só 'self' — sem 'unsafe-inline'", () => {
+    const d = require('../../src/config/seguranca').DIRETIVAS_CSP;
+    expect(d.scriptSrc).toEqual(["'self'"]);
+  });
+
+  test('nenhuma view tem handler embutido (onclick, onsubmit, onchange...)', () => {
+    expect(ocorrencias(views, /\son[a-z]+\s*=\s*["']/gi)).toEqual([]);
+  });
+
+  test('nenhuma view tem bloco <script> sem src', () => {
+    expect(ocorrencias(views, /<script(?![^>]*\bsrc=)[^>]*>/gi)).toEqual([]);
+  });
+
+  test('nenhuma view usa link javascript:', () => {
+    expect(ocorrencias(views, /javascript:/gi)).toEqual([]);
+  });
+
+  test('todo script referenciado pelas views existe em public/js', () => {
+    const referenciados = new Set(
+      views.flatMap((p) => [...ler(p).matchAll(/src="\/js\/([^"]+)"/g)].map((m) => m[1])));
+    const existentes = scripts.map((p) => path.basename(p));
+
+    expect(referenciados.size).toBeGreaterThan(0);
+    for (const s of referenciados) expect(existentes).toContain(s);
+  });
+
+  test('nenhum script monta HTML com innerHTML a partir de dados', () => {
+    // Texto vindo de cadastro tem de entrar como texto (textContent), senão
+    // marcação digitada no cadastro é interpretada na tela de outro usuário.
+    expect(ocorrencias([...views, ...scripts], /\.(inner|outer)HTML\s*\+?=/g)).toEqual([]);
+  });
+});
+
 describe('CORS', () => {
   const chamar = (seguranca, origem) =>
     new Promise((resolve) => {

@@ -20,24 +20,24 @@ function emProducao() {
 /**
  * Política de Segurança de Conteúdo.
  *
- * `'unsafe-inline'` aparece duas vezes, e as duas são dívida conhecida, não
- * descuido:
+ * **Scripts:** só da própria origem. Nenhuma view tem `<script>` embutido nem
+ * handler `onclick`/`onsubmit`: o comportamento fica em `/public/js`
+ * (`confirmar.js`, `menu.js`, `ordem-form.js`, `estoque.js`). Assim, mesmo
+ * que algum dado cadastrado chegue à tela como HTML, o navegador recusa
+ * executar o script que vier junto. Uma varredura das views em
+ * `tests/unit/seguranca.test.js` impede que um handler embutido volte.
  *
- *  - **estilos:** as views usam `style="..."` em dezenas de pontos, além das
- *    classes do `style.css`;
- *  - **scripts:** há dois blocos `<script>` embutidos (`ordens/form.ejs` e
- *    `produtos/estoque.ejs`) e onze handlers `onclick` nas listagens, quase
- *    todos `return confirm(...)`.
+ * **Estilos:** `'unsafe-inline'` continua, e é dívida conhecida: as views usam
+ * `style="..."` em dezenas de pontos. O risco é bem menor que o de script —
+ * CSS embutido não executa código — e está registrado em `docs/SEGURANCA.md`.
  *
- * Remover a permissão exigiria mover handlers e scripts para um arquivo em
- * `/public/js`, o que é o caminho correto e está registrado como pendência em
- * `docs/SEGURANCA.md`. Ligar o CSP mesmo assim já fecha o que importa: o
- * sistema não carrega script, estilo, frame ou fonte de **nenhuma origem
- * externa**, e não pode ser embutido em iframe de terceiro.
+ * Em todas as diretivas, nada de **origem externa**: o sistema não carrega
+ * script, estilo, frame ou fonte de outro domínio, e não pode ser embutido em
+ * iframe de terceiro.
  */
 const DIRETIVAS_CSP = {
   defaultSrc: ["'self'"],
-  scriptSrc:  ["'self'", "'unsafe-inline'"],
+  scriptSrc:  ["'self'"],
   styleSrc:   ["'self'", "'unsafe-inline'"],
   imgSrc:     ["'self'", 'data:'],
   fontSrc:    ["'self'"],

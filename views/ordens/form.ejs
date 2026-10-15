@@ -26,7 +26,7 @@
           <div class="form-row full">
             <div class="form-group">
               <label>Cliente *</label>
-              <select name="clienteId" id="clienteId" required onchange="carregarEquipamentos()">
+              <select name="clienteId" id="clienteId" required>
                 <option value="">Selecione o cliente</option>
                 <% clientes.forEach(c => { %>
                 <option value="<%= c.id %>"><%= c.nome %> — <%= c.cpfCnpj %></option>
@@ -79,34 +79,6 @@
     </div>
   </div>
 
-  <script>
-    async function carregarEquipamentos() {
-      const clienteId = document.getElementById('clienteId').value;
-      const select    = document.getElementById('equipamentoId');
-
-      select.innerHTML = '<option value="">Carregando...</option>';
-
-      if (!clienteId) {
-        select.innerHTML = '<option value="">Selecione um cliente primeiro</option>';
-        return;
-      }
-
-      try {
-        const res  = await fetch(`/api/equipamentos/cliente/${clienteId}`);
-        const data = await res.json();
-
-        if (data.length === 0) {
-          select.innerHTML = '<option value="">Nenhum equipamento cadastrado para este cliente</option>';
-        } else {
-          select.innerHTML = '<option value="">Selecione o equipamento</option>';
-          data.forEach(e => {
-            select.innerHTML += `<option value="${e.id}">${e.marca} ${e.modelo} — ${e.codigo}</option>`;
-          });
-        }
-      } catch (err) {
-        select.innerHTML = '<option value="">Erro ao carregar equipamentos</option>';
-      }
-    }
-  </script>
+  <script src="/js/ordem-form.js" defer></script>
 </body>
 </html>

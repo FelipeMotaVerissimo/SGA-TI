@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 243 testes unitários + 261 de integração (504 no total, todos passando)
+**Suíte de referência:** 249 testes unitários + 264 de integração (513 no total, todos passando)
 
 ---
 
@@ -98,7 +98,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 | ID | O que falta | Onde está registrado |
 |---|---|---|
 | ~~NF006~~ | ~~O ciclo nunca foi executado~~ — **resolvido**: roda no CI, que tem `mysqldump` e MySQL | `docs/BACKUP.md`, seção 5 |
-| NF007 | `'unsafe-inline'` em `script-src` (há 2 blocos `<script>` e 11 `onclick` nas views), sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login **foi implementado** — ver `docs/SEGURANCA.md`, seção 4.1 | `docs/SEGURANCA.md`, seção 7 |
+| NF007 | `'unsafe-inline'` em `style-src` (o de `script-src` **saiu** em 15/10/2026), sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login **foi implementado** — ver `docs/SEGURANCA.md`, seção 4.1 | `docs/SEGURANCA.md`, seção 7 |
 | NF008 | O **descarte** está completo: a anonimização alcança o cadastro, a descrição das contas geradas no faturamento e o log de auditoria, e há reparo para anonimizações antigas. O que falta é a **retenção**: os prazos da seção 5 do `RETENCAO.md` são proposta, e nenhuma rotina os aplica automaticamente. Também não há registro de consentimento | `docs/RETENCAO.md`, seções 3.3 e 7 |
 
 ---

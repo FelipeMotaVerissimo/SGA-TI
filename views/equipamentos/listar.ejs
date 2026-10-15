@@ -69,10 +69,10 @@
                 <a href="/equipamentos/<%= e.id %>/historico" class="btn btn-secondary btn-sm">🕓 Histórico</a>
                 <% if (ehAdmin && e.ativo) { %>
                 <form action="/equipamentos/<%= e.id %>/excluir" method="POST" style="display:inline"
-                  onsubmit="return confirm('Desativar este equipamento?
+                  data-confirmar="Desativar este equipamento?
 
 Ele some da lista e não entra em OS nova.
-O histórico de ordens de serviço é preservado.')">
+O histórico de ordens de serviço é preservado.">
                   <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
                 </form>
                 <% } else if (ehAdmin) { %>

@@ -62,9 +62,8 @@
             <% } %>
 
             <% if (podeFaturar && ordem.status === 'EM_ANDAMENTO') { %>
-            <form action="/ordens/<%= ordem.id %>/faturar" method="POST">
-              <button type="submit" class="btn btn-success btn-sm"
-                onclick="return confirm('Faturar e encerrar esta OS? A conta a receber será gerada no financeiro.')">
+            <form action="/ordens/<%= ordem.id %>/faturar" method="POST" data-confirmar="Faturar e encerrar esta OS? A conta a receber será gerada no financeiro.">
+              <button type="submit" class="btn btn-success btn-sm">
                 💵 Faturar e Encerrar
               </button>
             </form>
@@ -176,15 +175,13 @@
       // ou no resumo, para quem só acompanha. Repetir aqui duplicava a linha.
     %>
     <div style="display:flex; gap:12px">
-      <form action="/ordens/<%= ordem.id %>/aprovar" method="POST">
-        <button type="submit" class="btn btn-success btn-sm"
-          onclick="return confirm('Confirmar aprovação do orçamento?')">
+      <form action="/ordens/<%= ordem.id %>/aprovar" method="POST" data-confirmar="Confirmar aprovação do orçamento?">
+        <button type="submit" class="btn btn-success btn-sm">
           ✅ Aprovar Orçamento
         </button>
       </form>
-      <form action="/ordens/<%= ordem.id %>/rejeitar" method="POST">
-        <button type="submit" class="btn btn-danger btn-sm"
-          onclick="return confirm('Confirmar rejeição do orçamento?')">
+      <form action="/ordens/<%= ordem.id %>/rejeitar" method="POST" data-confirmar="Confirmar rejeição do orçamento?">
+        <button type="submit" class="btn btn-danger btn-sm">
           ❌ Rejeitar Orçamento
         </button>
       </form>
@@ -339,9 +336,8 @@
               </td>
               <% if (mostrarAcoesServico) { %>
               <td>
-                <form action="/ordens/<%= ordem.id %>/servicos/<%= s.id %>/excluir" method="POST">
-                  <button type="submit" class="btn btn-danger btn-sm"
-                    onclick="return confirm('Excluir este serviço executado?')">
+                <form action="/ordens/<%= ordem.id %>/servicos/<%= s.id %>/excluir" method="POST" data-confirmar="Excluir este serviço executado?">
+                  <button type="submit" class="btn btn-danger btn-sm">
                     🗑️ Excluir
                   </button>
                 </form>
@@ -431,7 +427,7 @@
               <% if (mostrarAcoesItem) { %>
               <td>
                 <form action="/ordens/<%= ordem.id %>/itens/<%= i.id %>/remover" method="POST" style="display:inline"
-                  onsubmit="return confirm('Remover este produto da OS? A quantidade volta para o estoque.')">
+                  data-confirmar="Remover este produto da OS? A quantidade volta para o estoque.">
                   <button type="submit" class="btn btn-danger btn-sm">Remover</button>
                 </form>
               </td>

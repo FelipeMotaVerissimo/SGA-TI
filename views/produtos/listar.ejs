@@ -100,7 +100,7 @@
                 <a href="/produtos/<%= p.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <% if (p.ativo) { %>
                 <form action="/produtos/<%= p.id %>/excluir" method="POST" style="display:inline"
-                  onsubmit="return confirm('Desativar este produto? O histórico será mantido.')">
+                  data-confirmar="Desativar este produto? O histórico será mantido.">
                   <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
                 </form>
                 <% } else { %>

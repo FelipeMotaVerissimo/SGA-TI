@@ -13,7 +13,7 @@
 | [MATRIZ-REQUISITOS.md](MATRIZ-REQUISITOS.md) | Rastreabilidade | RF001–RF023 e NF001–NF008 × código × teste |
 | [APENDICE-A-USABILIDADE.md](APENDICE-A-USABILIDADE.md) | Apêndice A | Instrumento pronto, **ainda não aplicado** |
 | [APENDICE-B-MANUAL.md](APENDICE-B-MANUAL.md) + [prints/](prints/) | Apêndice B | Manual por perfil, com 34 capturas em resolução de impressão. Falta só a do CSV aberto no Excel |
-| [TESTES.md](TESTES.md) | Seção 1.6 | 504 testes passando; Chromium e celular medidos; usabilidade e demais navegadores em branco |
+| [TESTES.md](TESTES.md) | Seção 1.6 | 513 testes passando; Chromium e celular medidos; usabilidade e demais navegadores em branco |
 | [DIVERGENCIAS-DOC.md](DIVERGENCIAS-DOC.md) | Correções no texto | O que o documento afirma e o código não faz |
 
 ## Para rodar e manter o sistema

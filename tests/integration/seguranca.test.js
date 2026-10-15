@@ -39,6 +39,14 @@ describe('cabeçalhos de segurança', () => {
     expect(res.headers['content-security-policy']).not.toMatch(/https?:\/\/[a-z]/i);
   });
 
+  test("o CSP não autoriza script embutido — script-src é só 'self'", async () => {
+    const res = await request(app).get('/login');
+    const scriptSrc = res.headers['content-security-policy']
+      .split(';').map((d) => d.trim()).find((d) => d.startsWith('script-src'));
+
+    expect(scriptSrc).toBe("script-src 'self'");
+  });
+
   test('fora de produção o CSP NÃO manda o navegador forçar HTTPS', async () => {
     // Regressão: o helmet mescla as diretivas dele com as informadas, e
     // `upgrade-insecure-requests` vem nas padrão. Em http://localhost isso
@@ -100,6 +108,37 @@ describe('cookie de sessão', () => {
     const res = await agente.get('/dashboard');
 
     expect(res.status).toBe(200);
+  });
+});
+
+describe('confirmação de ações destrutivas sem script embutido', () => {
+  test('a tela carrega o confirmar.js e marca os formulários com data-confirmar', async () => {
+    const agente = await logar(request, app, 'admin');
+    const res = await agente.get('/clientes');
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('<script src="/js/confirmar.js" defer></script>');
+    expect(res.text).toMatch(/action="\/clientes\/\d+\/excluir"[^>]*data-confirmar="Deseja remover este cliente\?"/);
+    expect(res.text).not.toMatch(/\son(submit|click)=/);
+  });
+
+  test('a mensagem de anonimização leva o nome do cliente escapado, com apóstrofo e quebras de linha', async () => {
+    // Regressão: no handler antigo a mensagem de várias linhas era erro de
+    // sintaxe em JavaScript. O navegador descartava o handler e o formulário
+    // de anonimização — irreversível — era enviado sem perguntar nada.
+    const cliente = await prisma.cliente.create({
+      data: { nome: "Joana D'Arc <b>", cpfCnpj: '999.888.777-66' },
+    });
+    const agente = await logar(request, app, 'admin');
+    const res = await agente.get('/clientes');
+
+    const re = new RegExp(
+      `action="/clientes/${cliente.id}/anonimizar"[^>]*data-confirmar="([^"]*)"`);
+    const mensagem = res.text.match(re)[1];
+
+    expect(mensagem).toContain('Joana D&#39;Arc &lt;b&gt;');
+    expect(mensagem).toMatch(/\r?\n.*APAGADOS/);
+    expect(mensagem).toContain('NÃO pode ser desfeita.');
   });
 });
 

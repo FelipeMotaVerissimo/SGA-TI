@@ -74,7 +74,7 @@
                 <a href="/tipos-servico/<%= t.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <% if (t.ativo) { %>
                 <form action="/tipos-servico/<%= t.id %>/desativar" method="POST" style="display:inline"
-                  onsubmit="return confirm('Desativar este tipo? Ele some da lista de escolha, mas o histórico é mantido.')">
+                  data-confirmar="Desativar este tipo? Ele some da lista de escolha, mas o histórico é mantido.">
                   <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
                 </form>
                 <% } else { %>

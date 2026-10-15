@@ -165,35 +165,6 @@
     </div>
   </div>
 
-  <script>
-    // O bloco da conta a pagar só aparece em ENTRADA — não existe conta a
-    // pagar de uma baixa por perda. Os campos só ficam obrigatórios quando
-    // o usuário marca a caixa.
-    (function () {
-      const tipo   = document.querySelector('[name="tipo"]');
-      const bloco  = document.getElementById('blocoCompra');
-      const caixa  = document.getElementById('gerarContaPagar');
-      const campos = document.getElementById('camposCompra');
-      if (!tipo || !bloco) return;
-
-      const valor       = document.querySelector('[name="valorCompra"]');
-      const vencimento  = document.querySelector('[name="vencimentoCompra"]');
-
-      function atualizar() {
-        const entrada = tipo.value === 'ENTRADA';
-        bloco.style.display = entrada ? 'block' : 'none';
-        if (!entrada) caixa.checked = false;
-
-        const marcado = entrada && caixa.checked;
-        campos.style.display = marcado ? 'block' : 'none';
-        valor.required      = marcado;
-        vencimento.required = marcado;
-      }
-
-      tipo.addEventListener('change', atualizar);
-      caixa.addEventListener('change', atualizar);
-      atualizar();
-    })();
-  </script>
+  <script src="/js/estoque.js" defer></script>
 </body>
 </html>

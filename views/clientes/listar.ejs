@@ -78,17 +78,17 @@
                 <% if (!c.anonimizadoEm) { %>
                 <a href="/clientes/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/clientes/<%= c.id %>/excluir" method="POST" style="display:inline"
-                  onsubmit="return confirm('Deseja remover este cliente?')">
+                  data-confirmar="Deseja remover este cliente?">
                   <button type="submit" class="btn btn-danger btn-sm">Remover</button>
                 </form>
                 <% if (ehAdmin) { %>
                 <form action="/clientes/<%= c.id %>/anonimizar" method="POST" style="display:inline"
-                  onsubmit="return confirm('ANONIMIZAR os dados pessoais de <%= c.nome.replace(/'/g, '') %>?
+                  data-confirmar="ANONIMIZAR os dados pessoais de <%= c.nome %>?
 
 Nome, CPF/CNPJ, RG, endereço e contatos serão APAGADOS.
 As ordens de serviço e o histórico financeiro são preservados.
 
-Esta operação NÃO pode ser desfeita.')">
+Esta operação NÃO pode ser desfeita.">
                   <button type="submit" class="btn btn-danger btn-sm" title="Art. 18 da LGPD">🔒 Anonimizar</button>
                 </form>
                 <% } %>
