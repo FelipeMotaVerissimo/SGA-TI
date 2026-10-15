@@ -1,5 +1,6 @@
 jest.mock('../../src/config/database', () => ({
   ordemServico: { findUnique: jest.fn() },
+  servicoExecutado: { findUnique: jest.fn() },
   itemOrdem:    { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), delete: jest.fn() },
   produto:      { findUnique: jest.fn(), update: jest.fn() },
   movimentoEstoque: { create: jest.fn() },
@@ -244,5 +245,62 @@ describe('itemOrdemService', () => {
 
       await expect(item.removerItem(4, 99)).rejects.toMatchObject({ status: 404 });
     });
+  });
+});
+
+/** Backlog item 2 — serviço em que a peça foi usada (RN10/RN11). */
+describe('peça vinculada a serviço', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const lancar = (servicoId) =>
+    item.lancarItem(4, { produtoId: 1, quantidade: '1', servicoId });
+
+  test('RN10: sem serviço, a peça é de uso geral da OS', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue(OS_ANDAMENTO);
+    prisma.produto.findUnique.mockResolvedValue(PRODUTO);
+    const tx = transacaoFake(11);
+
+    await lancar('');
+
+    expect(tx.itemOrdem.create.mock.calls[0][0].data.servicoId).toBeNull();
+    expect(prisma.servicoExecutado.findUnique).not.toHaveBeenCalled();
+  });
+
+  test('RN10: com serviço da mesma OS, grava o vínculo', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue(OS_ANDAMENTO);
+    prisma.produto.findUnique.mockResolvedValue(PRODUTO);
+    prisma.servicoExecutado.findUnique.mockResolvedValue({ ordemId: OS_ANDAMENTO.id });
+    const tx = transacaoFake(11);
+
+    await lancar('30');
+
+    expect(tx.itemOrdem.create.mock.calls[0][0].data.servicoId).toBe(30);
+  });
+
+  test('RN11: serviço de OUTRA OS é recusado antes da transação — nada gravado, estoque parado', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue(OS_ANDAMENTO);
+    prisma.produto.findUnique.mockResolvedValue(PRODUTO);
+    prisma.servicoExecutado.findUnique.mockResolvedValue({ ordemId: 999 });
+
+    await expect(lancar('30')).rejects.toMatchObject({ status: 400 });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  test('RN11: serviço inexistente é recusado', async () => {
+    prisma.ordemServico.findUnique.mockResolvedValue(OS_ANDAMENTO);
+    prisma.produto.findUnique.mockResolvedValue(PRODUTO);
+    prisma.servicoExecutado.findUnique.mockResolvedValue(null);
+
+    await expect(lancar('30')).rejects.toThrow(/não pertence a esta ordem/);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  test.each(['abc', '0', '-3', '1.5'])('RN11: servicoId %p inválido é recusado', async (valor) => {
+    prisma.ordemServico.findUnique.mockResolvedValue(OS_ANDAMENTO);
+    prisma.produto.findUnique.mockResolvedValue(PRODUTO);
+
+    await expect(lancar(valor)).rejects.toThrow(/Serviço inválido/);
+    expect(prisma.servicoExecutado.findUnique).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

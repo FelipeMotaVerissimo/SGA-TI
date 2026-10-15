@@ -100,6 +100,29 @@ async function listarPorOrdem(ordemId) {
 }
 
 /**
+ * RN10/RN11 — serviço em que a peça foi usada.
+ * Vazio: peça de uso geral da OS (null). Preenchido: precisa ser um serviço
+ * existente da mesma OS; um id de outra OS, digitado ou forjado, é recusado.
+ */
+async function validarServicoDaOrdem(valor, ordemId) {
+  if (valor === undefined || valor === null || String(valor).trim() === '') return null;
+
+  const servicoId = Number(valor);
+  if (!Number.isInteger(servicoId) || servicoId <= 0) {
+    throw erro('Serviço inválido.');
+  }
+
+  const servico = await prisma.servicoExecutado.findUnique({
+    where:  { id: servicoId },
+    select: { ordemId: true },
+  });
+  if (!servico || servico.ordemId !== ordemId) {
+    throw erro('O serviço escolhido não pertence a esta ordem de serviço.');
+  }
+  return servicoId;
+}
+
+/**
  * Lança um produto na OS e dá baixa no estoque.
  * Devolve { item, aviso } — `aviso` avisa sobre saldo negativo.
  */
@@ -129,9 +152,14 @@ async function lancarItem(ordemId, dados, usuario = {}) {
   // Preço abaixo da tabela é desconto e passa pela alçada (entrevista, item 8).
   if (informou) validarAlcadaDesconto(produto, valorUnit, perfil);
 
+  // RN10/RN11: serviço em que a peça foi usada — opcional, mas, se vier, tem
+  // de ser da mesma OS. Conferido antes da transação: recusado, nada é
+  // gravado e o estoque não se move.
+  const servicoId = await validarServicoDaOrdem(dados.servicoId, ordem.id);
+
   return prisma.$transaction(async (tx) => {
     const item = await tx.itemOrdem.create({
-      data: { ordemId: ordem.id, produtoId: produto.id, quantidade, valorUnit },
+      data: { ordemId: ordem.id, produtoId: produto.id, quantidade, valorUnit, servicoId },
     });
 
     const { aviso } = await produtoService.aplicarMovimento(tx, produto, {
@@ -196,6 +224,7 @@ module.exports = {
   calcularDesconto,
   validarAlcadaDesconto,
   calcularTotalItens,
+  validarServicoDaOrdem,
   listarPorOrdem,
   lancarItem,
   removerItem,

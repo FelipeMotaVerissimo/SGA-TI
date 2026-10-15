@@ -47,21 +47,23 @@ enum AcaoAuditoria {
 }
 
 model Usuario {
-  id              Int                @id @default(autoincrement())
-  nome            String             @db.VarChar(150)
-  login           String             @unique @db.VarChar(100)
-  senha           String             @db.VarChar(255)
-  ativo           Boolean            @default(true)
-  perfilId        Int
-  perfil          Perfil             @relation(fields: [perfilId], references: [id])
-  criadoEm        DateTime           @default(now())
-  ordens          OrdemServico[]
+  id                 Int                @id @default(autoincrement())
+  nome               String             @db.VarChar(150)
+  login              String             @unique @db.VarChar(100)
+  senha              String             @db.VarChar(255)
+  ativo              Boolean            @default(true)
+  perfilId           Int
+  perfil             Perfil             @relation(fields: [perfilId], references: [id])
+  criadoEm           DateTime           @default(now())
+  ordens             OrdemServico[]
   // Módulo 4: rastreabilidade de estoque e financeiro
-  movimentos      MovimentoEstoque[]
-  contasPagas     ContaPagar[]
-  contasRecebidas ContaReceber[]
+  movimentos         MovimentoEstoque[]
+  contasPagas        ContaPagar[]
+  contasRecebidas    ContaReceber[]
   // NF005
-  logsAuditoria   LogAuditoria[]
+  logsAuditoria      LogAuditoria[]
+  // Backlog item 2: serviços que este usuário executou (RN09)
+  servicosExecutados ServicoExecutado[]
 
   @@map("usuarios")
 }
@@ -167,7 +169,15 @@ model ServicoExecutado {
   ordem         OrdemServico @relation(fields: [ordemId], references: [id])
   tipoServicoId Int?
   tipoServico   TipoServico? @relation(fields: [tipoServicoId], references: [id])
+  // Quem executou: o usuário logado que registrou o serviço (RN09). Opcional
+  // porque os serviços anteriores a esta coluna não têm o dado — atribuir um
+  // técnico a eles seria inventar.
+  usuarioId     Int?
+  usuario       Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  // Peças usadas neste serviço (RN10).
+  itens         ItemOrdem[]
 
+  @@index([usuarioId])
   @@map("servicos_executados")
 }
 
@@ -197,18 +207,27 @@ model Produto {
 }
 
 model ItemOrdem {
-  id         Int          @id @default(autoincrement())
+  id         Int               @id @default(autoincrement())
   quantidade Int
-  valorUnit  Decimal      @db.Decimal(10, 2)
+  valorUnit  Decimal           @db.Decimal(10, 2)
   // Módulo 5: a peça não tinha data própria. Sem isso, "produtos mais vendidos
   // por período" (RF018) teria que usar a data de abertura da OS — uma OS
   // aberta em julho com peça lançada em agosto contaria como julho.
-  criadoEm   DateTime     @default(now())
+  criadoEm   DateTime          @default(now())
   ordemId    Int
-  ordem      OrdemServico @relation(fields: [ordemId], references: [id])
+  ordem      OrdemServico      @relation(fields: [ordemId], references: [id])
   produtoId  Int
-  produto    Produto      @relation(fields: [produtoId], references: [id])
+  produto    Produto           @relation(fields: [produtoId], references: [id])
+  // Serviço em que a peça foi usada (RN10). Opcional: há peça que é da OS
+  // como um todo. Só pode apontar para serviço da mesma OS (RN11). Ao excluir
+  // o serviço, o vínculo é desfeito pelo Prisma, dentro da transação, para que
+  // a auditoria registre a alteração (RN12). O banco usa RESTRICT, e não SET
+  // NULL: um caminho que esquecesse de desvincular falha, em vez de apagar o
+  // vínculo calado e fora do log.
+  servicoId  Int?
+  servico    ServicoExecutado? @relation(fields: [servicoId], references: [id], onDelete: Restrict)
 
+  @@index([servicoId])
   @@map("itens_ordem")
 }
 

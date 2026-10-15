@@ -134,7 +134,14 @@ async function historicoDeServicos(id) {
 
   const ordens = await prisma.ordemServico.findMany({
     where:   { equipamentoId: equipamento.id },
-    include: { servicos: { include: { tipoServico: true } } },
+    include: {
+      servicos: {
+        include: {
+          tipoServico: true,
+          usuario:     { select: { id: true, nome: true } },   // RN09
+        },
+      },
+    },
     orderBy: { dataAbertura: 'desc' },
   });
 

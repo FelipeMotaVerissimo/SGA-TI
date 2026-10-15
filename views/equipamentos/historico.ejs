@@ -118,6 +118,7 @@
               <th>OS</th>
               <th>Tipo</th>
               <th>Descrição</th>
+              <th>Técnico</th>
               <th>Garantia</th>
               <th>Situação</th>
             </tr>
@@ -125,7 +126,7 @@
           <tbody>
             <% if (servicos.length === 0) { %>
             <tr>
-              <td colspan="6" style="text-align:center; color:#aaa; padding:32px">
+              <td colspan="7" style="text-align:center; color:#aaa; padding:32px">
                 Nenhum serviço executado registrado neste equipamento ainda.
               </td>
             </tr>
@@ -151,6 +152,14 @@
                 <%= s.descricao %>
                 <% if (s.observacoes) { %>
                 <br><span style="font-size:12px; color:#888"><%= s.observacoes %></span>
+                <% } %>
+              </td>
+              <td>
+                <%# RN09: serviços anteriores ao registro do técnico não têm o dado. %>
+                <% if (s.usuario) { %>
+                  <%= s.usuario.nome %>
+                <% } else { %>
+                  <span style="color:#aaa; font-size:12px">não registrado</span>
                 <% } %>
               </td>
               <td>

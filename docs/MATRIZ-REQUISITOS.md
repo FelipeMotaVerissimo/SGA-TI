@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 271 testes unitários + 280 de integração (551 no total, todos passando)
+**Suíte de referência:** 284 testes unitários + 291 de integração (575 no total, todos passando)
 
 ---
 
@@ -66,7 +66,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 | **RF007** | Controlar Financeiro — contas a pagar/receber com quitação e cancelamento (UC) | `financeiroService`, telas `/financeiro` | `unit/financeiroService.test.js` (30), `financeiro.test.js` (15) | ✅ completo |
 | **RF008** | Emitir Relatórios — por período, com filtros, **exibido ou exportado** (UC) | `relatorioService`, `csvService`, tela `/relatorios` | `unit/relatorioService.test.js` (18), `unit/csvService.test.js` (12), `relatorios.test.js` (17), `dashboard.test.js` (CSV) | ✅ completo |
 | **RF012** | Histórico de serviços por equipamento | `equipamentoService.historicoDeServicos`, tela `/equipamentos/:id/historico` | `unit/equipamentoService.test.js` (10), `historicoEquipamento.test.js` (14) | ✅ completo |
-| **RF013** | Controle de garantia | `servicoExecutadoService.calcularGarantia` | `unit/servicoExecutadoService.test.js` (16), `garantia.test.js` (13) | ✅ completo |
+| **RF013** | Controle de garantia | `servicoExecutadoService.calcularGarantia` | `unit/servicoExecutadoService.test.js` (21), `garantia.test.js` (13), `servicoTecnicoPeca.test.js` (11) | ✅ completo |
 | **RF014** | Cadastro de produtos utilizados nos serviços | `produtoService`, telas `/produtos` | `unit/produtoService.test.js`, `estoque.test.js`, `api.test.js` | ✅ completo |
 | **RF015** | Entrada de produtos no estoque **pelo setor de Compras** | `produtoService.movimentarEstoque`, tela `/produtos/:id/estoque` | `estoque.test.js`, `perfis.test.js` — VENDEDOR não movimenta por POST direto | ✅ completo |
 | **RF016** | Maiores clientes por período | `relatorioService.maioresClientes` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |

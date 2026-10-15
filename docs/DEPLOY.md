@@ -16,11 +16,11 @@
 |---|---|
 | `npm ci` | Instala exatamente o que está no `package-lock.json` |
 | `prisma generate` | Gera o client a partir do schema de **MySQL**, não do de desenvolvimento |
-| `prisma migrate deploy` | Aplica as 6 migrations num MySQL 8 vazio |
+| `prisma migrate deploy` | Aplica as 7 migrations num MySQL 8 vazio |
 | `prisma migrate diff --exit-code` | **Falha o build** se o banco criado pelas migrations divergir do `schema.prisma` |
 | `npm run seed` | Prova que o seed roda num banco recém-migrado |
-| `npm run test:unit` | 271 testes |
-| `npm run test:integration` | 280 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
+| `npm run test:unit` | 284 testes |
+| `npm run test:integration` | 291 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
 | `npm run backup` + `conferir-restauracao.sh` | NF006: gera o dump, restaura num banco novo e compara as 14 tabelas |
 
 ### O ganho que isso traz

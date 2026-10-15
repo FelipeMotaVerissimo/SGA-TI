@@ -290,6 +290,7 @@
               <th>Descrição</th>
               <th>Observações</th>
               <th>Executado em</th>
+              <th>Técnico</th>
               <th>Garantia</th>
               <th>Situação</th>
               <% if (mostrarAcoesServico) { %><th>Ações</th><% } %>
@@ -298,7 +299,7 @@
           <tbody>
             <% if (!servicos || servicos.length === 0) { %>
             <tr>
-              <td colspan="<%= mostrarAcoesServico ? 7 : 6 %>" style="text-align:center; color:#aaa; padding:24px">
+              <td colspan="<%= mostrarAcoesServico ? 8 : 7 %>" style="text-align:center; color:#aaa; padding:24px">
                 Nenhum serviço executado registrado ainda.
               </td>
             </tr>
@@ -312,9 +313,25 @@
                   <span style="color:#aaa; font-size:12px">não classificado</span>
                 <% } %>
               </td>
-              <td><%= s.descricao %></td>
+              <td>
+                <%= s.descricao %>
+                <%# RN10: peças lançadas com vínculo a este serviço. %>
+                <% if (s.itens && s.itens.length > 0) { %>
+                <br><span style="font-size:12px; color:#888">
+                  Peças: <%= s.itens.map(i => `${i.produto.nome} ×${i.quantidade}`).join(', ') %>
+                </span>
+                <% } %>
+              </td>
               <td style="color:#666"><%= s.observacoes || '—' %></td>
               <td><%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %></td>
+              <td>
+                <%# RN09: serviços anteriores ao registro do técnico não têm o dado. %>
+                <% if (s.usuario) { %>
+                  <%= s.usuario.nome %>
+                <% } else { %>
+                  <span style="color:#aaa; font-size:12px">não registrado</span>
+                <% } %>
+              </td>
               <td>
                 <% if (s.garantia.possuiGarantia) { %>
                   <%= s.garantiaDias %> dia(s)<br>
@@ -390,6 +407,21 @@
                 Preencha apenas se houver desconto ou preço negociado.
               </span>
             </div>
+            <%# RN10/RN11: só os serviços desta OS; sem serviço registrado, o campo não aparece. %>
+            <% if (servicos && servicos.length > 0) { %>
+            <div class="form-group">
+              <label>Usada no serviço</label>
+              <select name="servicoId">
+                <option value="">Uso geral da OS</option>
+                <% servicos.forEach(s => { %>
+                <option value="<%= s.id %>">
+                  <%= s.tipoServico ? s.tipoServico.nome : s.descricao.slice(0, 40) %>
+                  — <%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %>
+                </option>
+                <% }) %>
+              </select>
+            </div>
+            <% } %>
           </div>
           <button type="submit" class="btn btn-primary btn-sm">➕ Lançar Produto</button>
         </form>
@@ -412,6 +444,7 @@
           <thead>
             <tr>
               <th>Produto</th>
+              <th>Serviço</th>
               <th>Quantidade</th>
               <th>Valor Unit.</th>
               <th>Subtotal</th>
@@ -421,7 +454,7 @@
           <tbody>
             <% if (ordem.itens.length === 0) { %>
             <tr>
-              <td colspan="<%= mostrarAcoesItem ? 5 : 4 %>" style="text-align:center; color:#aaa; padding:24px">
+              <td colspan="<%= mostrarAcoesItem ? 6 : 5 %>" style="text-align:center; color:#aaa; padding:24px">
                 Nenhum produto utilizado ainda.
               </td>
             </tr>
@@ -429,6 +462,13 @@
             <% ordem.itens.forEach(i => { %>
             <tr>
               <td><%= i.produto.nome %></td>
+              <td>
+                <% if (i.servico) { %>
+                  <%= i.servico.tipoServico ? i.servico.tipoServico.nome : i.servico.descricao.slice(0, 40) %>
+                <% } else { %>
+                  <span style="color:#aaa; font-size:12px">uso geral da OS</span>
+                <% } %>
+              </td>
               <td><%= i.quantidade %></td>
               <td>R$ <%= Number(i.valorUnit).toFixed(2) %></td>
               <td>R$ <%= (Number(i.valorUnit) * i.quantidade).toFixed(2) %></td>

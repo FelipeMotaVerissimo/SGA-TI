@@ -1,6 +1,6 @@
 # Capítulo 4 — Conclusão
 
-> **Rascunho para o documento do TCC.** Extensão: 580 palavras, dentro da faixa
+> **Rascunho para o documento do TCC.** Extensão: 543 palavras, dentro da faixa
 > de 400 a 600. As dificuldades relatadas saíram dos LEIAMEs de cada módulo e do
 > histórico de commits — são defeitos e decisões registrados no momento em que
 > aconteceram, não reconstituídos depois.
@@ -62,10 +62,7 @@ não nos testes, que não cobriam aquele caminho.
 ## 4.3 Trabalhos futuros
 
 Alguns caminhos permanecem abertos. A política de retenção define prazos, mas
-nenhuma rotina os aplica: a anonimização ainda depende de pedido. Peça utilizada
-e técnico responsável existem apenas em nível de ordem de serviço, e não de cada
-serviço executado. A política de segurança de conteúdo admite scripts embutidos
-nas páginas, o que enfraquece a defesa contra injeção. A sessão e o controle de
+nenhuma rotina os aplica: a anonimização ainda depende de pedido. A sessão e o controle de
 tentativas de login vivem na memória do processo, o que basta para uma
 assistência, mas não para operação com mais de uma instância. Por fim, a
 avaliação de usabilidade com os usuários e os testes em navegadores e aparelhos

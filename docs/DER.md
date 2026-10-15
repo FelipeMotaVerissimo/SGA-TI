@@ -1,9 +1,9 @@
 # DER — Diagrama Entidade-Relacionamento
 
 **Sistema:** SGA TI — Sistema de Gerenciamento de Assistência Técnica
-**Origem:** gerado a partir de `prisma/schema.prisma` e das seis migrations em
+**Origem:** gerado a partir de `prisma/schema.prisma` e das sete migrations em
 `prisma/migrations/`, na `main` consolidada
-**Data:** 05/10/2026
+**Data:** 05/10/2026 — atualizado em 15/10/2026 (técnico e peça do serviço)
 **SGBD:** MySQL 8 (`provider = "mysql"`)
 
 > `[VALIDAR: confronto com a Figura 4 da monografia.]` O documento acadêmico não
@@ -47,9 +47,11 @@ erDiagram
 
     ORDENS_SERVICO ||--o{ SERVICOS_EXECUTADOS : "registra"
     TIPOS_SERVICO |o--o{ SERVICOS_EXECUTADOS : "classifica"
+    USUARIOS |o--o{ SERVICOS_EXECUTADOS : "executa"
 
     ORDENS_SERVICO ||--o{ ITENS_ORDEM : "consome"
     PRODUTOS ||--o{ ITENS_ORDEM : "e_vendido_em"
+    SERVICOS_EXECUTADOS |o--o{ ITENS_ORDEM : "usa"
     PRODUTOS ||--o{ MOVIMENTOS_ESTOQUE : "movimenta"
     USUARIOS |o--o{ MOVIMENTOS_ESTOQUE : "registra"
 
@@ -120,6 +122,7 @@ erDiagram
         datetime executadoEm
         int ordemId FK
         int tipoServicoId FK
+        int usuarioId FK
     }
 
     TIPOS_SERVICO {
@@ -145,6 +148,7 @@ erDiagram
         datetime criadoEm
         int ordemId FK
         int produtoId FK
+        int servicoId FK
     }
 
     MOVIMENTOS_ESTOQUE {
@@ -203,6 +207,11 @@ erDiagram
 Gerados com `@mermaid-js/mermaid-cli` 11 a partir do bloco acima, tema `neutral`,
 fundo branco.
 
+`[VALIDAR: as duas figuras são de 05/10/2026 e ainda não mostram os dois
+relacionamentos de 15/10/2026 (USUARIOS executa SERVICOS_EXECUTADOS e
+SERVICOS_EXECUTADOS usa ITENS_ORDEM). O bloco acima já está atualizado; falta
+regerar os PNGs com o mermaid-cli.]`
+
 **Sobre a impressão em A4 retrato.** Vale ser direto: um DER de 13 entidades com
 todos os atributos **não fica legível** numa página A4 retrato. O arquivo
 `der.png` tem proporção 1,29; impresso na largura útil de 180 mm, ocupa 140 mm
@@ -212,7 +221,7 @@ porque as caixas crescem junto e a proporção não muda.
 
 O encaminhamento honesto é usar as duas figuras com papéis diferentes:
 
-- **`der-visao-geral.png` no corpo do texto.** Mostra as 13 entidades e os 15
+- **`der-visao-geral.png` no corpo do texto.** Mostra as 13 entidades e os 17
   relacionamentos com os nomes legíveis, que é o que o leitor precisa para
   entender o modelo.
 - **`der.png` como figura de página inteira**, preferencialmente em orientação
@@ -405,6 +414,7 @@ serviço (ver 8.2).
 | `executadoEm` | `DATETIME(3)` | não | — | agora |
 | `ordemId` | `INT` | não | FK → `ordens_servico.id` | — |
 | `tipoServicoId` | `INT` | sim | FK → `tipos_servico.id` | — |
+| `usuarioId` | `INT` | sim | FK → `usuarios.id` (`RESTRICT`) | — |
 
 **A data-fim da garantia não existe no banco.** É derivada de
 `executadoEm + garantiaDias` em tempo de consulta. Persistir a data seria
@@ -414,6 +424,11 @@ mostram garantia nunca discordem.
 `tipoServicoId` é opcional de propósito: os serviços registrados antes do
 catálogo existir não têm tipo, e inventar um falsearia o relatório — eles
 aparecem como "Não classificado".
+
+`usuarioId` é **quem executou** o serviço (RN09): o usuário logado que o
+registrou, gravado pelo servidor a partir da sessão — um `usuarioId` enviado no
+formulário é ignorado. Opcional pelo mesmo motivo do tipo: os serviços
+anteriores a 15/10/2026 não têm o dado, e aparecem como "não registrado".
 
 ### 5.7 `tipos_servico` (`TipoServico`)
 
@@ -462,6 +477,7 @@ regularização do setor de Compras.
 | `criadoEm` | `DATETIME(3)` | não | — | agora |
 | `ordemId` | `INT` | não | FK → `ordens_servico.id` | — |
 | `produtoId` | `INT` | não | FK → `produtos.id` | — |
+| `servicoId` | `INT` | sim | FK → `servicos_executados.id` (`RESTRICT`) | — |
 
 `valorUnit` é o valor **negociado naquele lançamento**, copiado do produto no
 momento do lançamento e não lido por referência: se o preço de tabela mudar
@@ -469,6 +485,18 @@ depois, a OS antiga tem que continuar valendo o que foi cobrado.
 
 `criadoEm` entrou no Módulo 5 porque o RF018 precisa da data da venda da peça.
 Sem ela, uma OS aberta em julho com peça lançada em agosto contaria como julho.
+
+`servicoId` diz **em qual serviço a peça foi usada**. As regras:
+
+| ID | Regra |
+|---|---|
+| RN10 | O vínculo é opcional: há peça que é da OS como um todo ("uso geral da OS") |
+| RN11 | Só vale serviço da mesma OS. Outro id é recusado antes da transação: nenhum item gravado, estoque parado |
+| RN12 | Excluir o serviço deixa as peças na OS e só desfaz o vínculo, peça por peça, para que a auditoria registre cada uma com o `servicoId` anterior. Estoque e cobrança não mudam: são da OS |
+
+As duas chaves novas usam `ON DELETE RESTRICT`, e não o `SET NULL` que o Prisma
+adotaria por padrão: um caminho que esquecesse de desvincular falha, em vez de
+apagar o vínculo calado e fora do log. Usuário nunca é apagado, só desativado.
 
 ### 5.10 `movimentos_estoque` (`MovimentoEstoque`)
 
@@ -606,6 +634,7 @@ disponível.]` A lista abaixo parte da descrição do plano de trabalho.
 | 9 | **`ItemOrdem.criadoEm` é novo** | Módulo 5, RF018: a peça precisa de data própria |
 | 10 | **`Cliente.bairro` é novo** | Módulo 4, defeito P10: a edição de cliente quebrava sem ele |
 | 11 | **`MovimentoEstoque.usuarioId` e `*.quitadaPorId` são novos** | Módulo 4 V03, rastreabilidade de quem movimentou e de quem deu baixa |
+| 12 | **`ServicoExecutado.usuarioId` e `ItemOrdem.servicoId` são novos** | 15/10/2026: quem executou cada serviço e em qual serviço cada peça foi usada (M05 e M06, seção 8.2) |
 
 ---
 
@@ -626,16 +655,15 @@ Pontos verificados no schema que merecem decisão. Nenhum impede a entrega.
 
 | # | Ausência | Consequência | Origem |
 |---|---|---|---|
-| M05 | `ServicoExecutado` **não tem `usuarioId`** | Não se sabe qual técnico executou cada serviço. `ordens_servico.usuarioId` é quem *abriu* a OS, que em geral é o atendente, não o técnico | Pendência P04 do Módulo 3 |
-| M06 | Não há vínculo entre `ServicoExecutado` e `ItemOrdem` | Não dá para dizer qual peça foi usada em qual serviço, só que ambos pertencem à mesma OS | Pendência P02 do Módulo 3 |
+| M05 | ~~`ServicoExecutado` não tem `usuarioId`~~ | **Resolvido** em 15/10/2026 na migration `20261015120000_tecnico_e_peca_do_servico`, ver 5.6 | — |
+| M06 | ~~Não há vínculo entre `ServicoExecutado` e `ItemOrdem`~~ | **Resolvido** na mesma migration, ver 5.9 | — |
 | M07 | `ContaPagar` não se liga a `MovimentoEstoque` | A conta gerada na entrada de estoque não aponta para o movimento que a originou | Módulo 4 |
 | M08 | ~~Não existe `LogAuditoria`~~ | **Resolvido** — tabela `logs_auditoria`, ver 5.13 e `docs/AUDITORIA.md` | — |
 
-Com o M08 resolvido, o M05 ficou parcialmente coberto: o log registra qual usuário
-criou cada serviço executado. Ainda assim, um `usuarioId` direto em
-`servicos_executados` continua sendo o modelo correto — quem executou o serviço é
-informação do negócio, que aparece em relatório e em garantia, não um dado de
-log.
+O M05 chegou a ficar parcialmente coberto pelo log de auditoria (M08), que
+registra quem criou cada serviço. Não bastava: quem executou é informação do
+negócio, que aparece na OS e no histórico do equipamento, não um dado de log.
+Por isso a coluna própria.
 
 ### 8.3 Exclusão lógica incompleta
 

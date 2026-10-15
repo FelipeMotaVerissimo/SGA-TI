@@ -128,7 +128,11 @@ async function buscarOrdem(ordemId) {
 async function listarPorOrdem(ordemId) {
   const servicos = await prisma.servicoExecutado.findMany({
     where:   { ordemId: Number(ordemId) },
-    include: { tipoServico: true },
+    include: {
+      tipoServico: true,
+      usuario:     { select: { id: true, nome: true } },   // RN09
+      itens:       { include: { produto: true } },          // RN10
+    },
     orderBy: { executadoEm: 'desc' },
   });
   return enriquecerComGarantia(servicos);
@@ -138,8 +142,13 @@ async function listarPorOrdem(ordemId) {
  * Registra um serviço executado na OS.
  * Usa transação: criar o serviço e mover a OS para EM_ANDAMENTO
  * precisam acontecer juntos ou não acontecer.
+ *
+ * RN09: quem executou é o usuário logado, recebido do controller a partir da
+ * sessão. Um `usuarioId` no corpo do formulário é ignorado — `validarDados`
+ * nem o lê —, então ninguém registra serviço em nome de outro.
  */
-async function registrarServico(ordemId, dados) {
+async function registrarServico(ordemId, dados, usuario = {}) {
+  const usuarioId = Number.isInteger(usuario.id) ? usuario.id : null;
   const ordem = await buscarOrdem(ordemId);
 
   if (!podeRegistrarServico(ordem.status)) {
@@ -153,7 +162,7 @@ async function registrarServico(ordemId, dados) {
 
   return prisma.$transaction(async (tx) => {
     const servico = await tx.servicoExecutado.create({
-      data: { descricao, observacoes, garantiaDias, tipoServicoId, ordemId: ordem.id },
+      data: { descricao, observacoes, garantiaDias, tipoServicoId, ordemId: ordem.id, usuarioId },
     });
 
     if (ordem.status === 'AUTORIZADO') {
@@ -170,11 +179,20 @@ async function registrarServico(ordemId, dados) {
 /**
  * Exclui um serviço executado.
  * Valida que o serviço pertence à OS informada (evita exclusão cruzada via URL).
+ *
+ * RN12: as peças usadas no serviço continuam na OS — o estoque e a cobrança
+ * são da OS, não do serviço —, só perdem o vínculo. O vínculo é desfeito
+ * peça por peça, com `update`, para que cada uma ganhe seu registro de
+ * auditoria com o `servicoId` anterior; um `updateMany` deixaria um registro
+ * só, sem dizer quais peças eram. Devolve quantas foram desvinculadas.
  */
 async function excluirServico(ordemId, servicoId) {
   const servico = await prisma.servicoExecutado.findUnique({
     where:   { id: Number(servicoId) },
-    include: { ordem: { select: { id: true, status: true } } },
+    include: {
+      ordem: { select: { id: true, status: true } },
+      itens: { select: { id: true } },
+    },
   });
 
   if (!servico) throw erro('Serviço executado não encontrado.', 404);
@@ -189,7 +207,13 @@ async function excluirServico(ordemId, servicoId) {
     );
   }
 
-  return prisma.servicoExecutado.delete({ where: { id: servico.id } });
+  return prisma.$transaction(async (tx) => {
+    for (const item of servico.itens) {
+      await tx.itemOrdem.update({ where: { id: item.id }, data: { servicoId: null } });
+    }
+    await tx.servicoExecutado.delete({ where: { id: servico.id } });
+    return { servico, desvinculadas: servico.itens.length };
+  });
 }
 
 module.exports = {

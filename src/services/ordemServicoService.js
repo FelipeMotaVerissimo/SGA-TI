@@ -72,8 +72,14 @@ async function buscarOrdemPorId(id) {
     where: { id: Number(id) },
     include: {
       equipamento: { include: { cliente: true } },
-      servicos:    { include: { tipoServico: true } },   // Módulo 5
-      itens:       { include: { produto: true } },
+      servicos:    {                                     // Módulo 5 + backlog item 2
+        include: {
+          tipoServico: true,
+          usuario:     { select: { id: true, nome: true } },   // RN09
+          itens:       { include: { produto: true } },          // RN10
+        },
+      },
+      itens:       { include: { produto: true, servico: { include: { tipoServico: true } } } },
       usuario:     { select: { id: true, nome: true } },
     },
   });

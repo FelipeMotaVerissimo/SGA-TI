@@ -68,7 +68,7 @@ npm run seed
 | `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
 | `reparar:anonimizacoes` | NF008 — limpa contas e log de clientes anonimizados antes de 14/10/2026 (ver `docs/RETENCAO.md`, seção 3.4) |
 
-### As seis migrations
+### As sete migrations
 
 | Migration | O que acrescenta |
 |---|---|
@@ -78,6 +78,7 @@ npm run seed
 | `20261005120000_nf005_auditoria` | NF005: `logs_auditoria` e o enum `AcaoAuditoria` |
 | `20261006120000_nf008_retencao` | NF008: `equipamentos.ativo` e `clientes.anonimizadoEm` |
 | `20261013120000_perfil_nome_unico` | Torna `perfis.nomePerfil` único — ver aviso abaixo |
+| `20261015120000_tecnico_e_peca_do_servico` | `servicos_executados.usuarioId` (quem executou) e `itens_ordem.servicoId` (serviço em que a peça foi usada). Colunas opcionais, sem preenchimento retroativo |
 
 As três primeiras já foram aplicadas num servidor MySQL real, em banco vazio, com o
 `prisma migrate diff` do resultado contra o schema voltando vazio. Detalhes em
@@ -173,9 +174,9 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 271 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 280 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa — 551 testes, todos passando
+npm run test:unit         :: 284 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 291 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 575 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
@@ -222,7 +223,7 @@ npm run test:integration
 
 ### Situação da suíte
 
-**Os 551 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+**Os 575 testes passam**, inclusive `npm test`. Até 14/10/2026 o
 `tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
 contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 
