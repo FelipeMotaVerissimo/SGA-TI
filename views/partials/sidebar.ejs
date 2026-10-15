@@ -7,11 +7,16 @@
 %>
 <div class="sidebar">
   <div class="brand">
-    <h2>SGA TI</h2>
-    <p>Sistema de Gestão</p>
+    <div>
+      <h2>SGA TI</h2>
+      <p>Sistema de Gestão</p>
+    </div>
+    <%# Só aparece abaixo de 768px — ver a seção de responsividade do style.css %>
+    <button type="button" class="menu-toggle"
+            aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-principal">☰</button>
   </div>
 
-  <nav>
+  <nav id="menu-principal">
     <a href="/dashboard" class="<%= locals.path === '/dashboard' ? 'ativo' : '' %>">
       📊 Dashboard
     </a>
@@ -60,3 +65,4 @@
     <a href="/logout">↩ Sair</a>
   </div>
 </div>
+<script src="/js/menu.js" defer></script>

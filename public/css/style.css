@@ -382,3 +382,132 @@ tbody tr:hover {
 .badge-cinza { background: #f0f0f0; color: #666; }
 .badge-vermelho { background: #fff5f5; color: #c53030; }
 .badge-amarelo  { background: #fffaf0; color: #975a16; }
+/* ======================================================================
+   RESPONSIVIDADE — telas de até 768px (celular e tablet em pé)
+   ----------------------------------------------------------------------
+   Medido antes desta seção, emulando um aparelho de 375px: as telas
+   internas eram desenhadas entre 43% e 53% do tamanho. O menu lateral
+   tinha 220px fixos — 59% da tela — e, sem ponto de quebra, o navegador
+   encolhia a página inteira para caber. Não aparecia barra de rolagem, a
+   página "cabia", mas não se lia. Ver docs/TESTES.md, seção 3.7.
+
+   O que muda abaixo de 768px:
+   - o menu lateral vira uma barra no topo, recolhida atrás de um botão;
+   - o conteúdo ocupa a largura toda;
+   - a TABELA rola dentro da própria caixa, em vez de esticar a página;
+   - formulários de duas colunas viram uma coluna.
+
+   Acima de 768px nada muda: o desktop continua exatamente como era.
+   ====================================================================== */
+
+/* O botão do menu só existe no celular. */
+.menu-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* ----- layout: uma coluna ----- */
+  .layout {
+    flex-direction: column;
+  }
+
+  .conteudo {
+    margin-left: 0;
+    padding: 16px;
+    min-width: 0;          /* deixa o flex encolher em vez de estourar */
+  }
+
+  /* ----- menu lateral vira barra no topo ----- */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    z-index: 100;
+  }
+
+  .sidebar .brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+
+  .menu-toggle {
+    display: block;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .sidebar nav {
+    padding: 4px 0;
+  }
+
+  /* Recolhido só quando o JavaScript carregou e marcou o menu como
+     recolhível. Sem JavaScript o menu aparece aberto: mais comprido, mas
+     ninguém fica sem acesso às telas. */
+  .sidebar.menu-recolhivel:not(.aberto) nav,
+  .sidebar.menu-recolhivel:not(.aberto) .user-info {
+    display: none;
+  }
+
+  /* ----- tabelas rolam dentro da caixa ----- */
+  /* Antes era overflow: hidden, que CORTAVA a tabela larga. */
+  .tabela-box {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabela-box table {
+    min-width: 640px;      /* não espreme as colunas até ficarem ilegíveis */
+  }
+
+  .tabela-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ----- formulários ----- */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Um <select> assume, por padrão, a largura da sua maior opção. Na abertura
+     de OS, o nome mais comprido de cliente esticava a coluna e empurrava a
+     página 26px além da tela. O min-width: 0 deixa a coluna da grade encolher
+     abaixo do conteúdo; o max-width segura o campo dentro dela. */
+  .form-row > *,
+  .form-group {
+    min-width: 0;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    max-width: 100%;
+  }
+
+  .form-box {
+    padding: 16px;
+  }
+
+  .form-acoes {
+    flex-wrap: wrap;
+  }
+
+  /* ----- cabeçalho e cartões ----- */
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
