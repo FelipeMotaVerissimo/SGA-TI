@@ -47,13 +47,13 @@ erDiagram
 
     ORDENS_SERVICO ||--o{ SERVICOS_EXECUTADOS : "registra"
     TIPOS_SERVICO |o--o{ SERVICOS_EXECUTADOS : "classifica"
-    USUARIOS |o--o{ SERVICOS_EXECUTADOS : "executa"
 
     ORDENS_SERVICO ||--o{ ITENS_ORDEM : "consome"
-    PRODUTOS ||--o{ ITENS_ORDEM : "e_vendido_em"
     SERVICOS_EXECUTADOS |o--o{ ITENS_ORDEM : "usa"
+    PRODUTOS ||--o{ ITENS_ORDEM : "e_vendido_em"
     PRODUTOS ||--o{ MOVIMENTOS_ESTOQUE : "movimenta"
     USUARIOS |o--o{ MOVIMENTOS_ESTOQUE : "registra"
+    USUARIOS |o--o{ SERVICOS_EXECUTADOS : "executa"
 
     ORDENS_SERVICO |o--o| CONTAS_RECEBER : "fatura"
     CLIENTES |o--o{ CONTAS_RECEBER : "deve"
@@ -201,31 +201,50 @@ erDiagram
 
 | Arquivo | Conteúdo | Dimensões |
 |---|---|---|
-| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 4124 px |
-| `docs/der-visao-geral.png` | Só entidades e relacionamentos | 5802 × 2109 px |
+| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 6632 px |
+| `docs/der-visao-geral.png` | Só entidades e relacionamentos | 5800 × 3180 px |
 
-Gerados com `@mermaid-js/mermaid-cli` 11 a partir do bloco acima, tema `neutral`,
-fundo branco.
+As figuras de 05/10/2026, anteriores aos dois relacionamentos de 15/10/2026,
+ficam guardadas em `docs/der-antigo/` só para comparação:
+`der-2026-10-05.png` (5092 × 4124 px) e `der-visao-geral-2026-10-05.png`
+(5802 × 2109 px). Não representam o modelo atual.
 
-`[VALIDAR: as duas figuras são de 05/10/2026 e ainda não mostram os dois
-relacionamentos de 15/10/2026 (USUARIOS executa SERVICOS_EXECUTADOS e
-SERVICOS_EXECUTADOS usa ITENS_ORDEM). O bloco acima já está atualizado; falta
-regerar os PNGs com o mermaid-cli.]`
+Geradas com `@mermaid-js/mermaid-cli` 11 a partir do bloco acima, tema
+`neutral`, fundo branco, escala 4 — o mesmo layout e o mesmo estilo das figuras
+de 05/10/2026. A largura é a que reproduz as figuras originais: 1289 para o
+diagrama completo e 1466 para a visão geral, que é o mesmo bloco sem as listas
+de atributos.
 
-**Sobre a impressão em A4 retrato.** Vale ser direto: um DER de 13 entidades com
-todos os atributos **não fica legível** numa página A4 retrato. O arquivo
-`der.png` tem proporção 1,29; impresso na largura útil de 180 mm, ocupa 140 mm
-de altura e o texto fica com cerca de **0,9 mm** — algo como
-3 pontos, pequeno demais para leitura em papel. Aumentar a fonte não resolve,
-porque as caixas crescem junto e a proporção não muda.
+```
+npx @mermaid-js/mermaid-cli@11 -i der.mmd -o der.png -t neutral -b white -s 4 -w 1289
+```
+
+**A ordem das linhas no bloco muda o desenho.** O mermaid posiciona as tabelas
+conforme a ordem em que os relacionamentos aparecem. Na atualização de
+15/10/2026, as 256 posições possíveis para os dois relacionamentos novos foram
+geradas e comparadas com as figuras antigas; a escolhida — "usa" logo depois de
+"consome", "executa" logo depois do "registra" de `MOVIMENTOS_ESTOQUE` — é a que
+mais preserva a disposição original. Mudar a ordem do bloco reorganiza a figura.
+
+Linhas que passam por cima de uma tabela, conferidas no SVG: no diagrama
+completo, nenhuma (a versão de 05/10 tinha três); na visão geral, uma — a linha
+"fatura" encosta na base de `TIPOS_SERVICO` (a de 05/10 também tinha uma).
+Nenhuma das 256 posições zerava as duas figuras ao mesmo tempo.
+
+**Sobre a impressão em A4 retrato.** Medido no arquivo: a altura das letras (do
+topo do "P" à base) é de 30 px em 5092 px de largura. Na área útil de uma
+página ABNT (160 × 247 mm, margens da NBR 14724), a figura ocupa 160 × 208 mm e
+as letras ficam com **cerca de 0,9 mm** — pequeno demais para leitura em papel.
+Aumentar a fonte não resolve, porque as caixas crescem junto e a proporção não
+muda.
 
 O encaminhamento honesto é usar as duas figuras com papéis diferentes:
 
 - **`der-visao-geral.png` no corpo do texto.** Mostra as 13 entidades e os 17
   relacionamentos com os nomes legíveis, que é o que o leitor precisa para
   entender o modelo.
-- **`der.png` como figura de página inteira**, preferencialmente em orientação
-  paisagem ou em apêndice, para quem quiser conferir os atributos.
+- **`der.png` como figura de página inteira**, em apêndice, para quem quiser
+  conferir os atributos.
 - **A seção 5 deste documento** é a referência de detalhe: lista campo a campo,
   com tipo, nulidade, chave e valor padrão. A figura não precisa ser lida
   atributo por atributo porque a tabela cumpre esse papel melhor.
