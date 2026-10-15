@@ -101,10 +101,12 @@
                 <% if (p.ativo) { %>
                 <form action="/produtos/<%= p.id %>/excluir" method="POST" style="display:inline"
                   data-confirmar="Desativar este produto? O histórico será mantido.">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
                 </form>
                 <% } else { %>
                 <form action="/produtos/<%= p.id %>/reativar" method="POST" style="display:inline">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-success btn-sm">Reativar</button>
                 </form>
                 <% } %>

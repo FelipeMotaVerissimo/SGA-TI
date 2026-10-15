@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 249 testes unitários + 264 de integração (513 no total, todos passando)
+**Suíte de referência:** 271 testes unitários + 280 de integração (551 no total, todos passando)
 
 ---
 
@@ -90,7 +90,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 | **NF004** | Análise geográfica | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
 | **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
 | **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `scripts/conferir-restauracao.sh`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos; o **ciclo dump → restauração roda no CI a cada push**, comparando tabela a tabela | ✅ completo |
-| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login | `unit/seguranca.test.js` (18), `seguranca.test.js` (16) | 🔶 parcial |
+| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (24), `unit/csrf.test.js` (22), `seguranca.test.js` (19), `csrf.test.js` (16) | 🔶 parcial |
 | **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `scripts/reparar-anonimizacoes.js`, `docs/RETENCAO.md` | `retencao.test.js` (34), `unit/retencaoService.test.js` (12) | 🔶 parcial |
 
 ### Por que NF006, NF007 e NF008 são parciais
@@ -98,7 +98,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 | ID | O que falta | Onde está registrado |
 |---|---|---|
 | ~~NF006~~ | ~~O ciclo nunca foi executado~~ — **resolvido**: roda no CI, que tem `mysqldump` e MySQL | `docs/BACKUP.md`, seção 5 |
-| NF007 | `'unsafe-inline'` em `style-src` (o de `script-src` **saiu** em 15/10/2026), sem token CSRF, e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login **foi implementado** — ver `docs/SEGURANCA.md`, seção 4.1 | `docs/SEGURANCA.md`, seção 7 |
+| NF007 | `'unsafe-inline'` em `style-src` (o de `script-src` **saiu** em 15/10/2026) e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login e o token CSRF **foram implementados** — ver `docs/SEGURANCA.md`, seções 4.1 e 4.2 | `docs/SEGURANCA.md`, seção 7 |
 | NF008 | O **descarte** está completo: a anonimização alcança o cadastro, a descrição das contas geradas no faturamento e o log de auditoria, e há reparo para anonimizações antigas. O que falta é a **retenção**: os prazos da seção 5 do `RETENCAO.md` são proposta, e nenhuma rotina os aplica automaticamente. Também não há registro de consentimento | `docs/RETENCAO.md`, seções 3.3 e 7 |
 
 ---

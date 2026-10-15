@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 249 | 249 | 0 |
-| Integração | 264 | 264 | 0 |
-| **Total** | **513** | **513** | **0** |
+| Unitários | 271 | 271 | 0 |
+| Integração | 280 | 280 | 0 |
+| **Total** | **551** | **551** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 249 testes
-npm run test:integration  :: 264 testes
-npm test                  :: suíte completa — 513 testes
+npm run test:unit         :: 271 testes
+npm run test:integration  :: 280 testes
+npm test                  :: suíte completa — 551 testes
 ```
 
-### 1.2 Testes unitários — 249 casos
+### 1.2 Testes unitários — 271 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -43,6 +43,7 @@ banco, rodam em cerca de 3 segundos.
 | `ordemServicoService.test.js` | 18 | Travas de status, validação do orçamento, fuso da previsão |
 | `relatorioService.test.js` | 26 | Período, agregações dos quatro relatórios |
 | `seguranca.test.js` | 24 | NF007 — produção × desenvolvimento de cada proteção; views sem script embutido |
+| `csrf.test.js` | 22 | NF007 — regra do token CSRF; todo formulário POST autenticado leva o token |
 | `servicoExecutadoService.test.js` | 16 | Garantia derivada, travas de registro e exclusão |
 | `auditoriaExtensao.test.js` | 15 | NF005 — gravação automática, senha omitida, contexto |
 | `backup.test.js` | 15 | NF006 — leitura da URL, nome do arquivo, argumentos |
@@ -52,7 +53,7 @@ banco, rodam em cerca de 3 segundos.
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 264 casos
+### 1.3 Testes de integração — 280 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -71,6 +72,7 @@ isolado, recriado a cada suíte.
 | `historicoEquipamento.test.js` | 14 | RF012 — histórico por equipamento |
 | `garantia.test.js` | 13 | Serviços executados e garantia |
 | `seguranca.test.js` | 19 | NF007 — cabeçalhos, cookie e CORS reais; confirmação sem script embutido |
+| `csrf.test.js` | 16 | NF007 — 403 sem token, token de outra sessão, regeneração no login, Sair por POST |
 | `clientes.test.js` | 7 | API de clientes |
 | `auth.test.js` | 9 | Login da API: token, senha errada, usuário inexistente e desativado, campos ausentes |
 
@@ -82,7 +84,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **249 unitários e 264 de integração passando**. Isso importa porque o
+números: **271 unitários e 280 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 

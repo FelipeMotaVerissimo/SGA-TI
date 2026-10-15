@@ -51,6 +51,7 @@
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
             <% if (podeMexerStatus) { %>
             <form action="/ordens/<%= ordem.id %>/status" method="POST" style="display:flex; gap:8px; align-items:center">
+              <%- include('../partials/csrf') %>
               <select name="status" class="form-group" style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px">
                 <%# FINALIZADO fica de fora: encerrar é faturar, e depende de liberação da gerência %>
                 <% ['INICIAL','ORCAMENTO','AUTORIZADO','EM_ANDAMENTO','CANCELADO'].forEach(s => { %>
@@ -63,6 +64,7 @@
 
             <% if (podeFaturar && ordem.status === 'EM_ANDAMENTO') { %>
             <form action="/ordens/<%= ordem.id %>/faturar" method="POST" data-confirmar="Faturar e encerrar esta OS? A conta a receber será gerada no financeiro.">
+              <%- include('../partials/csrf') %>
               <button type="submit" class="btn btn-success btn-sm">
                 💵 Faturar e Encerrar
               </button>
@@ -132,6 +134,7 @@
 
   <% if (podeEditarOrcamento && podeMexerOrcamento) { %>
   <form action="/ordens/<%= ordem.id %>/orcamento" method="POST">
+    <%- include('../partials/csrf') %>
     <div class="form-row">
       <div class="form-group">
         <label>Valor do Orçamento (R$) *</label>
@@ -176,11 +179,13 @@
     %>
     <div style="display:flex; gap:12px">
       <form action="/ordens/<%= ordem.id %>/aprovar" method="POST" data-confirmar="Confirmar aprovação do orçamento?">
+        <%- include('../partials/csrf') %>
         <button type="submit" class="btn btn-success btn-sm">
           ✅ Aprovar Orçamento
         </button>
       </form>
       <form action="/ordens/<%= ordem.id %>/rejeitar" method="POST" data-confirmar="Confirmar rejeição do orçamento?">
+        <%- include('../partials/csrf') %>
         <button type="submit" class="btn btn-danger btn-sm">
           ❌ Rejeitar Orçamento
         </button>
@@ -219,6 +224,7 @@
 
         <% if (podeRegistrarServico && podeMexerServico) { %>
         <form action="/ordens/<%= ordem.id %>/servicos" method="POST">
+          <%- include('../partials/csrf') %>
           <div class="form-row full">
             <div class="form-group">
               <label>Descrição do Serviço *</label>
@@ -337,6 +343,7 @@
               <% if (mostrarAcoesServico) { %>
               <td>
                 <form action="/ordens/<%= ordem.id %>/servicos/<%= s.id %>/excluir" method="POST" data-confirmar="Excluir este serviço executado?">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">
                     🗑️ Excluir
                   </button>
@@ -357,6 +364,7 @@
       <div class="form-box" style="margin-bottom:16px">
         <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">📦 Lançar Produto na OS</h2>
         <form action="/ordens/<%= ordem.id %>/itens" method="POST">
+          <%- include('../partials/csrf') %>
           <div class="form-row">
             <div class="form-group">
               <label>Produto *</label>
@@ -428,6 +436,7 @@
               <td>
                 <form action="/ordens/<%= ordem.id %>/itens/<%= i.id %>/remover" method="POST" style="display:inline"
                   data-confirmar="Remover este produto da OS? A quantidade volta para o estoque.">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Remover</button>
                 </form>
               </td>

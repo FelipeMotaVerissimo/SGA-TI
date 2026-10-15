@@ -62,7 +62,11 @@
   <div class="user-info">
     <p><%= locals.usuario ? locals.usuario.nome : '' %></p>
     <span><%= locals.usuario ? locals.usuario.perfil : '' %></span><br>
-    <a href="/logout">↩ Sair</a>
+    <%# POST com token: um link de outro site não consegue encerrar a sessão (NF007). %>
+    <form action="/logout" method="POST" class="form-sair">
+      <%- include('csrf') %>
+      <button type="submit">↩ Sair</button>
+    </form>
   </div>
 </div>
 <script src="/js/menu.js" defer></script>

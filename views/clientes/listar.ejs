@@ -79,6 +79,7 @@
                 <a href="/clientes/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/clientes/<%= c.id %>/excluir" method="POST" style="display:inline"
                   data-confirmar="Deseja remover este cliente?">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Remover</button>
                 </form>
                 <% if (ehAdmin) { %>
@@ -89,6 +90,7 @@ Nome, CPF/CNPJ, RG, endereço e contatos serão APAGADOS.
 As ordens de serviço e o histórico financeiro são preservados.
 
 Esta operação NÃO pode ser desfeita.">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm" title="Art. 18 da LGPD">🔒 Anonimizar</button>
                 </form>
                 <% } %>

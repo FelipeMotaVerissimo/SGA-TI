@@ -165,14 +165,37 @@ async function semear() {
   return { perfis, usuarios, cliente, equipamento, produtos, ordens, servicos, tiposServico, contas, SENHA };
 }
 
-/** Faz login e devolve um agente do Supertest com a sessão já ativa. */
+/** Lê o token CSRF do formulário "Sair", presente em toda tela autenticada. */
+async function lerTokenCsrf(agente) {
+  const res = await agente.get('/dashboard');
+  const m = res.text.match(/name="_csrf" value="([0-9a-f]{64})"/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Faz login e devolve um agente do Supertest com a sessão já ativa.
+ *
+ * NF007: toda escrita do agente leva o token CSRF da sessão no cabeçalho
+ * `X-CSRF-Token`, como o formulário faria com o campo `_csrf`. Assim os testes
+ * de regra de negócio não precisam saber do token. Quem quer testar o CSRF em
+ * si usa `request.agent(app)` direto (ver `tests/integration/csrf.test.js`).
+ */
 async function logar(request, app, login) {
   const agente = request.agent(app);
   await agente.post('/login').type('form').send({ login, senha: SENHA });
+
+  const token = await lerTokenCsrf(agente);
+  for (const metodo of ['post', 'put', 'patch', 'delete']) {
+    const original = agente[metodo].bind(agente);
+    agente[metodo] = (...args) => {
+      const req = original(...args);
+      return token ? req.set('X-CSRF-Token', token) : req;
+    };
+  }
   return agente;
 }
 
 /** Saldo atual de um produto, lido direto do banco. */
 const saldo = async (id) => (await prisma.produto.findUnique({ where: { id } })).estoque;
 
-module.exports = { semear, limpar, logar, saldo, dias, SENHA, prisma };
+module.exports = { semear, limpar, logar, lerTokenCsrf, saldo, dias, SENHA, prisma };

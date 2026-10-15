@@ -13,6 +13,11 @@ async function realizarLogin(req, res) {
   try {
     const { login, senha } = req.body;
     const resultado = await authService.login(login, senha);
+
+    // Sessão nova a cada login: o identificador usado antes de autenticar
+    // não vale depois, e o token CSRF nasce junto com ela.
+    await new Promise((ok, falha) =>
+      req.session.regenerate((err) => (err ? falha(err) : ok())));
     req.session.usuario = resultado.usuario;
     res.redirect('/dashboard');
   } catch (err) {
@@ -21,9 +26,9 @@ async function realizarLogin(req, res) {
   }
 }
 
+/** POST, com token CSRF: um link de outro site não consegue derrubar a sessão. */
 function logout(req, res) {
-  req.session.destroy();
-  res.redirect('/login');
+  req.session.destroy(() => res.redirect('/login'));
 }
 
 /**

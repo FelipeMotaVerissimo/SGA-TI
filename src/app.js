@@ -17,6 +17,7 @@ const usuarioRoutes      = require('./routes/usuarioRoutes');
 const errorHandler       = require('./middlewares/errorHandler');
 const { temPermissao }   = require('./middlewares/perfilMiddleware');
 const { contextoMiddleware } = require('./middlewares/contextoMiddleware'); // NF005
+const { csrfMiddleware }     = require('./middlewares/csrfMiddleware');     // NF007
 const seguranca          = require('./config/seguranca');                    // NF007
 
 const app = express();
@@ -71,6 +72,10 @@ app.use(flash());
 // NF005 — contexto da requisição (quem e de onde), lido pela auditoria.
 // Depois da sessão, porque é dela que sai a identidade nas telas.
 app.use(contextoMiddleware);
+
+// NF007 — token CSRF em toda escrita feita com usuário logado. Antes das
+// variáveis globais, para que uma requisição recusada não consuma o flash.
+app.use(csrfMiddleware);
 
 // Variáveis globais para todas as views
 app.use((req, res, next) => {

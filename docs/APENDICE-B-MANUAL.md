@@ -80,6 +80,10 @@ dentro da própria caixa, sem empurrar a página.
 
 Use **↩ Sair** no rodapé do menu. A sessão expira sozinha após 8 horas.
 
+Se aparecer a tela **Formulário expirado**, a ação não foi executada: a página
+estava aberta desde antes de a sessão ser renovada. Volte, recarregue a página
+e repita a operação.
+
 ---
 
 ## 2. O fluxo completo de um atendimento

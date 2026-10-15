@@ -22,6 +22,7 @@
 
       <div class="form-box">
         <form action="<%= equipamento ? '/equipamentos/' + equipamento.id : '/equipamentos' %>" method="POST">
+          <%- include('../partials/csrf') %>
 
           <div class="form-row full">
             <div class="form-group">

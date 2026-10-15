@@ -59,6 +59,7 @@
       <div class="form-box" style="max-width:100%; margin-bottom:24px">
         <h2 style="font-size:15px; margin-bottom:16px">Registrar Movimentação</h2>
         <form action="/produtos/<%= produto.id %>/estoque" method="POST">
+          <%- include('../partials/csrf') %>
           <div class="form-row">
             <div class="form-group">
               <label>Tipo *</label>

@@ -73,10 +73,12 @@
 
 Ele some da lista e não entra em OS nova.
 O histórico de ordens de serviço é preservado.">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
                 </form>
                 <% } else if (ehAdmin) { %>
                 <form action="/equipamentos/<%= e.id %>/reativar" method="POST" style="display:inline">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-success btn-sm">Reativar</button>
                 </form>
                 <% } %>

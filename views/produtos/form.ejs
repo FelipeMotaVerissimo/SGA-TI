@@ -35,6 +35,7 @@
 
       <div class="form-box">
         <form action="<%= produto && produto.id ? '/produtos/' + produto.id : '/produtos' %>" method="POST">
+          <%- include('../partials/csrf') %>
 
           <div class="form-row full">
             <div class="form-group">

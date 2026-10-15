@@ -1,0 +1,2 @@
+<%# NF007 — token CSRF. Todo formulário POST de tela autenticada inclui este parcial; tests/unit/csrf.test.js confere. %>
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">

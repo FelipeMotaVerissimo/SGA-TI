@@ -199,6 +199,51 @@ redirecionar para `/dashboard` significa que entrou.
 
 ---
 
+## 4.2 Token CSRF nos formulários
+
+Implementado em 15/10/2026, em `src/middlewares/csrfMiddleware.js`, sem
+dependência nova (o `csurf` está descontinuado).
+
+O `sameSite=lax` do cookie já impede que outro site envie um formulário ao
+sistema com a sessão do usuário. O token é a segunda camada, e a que não
+depende de o navegador respeitar o `sameSite`.
+
+**Regra.** Toda requisição de escrita (`POST`, `PUT`, `PATCH`, `DELETE`) feita
+com usuário logado precisa trazer o token da sessão, no campo `_csrf` do
+formulário ou no cabeçalho `X-CSRF-Token`. Sem ele, ou com outro valor, a
+resposta é **403** com a página "Formulário expirado", e a ação não acontece.
+
+| Decisão | Motivo |
+|---|---|
+| Um token por sessão, 32 bytes aleatórios | Outro site não consegue ler as páginas do sistema, logo não sabe o token |
+| Comparação em tempo constante (`timingSafeEqual`) | O tempo de resposta não revela quantos caracteres conferem |
+| Fora da regra: requisição sem usuário logado | Não há sessão a sequestrar. Inclui a consulta pública e a sessão expirada, que continua indo para o login, e não para o 403 |
+| Fora da regra: `POST /login` | O login descarta a sessão anterior e cria outra. E o formulário de login só aparece para quem não está logado, logo nunca tem token: exigir recusaria a tela de login aberta numa segunda aba. Pego pela suíte, no teste de cota de login |
+| Fora da regra: `/api/*` | A API autentica por JWT no cabeçalho `Authorization`, que o navegador não envia sozinho |
+| 403 com página própria, e não flash + redirect | A ação foi recusada, e o status diz isso no log |
+
+**Onde o token entra na tela.** Os 29 formulários POST das telas autenticadas
+incluem `views/partials/csrf.ejs`, um campo oculto. Os outros dois formulários
+POST do sistema são o login e a consulta pública, que não têm sessão.
+`tests/unit/csrf.test.js` varre as views e falha se aparecer formulário POST
+sem o parcial.
+
+**Duas mudanças que vieram junto:**
+
+- **"Sair" é um formulário POST com token.** Antes era `GET /logout`, e
+  qualquer página de outro site podia derrubar a sessão do usuário com uma
+  imagem apontando para o endereço. O botão mantém a aparência do link.
+- **O login regenera a sessão** (`req.session.regenerate`). O identificador de
+  sessão anterior ao login deixa de valer, e o token nasce com a sessão nova.
+
+**Verificado no navegador** (Chromium, 15/10/2026): login pelo formulário;
+desativar e reativar um tipo de serviço e editar um cliente pela interface
+deram certo; `POST` forjado sem token e com token errado deram 403, sem
+alterar o banco; um formulário com o token adulterado mostrou a página
+"Formulário expirado" e não excluiu o cliente; "Sair" encerrou a sessão.
+
+---
+
 ## 5. Variáveis de ambiente
 
 | Variável | Efeito |
@@ -214,8 +259,10 @@ redirecionar para `/dashboard` significa que entrou.
 
 | Suíte | Arquivo | Casos |
 |---|---|---|
-| Unitários | `tests/unit/seguranca.test.js` | 18 |
-| Integração | `tests/integration/seguranca.test.js` | 16 |
+| Unitários | `tests/unit/seguranca.test.js` | 24 |
+| Unitários | `tests/unit/csrf.test.js` | 22 |
+| Integração | `tests/integration/seguranca.test.js` | 19 |
+| Integração | `tests/integration/csrf.test.js` | 16 |
 
 Os unitários cobrem a decisão produção × desenvolvimento de cada proteção. Os de
 integração verificam o que a aplicação **de fato responde**: CSP presente,
@@ -230,6 +277,13 @@ a presença do `confirmar.js` e do `data-confirmar` na tela de clientes; e a
 mensagem de anonimização com o nome do cliente escapado, apóstrofo e quebras
 de linha preservados.
 
+Os de CSRF (seção 4.2) cobrem cada ramo da regra com requisição simulada e,
+ponta a ponta, o 403 sem token, com token errado e com token de **outra
+sessão** — conferindo no banco que nada mudou —, a troca de token e de cookie
+no login, o "Sair" e o que continua sem token: login, consulta pública, API
+e escrita sem sessão. Rodados sem a implementação, 9 dos 16 de integração
+falham; a varredura das views também falha sem o parcial nos formulários.
+
 ---
 
 ## 7. Pendências
@@ -237,7 +291,7 @@ de linha preservados.
 | # | Item | Prioridade |
 |---|---|---|
 | P01 | ~~`'unsafe-inline'` em `script-src`~~ — **resolvido** em 15/10/2026, ver seção 3 | — |
-| P02 | **Não há proteção CSRF por token.** O `sameSite=lax` cobre o caso comum, mas não substitui um token por formulário (`csurf` ou equivalente) | média |
+| P02 | ~~Não há proteção CSRF por token~~ — **resolvido** em 15/10/2026, ver seção 4.2 | — |
 | P03 | ~~Não há limite de tentativas de login~~ — **resolvido**, ver seção 4.1 | — |
 | P04 | A sessão vive em memória (`MemoryStore`): cai a cada reinício e não funciona com mais de uma instância. Em produção precisa de store externo | média |
 | P05 | O ciclo HTTPS real não foi exercitado — não há ambiente com TLS. A lógica está testada, o comportamento sob TLS de verdade não | média |

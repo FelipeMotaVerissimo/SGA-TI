@@ -113,11 +113,13 @@
               <td>
                 <% if (c.situacao === 'ABERTA') { %>
                 <form action="/financeiro/receber/<%= c.id %>/quitar" method="POST" style="display:inline">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-success btn-sm">Receber</button>
                 </form>
                 <a href="/financeiro/receber/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/financeiro/receber/<%= c.id %>/cancelar" method="POST" style="display:inline"
                   data-confirmar="Cancelar esta conta?">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                 </form>
                 <% } else { %>
@@ -173,11 +175,13 @@
               <td>
                 <% if (c.situacao === 'ABERTA') { %>
                 <form action="/financeiro/pagar/<%= c.id %>/quitar" method="POST" style="display:inline">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-success btn-sm">Pagar</button>
                 </form>
                 <a href="/financeiro/pagar/<%= c.id %>/editar" class="btn btn-secondary btn-sm">Editar</a>
                 <form action="/financeiro/pagar/<%= c.id %>/cancelar" method="POST" style="display:inline"
                   data-confirmar="Cancelar esta conta?">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                 </form>
                 <% } else { %>

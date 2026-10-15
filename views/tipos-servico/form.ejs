@@ -22,6 +22,7 @@
 
       <div class="form-box">
         <form action="<%= tipo && tipo.id ? '/tipos-servico/' + tipo.id : '/tipos-servico' %>" method="POST">
+          <%- include('../partials/csrf') %>
           <div class="form-row full">
             <div class="form-group">
               <label>Nome do Tipo *</label>

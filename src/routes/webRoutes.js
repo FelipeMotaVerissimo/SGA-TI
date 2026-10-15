@@ -35,7 +35,7 @@ router.get('/', (req, res) => res.redirect('/login'));
 // Auth
 router.get('/login',  authWeb.exibirLogin);
 router.post('/login', limitadorLogin, authWeb.realizarLogin); // NF007: trava força bruta
-router.get('/logout', authWeb.logout);
+router.post('/logout', authWeb.logout);
 
 // Dashboard — todo usuário autenticado
 router.get('/dashboard', sessaoMiddleware, authWeb.dashboard);

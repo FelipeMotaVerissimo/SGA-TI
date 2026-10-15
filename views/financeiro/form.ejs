@@ -26,6 +26,7 @@
 
       <div class="form-box">
         <form action="<%= conta && conta.id ? `/financeiro/${rota}/${conta.id}/editar` : `/financeiro/${rota}` %>" method="POST">
+          <%- include('../partials/csrf') %>
 
           <div class="form-row full">
             <div class="form-group">

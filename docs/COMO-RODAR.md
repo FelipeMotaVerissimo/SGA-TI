@@ -173,9 +173,9 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 249 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 264 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa — 513 testes, todos passando
+npm run test:unit         :: 271 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 280 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 551 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
@@ -216,12 +216,13 @@ npm run test:integration
 | `tests/integration/dashboard.test.js` | Dashboards por perfil e exportação CSV (UC RF008) |
 | `tests/integration/auditoria.test.js` | Log de auditoria, acesso e somente-leitura (NF005) |
 | `tests/integration/seguranca.test.js` | Cabeçalhos, cookie e CORS (NF007) |
+| `tests/integration/csrf.test.js` | Token CSRF, regeneração da sessão no login e Sair por POST (NF007) |
 | `tests/integration/retencao.test.js` | Anonimização LGPD e exclusão lógica (NF008) |
 | `tests/integration/clientes.test.js` | API de clientes (Módulo 1) |
 
 ### Situação da suíte
 
-**Os 513 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+**Os 551 testes passam**, inclusive `npm test`. Até 14/10/2026 o
 `tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
 contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 

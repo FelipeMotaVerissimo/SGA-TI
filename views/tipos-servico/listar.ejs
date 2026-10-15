@@ -75,10 +75,12 @@
                 <% if (t.ativo) { %>
                 <form action="/tipos-servico/<%= t.id %>/desativar" method="POST" style="display:inline"
                   data-confirmar="Desativar este tipo? Ele some da lista de escolha, mas o histórico é mantido.">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-danger btn-sm">Desativar</button>
                 </form>
                 <% } else { %>
                 <form action="/tipos-servico/<%= t.id %>/reativar" method="POST" style="display:inline">
+                  <%- include('../partials/csrf') %>
                   <button type="submit" class="btn btn-success btn-sm">Reativar</button>
                 </form>
                 <% } %>
