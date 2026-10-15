@@ -86,13 +86,9 @@ jobs:
         run: npm run test:unit
 
       - name: Testes de integração
-        # `auth.test.js` fica de fora: ele falha desde antes desta suíte
-        # existir, por ter sido escrito contra um schema antigo que usava
-        # `usuario.email`. Excluir aqui é o que permite o CI ser verde e
-        # significar alguma coisa. A falha continua visível no passo seguinte.
-        # A decisão sobre o destino desse arquivo está aberta — ver
-        # docs/DIVERGENCIAS-DOC.md, defeito D06.
-        run: npx jest tests/integration --runInBand --forceExit --testPathIgnorePatterns "node_modules" "auth\.test\.js"
+        # Suíte completa, sem exclusão. O auth.test.js, que falhava desde antes
+        # da consolidação, foi reescrito contra o schema real (defeito D06).
+        run: npm run test:integration
 
       # --------------------------------------------------------------------
       # NF006 - ciclo completo de backup e restauracao
@@ -109,10 +105,3 @@ jobs:
 
       - name: NF006 - restaurar num banco novo e comparar
         run: bash scripts/conferir-restauracao.sh
-
-      - name: Falha conhecida (auth.test.js) — não bloqueia
-        continue-on-error: true
-        run: |
-          echo "Este passo roda o único arquivo com falha conhecida."
-          echo "Vermelho aqui é esperado enquanto a dupla não decidir o destino dele."
-          npx jest tests/integration/auth.test.js --runInBand --forceExit
