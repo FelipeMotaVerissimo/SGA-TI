@@ -16,12 +16,12 @@
 |---|---|
 | `npm ci` | Instala exatamente o que está no `package-lock.json` |
 | `prisma generate` | Gera o client a partir do schema de **MySQL**, não do de desenvolvimento |
-| `prisma migrate deploy` | Aplica as 5 migrations num MySQL 8 vazio |
+| `prisma migrate deploy` | Aplica as 6 migrations num MySQL 8 vazio |
 | `prisma migrate diff --exit-code` | **Falha o build** se o banco criado pelas migrations divergir do `schema.prisma` |
 | `npm run seed` | Prova que o seed roda num banco recém-migrado |
-| `npm run test:unit` | 223 testes |
-| Testes de integração | 223 testes, contra o MySQL do CI |
-| `auth.test.js` isolado | Não bloqueia — ver abaixo |
+| `npm run test:unit` | 243 testes |
+| `npm run test:integration` | 261 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
+| `npm run backup` + `conferir-restauracao.sh` | NF006: gera o dump, restaura num banco novo e compara as 14 tabelas |
 
 ### O ganho que isso traz
 
@@ -37,19 +37,11 @@ descobre na hora de subir para produção.
 
 ### Sobre o `auth.test.js`
 
-Ele falha nos seus 3 casos desde antes desta suíte existir, por ter sido escrito
-contra um schema antigo que usava `usuario.email` (ver `docs/DIVERGENCIAS-DOC.md`,
-defeito D06). Enquanto ele estiver no caminho padrão, `npm test` sai vermelho e
-**um CI vermelho não significa nada** — ninguém olha para um indicador que vive
-quebrado.
-
-A solução adotada: o passo bloqueante exclui esse arquivo, e um passo seguinte,
-marcado `continue-on-error`, roda só ele. A falha continua visível no log, sem
-contaminar o resultado.
-
-> `[VALIDAR: decisão da dupla sobre o destino do arquivo.]` Corrigir para o
-> schema real, remover, ou manter. A exclusão no CI é um contorno, não a
-> resposta.
+Até 14/10/2026 este arquivo falhava nos 3 casos, por ter sido escrito contra um
+schema antigo que usava `usuario.email` (defeito D06), e o CI precisava
+excluí-lo do passo bloqueante para continuar significando alguma coisa. Foi
+reescrito contra o schema real: hoje são 9 casos, todos passando, e o CI roda a
+suíte inteira sem exceção.
 
 ---
 
@@ -193,7 +185,7 @@ npx prisma migrate deploy
 | # | Item | Prioridade |
 |---|---|---|
 | P01 | **O deploy não foi executado.** Este documento descreve o caminho e a configuração está escrita, mas nenhuma conta foi criada e nada subiu | **alta** |
-| P02 | O CI nunca rodou ainda — só roda depois do primeiro push com o workflow | alta, resolve sozinha |
+| P02 | ~~O CI nunca rodou~~ — **resolvido**: roda a cada push desde 06/10/2026, verde | — |
 | P03 | Não há ambiente de homologação separado: o deploy vai direto de `main` para produção | baixa, aceitável no contexto |
 | P04 | Sem monitoramento nem alerta de erro em produção | baixa |
 | P05 | O backup do NF006 não está agendado no ambiente de produção — ver `docs/BACKUP.md`, seção 4 | média |

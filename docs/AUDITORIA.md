@@ -167,7 +167,7 @@ Cobertura dos pontos que importam:
 | # | Item | Prioridade |
 |---|---|---|
 | P01 | **`LEITURA` não é gravada automaticamente.** O valor existe no enum porque o requisito o prevê, mas registrar toda consulta multiplicaria o volume. Se a banca exigir rastro de leitura, o caminho é marcar explicitamente as telas que exibem dado pessoal — a de clientes, principalmente | média |
-| P02 | **`req.ip` atrás de proxy reverso devolve o IP do proxy.** Em produção é preciso habilitar `trust proxy` no Express para que ele leia o `X-Forwarded-For`. Entra junto com o NF007 | média |
+| P02 | ~~`req.ip` atrás de proxy devolvia o IP do proxy~~ — **resolvido** no NF007: `trust proxy` é ligado em produção (`src/app.js`), e a auditoria passa a gravar o IP real do cliente | — |
 | P03 | **O log não guarda o login do usuário, só o `usuarioId`.** Se o usuário for removido, o `SET NULL` preserva o registro mas perde a identidade. Desnormalizar o login no próprio log resolveria | baixa |
 | P04 | **Sem política de retenção.** A tabela cresce indefinidamente. O descarte entra no NF008 | baixa |
 | P05 | **Custo por operação:** cada `update`/`delete` passou a fazer uma leitura extra (para capturar o estado anterior) e uma inserção. No volume de uma assistência técnica é irrelevante; registrado para não virar surpresa | baixa |
