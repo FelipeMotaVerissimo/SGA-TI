@@ -19,7 +19,8 @@
     "db:mysql:client": "prisma generate --schema prisma/schema.prisma",
     "seed": "node prisma/seed.js",
     "seed:demo": "node prisma/seed.js --com-usuarios-demo",
-    "backup": "node scripts/backup.js"
+    "backup": "node scripts/backup.js",
+    "reparar:anonimizacoes": "node scripts/reparar-anonimizacoes.js"
   },
   "jest": {
     "testEnvironment": "node",

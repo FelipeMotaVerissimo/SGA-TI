@@ -4,6 +4,7 @@ const request = require('supertest');
 const app     = require('../../src/app');
 const { semear, logar, prisma } = require('../helpers/fixture');
 const retencao = require('../../src/services/retencaoService');
+const { aguardarGravacoes } = require('../../src/services/auditoriaExtensao');
 
 /**
  * NF008 — retenção e descarte.
@@ -136,6 +137,255 @@ describe('anonimização de cliente (art. 18 da LGPD)', () => {
     expect(log).not.toBeNull();
     expect(log.usuarioId).toBe(dados.usuarios.admin.id);
     expect(JSON.parse(log.valorNovo).anonimizadoEm).toBeDefined();
+  });
+});
+
+/**
+ * RN06 — a eliminação alcança o log de auditoria.
+ *
+ * Antes desta regra, a anonimização apagava os dados do cadastro mas eles
+ * sobreviviam em `logs_auditoria.valorAnterior`: o pedido do titular era
+ * atendido só na aparência.
+ */
+describe('anonimização alcança o log de auditoria', () => {
+  /** Os dados pessoais do cliente da massa, como estavam antes. */
+  const DADOS_ORIGINAIS = ['Cliente de Teste', '111.222.333-44', 'cliente@teste.com'];
+
+  /** O log inteiro, de todas as entidades, como texto. */
+  const logInteiro = async () => {
+    await aguardarGravacoes();
+    return JSON.stringify(await prisma.logAuditoria.findMany());
+  };
+
+  test('antes de anonimizar, o log contém os dados pessoais — a premissa do teste', async () => {
+    // Uma alteração qualquer, para o log ter um estado anterior com os dados.
+    const agente = await logar(request, app, 'atendente');
+    await agente.post(`/clientes/${dados.cliente.id}/editar`).type('form').send({
+      nome: 'Cliente de Teste', cpfCnpj: '111.222.333-44',
+      email: 'cliente@teste.com', telefone: '67 3333-4444',
+    });
+
+    const log = await logInteiro();
+    expect(log).toContain('cliente@teste.com');
+    expect(log).toContain('111.222.333-44');
+  });
+
+  test('depois de anonimizar, nenhum dado pessoal sobra em lugar nenhum do log', async () => {
+    const atendente = await logar(request, app, 'atendente');
+    await atendente.post(`/clientes/${dados.cliente.id}/editar`).type('form').send({
+      nome: 'Cliente de Teste', cpfCnpj: '111.222.333-44',
+      email: 'cliente@teste.com', telefone: '67 3333-4444',
+    });
+
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+
+    // A busca é no log INTEIRO, não só nos registros do cliente: se algum dado
+    // tivesse vazado para outra entidade, apareceria aqui.
+    const log = await logInteiro();
+    for (const dado of [...DADOS_ORIGINAIS, '67 3333-4444']) {
+      expect(log).not.toContain(dado);
+    }
+  });
+
+  test('o log é redigido, não apagado — a rastreabilidade continua', async () => {
+    const atendente = await logar(request, app, 'atendente');
+    await atendente.post(`/clientes/${dados.cliente.id}/editar`).type('form').send({
+      nome: 'Cliente de Teste', cpfCnpj: '111.222.333-44', telefone: '67 3333-4444',
+    });
+    await aguardarGravacoes();
+    const antes = await prisma.logAuditoria.count({
+      where: { entidade: 'Cliente', registroId: dados.cliente.id },
+    });
+
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+    await aguardarGravacoes();
+
+    const registros = await prisma.logAuditoria.findMany({
+      where:   { entidade: 'Cliente', registroId: dados.cliente.id },
+      orderBy: { id: 'asc' },
+    });
+
+    // Nenhum registro sumiu; o da anonimização entrou a mais.
+    expect(registros.length).toBe(antes + 1);
+
+    // Continua visível QUEM alterou e QUE campos mudaram.
+    const alteracao = registros.find((r) => r.usuarioId === dados.usuarios.atendente.id);
+    expect(alteracao).toBeDefined();
+    const valor = JSON.parse(alteracao.valorNovo);
+    expect(valor.telefone).toBe(retencao.MARCA_NO_LOG);  // o campo está lá...
+    expect(valor.nome).toBe(retencao.MARCA_NO_LOG);      // ...o valor, não
+
+    // E o registro da própria anonimização, com o administrador como autor.
+    const daAnonimizacao = registros[registros.length - 1];
+    expect(daAnonimizacao.usuarioId).toBe(dados.usuarios.admin.id);
+    expect(JSON.parse(daAnonimizacao.valorNovo).anonimizadoEm).toBeDefined();
+  });
+
+  test('cidade e estado continuam no log, como no cadastro', async () => {
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+    await aguardarGravacoes();
+
+    const daAnonimizacao = await prisma.logAuditoria.findFirst({
+      where:   { entidade: 'Cliente', registroId: dados.cliente.id, acao: 'ALTERACAO' },
+      orderBy: { id: 'desc' },
+    });
+    const anterior = JSON.parse(daAnonimizacao.valorAnterior);
+
+    expect(anterior.cidade).toBe('Dourados');
+    expect(anterior.estado).toBe('MS');
+  });
+
+  test('o log de OUTRO cliente não é tocado', async () => {
+    const outro = await prisma.cliente.create({
+      data: { nome: 'Outro Cliente Preservado', cpfCnpj: '999.888.777-66', email: 'outro@teste.com' },
+    });
+    await aguardarGravacoes();
+
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+
+    const log = await logInteiro();
+    expect(log).toContain('Outro Cliente Preservado');
+    expect(log).toContain('outro@teste.com');
+    expect(log).toContain(String(outro.id));
+  });
+});
+
+/**
+ * RN07 — o dado que o sistema COPIOU para fora do cadastro.
+ *
+ * O faturamento gera a conta a receber com a descrição "OS <número> — <nome>".
+ * A primeira versão da anonimização não olhava ali: a lista de contas mostrava
+ * "Cliente anonimizado" na coluna do cliente e o nome completo na descrição.
+ * Foi achado numa captura de tela do manual, não por teste — o teste anterior
+ * passava porque a conta da massa não tinha o nome na descrição. Estes casos
+ * cobrem o caminho real: faturar, depois anonimizar.
+ */
+describe('anonimização alcança o que o faturamento copiou', () => {
+  const NOME = 'Cliente de Teste';
+
+  /** Fatura a OS em andamento pela rota real, gerando a conta com o nome. */
+  async function faturarOrdemDoCliente() {
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/ordens/${dados.ordens.andamento.id}/faturar`).type('form').send({});
+    await aguardarGravacoes();
+    return prisma.contaReceber.findUnique({ where: { ordemId: dados.ordens.andamento.id } });
+  }
+
+  test('a premissa: faturar copia o nome do cliente para a descrição da conta', async () => {
+    const conta = await faturarOrdemDoCliente();
+
+    expect(conta).not.toBeNull();
+    expect(conta.descricao).toContain(NOME);
+  });
+
+  test('depois de anonimizar, a descrição da conta não tem mais o nome', async () => {
+    const conta = await faturarOrdemDoCliente();
+
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+
+    const depois = await prisma.contaReceber.findUnique({ where: { id: conta.id } });
+    expect(depois.descricao).not.toContain(NOME);
+    expect(depois.descricao).toBe(`OS ${dados.ordens.andamento.numero} — ${retencao.NOME_ANONIMO}`);
+
+    // O resto da conta é histórico fiscal e fica intacto.
+    expect(Number(depois.valor)).toBe(Number(conta.valor));
+    expect(depois.ordemId).toBe(conta.ordemId);
+  });
+
+  test('e o log da conta também não tem mais o nome', async () => {
+    await faturarOrdemDoCliente();
+
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+    await aguardarGravacoes();
+
+    // Procura no log INTEIRO — inclusive o registro da criação da conta, que
+    // guardou a descrição com o nome no valorNovo.
+    const log = JSON.stringify(await prisma.logAuditoria.findMany());
+    expect(log).not.toContain(NOME);
+    expect(log).not.toContain('111.222.333-44');
+    expect(log).not.toContain('cliente@teste.com');
+  });
+
+  test('conta lançada à mão, sem OS, só perde o dado pessoal — o resto do texto fica', async () => {
+    const manual = await prisma.contaReceber.create({
+      data: {
+        descricao: `Contrato mensal de ${NOME} — outubro`,
+        valor: 150, vencimento: new Date(), clienteId: dados.cliente.id,
+      },
+    });
+
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/clientes/${dados.cliente.id}/anonimizar`).type('form').send({});
+
+    const depois = await prisma.contaReceber.findUnique({ where: { id: manual.id } });
+    expect(depois.descricao).toBe(`Contrato mensal de ${retencao.NOME_ANONIMO} — outubro`);
+  });
+});
+
+/**
+ * Reparo de anonimizações feitas antes do RN06 e do RN07.
+ *
+ * Um cliente anonimizado pela versão antiga já teve o cadastro sobrescrito, e
+ * o nome original só existe no log — justamente o que precisa ser limpo.
+ */
+describe('reparo de anonimizações antigas', () => {
+  /** Simula a anonimização da versão antiga: só o cadastro, nada mais. */
+  async function anonimizarComoAntes() {
+    const admin = await logar(request, app, 'admin');
+    await admin.post(`/ordens/${dados.ordens.andamento.id}/faturar`).type('form').send({});
+    await aguardarGravacoes();
+
+    await prisma.cliente.update({
+      where: { id: dados.cliente.id },
+      data: {
+        nome: retencao.NOME_ANONIMO, cpfCnpj: retencao.documentoAnonimo(dados.cliente.id),
+        email: null, ativo: false, anonimizadoEm: new Date(),
+      },
+    });
+    await aguardarGravacoes();
+  }
+
+  test('a premissa: a versão antiga deixava o nome na conta e no log', async () => {
+    await anonimizarComoAntes();
+
+    const conta = await prisma.contaReceber.findUnique({ where: { ordemId: dados.ordens.andamento.id } });
+    expect(conta.descricao).toContain('Cliente de Teste');
+    expect(JSON.stringify(await prisma.logAuditoria.findMany())).toContain('Cliente de Teste');
+  });
+
+  test('o reparo recupera o nome pelo log e limpa conta e log', async () => {
+    await anonimizarComoAntes();
+
+    const resumo = await retencao.repararAnonimizacao(dados.cliente.id);
+
+    expect(resumo.contasRedigidas).toBe(1);
+    const conta = await prisma.contaReceber.findUnique({ where: { ordemId: dados.ordens.andamento.id } });
+    expect(conta.descricao).not.toContain('Cliente de Teste');
+
+    await aguardarGravacoes();
+    const log = JSON.stringify(await prisma.logAuditoria.findMany());
+    expect(log).not.toContain('Cliente de Teste');
+    expect(log).not.toContain('cliente@teste.com');
+  });
+
+  test('é idempotente: a segunda passada não muda nada', async () => {
+    await anonimizarComoAntes();
+    await retencao.repararAnonimizacao(dados.cliente.id);
+
+    const segunda = await retencao.repararAnonimizacao(dados.cliente.id);
+
+    expect(segunda).toEqual({ contasRedigidas: 0, logClienteRedigidos: 0, logContasRedigidos: 0 });
+  });
+
+  test('cliente que não foi anonimizado é recusado', async () => {
+    await expect(retencao.repararAnonimizacao(dados.cliente.id))
+      .rejects.toThrow(/não foi anonimizado/);
   });
 });
 
