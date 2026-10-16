@@ -41,6 +41,7 @@ CORS_ORIGINS=
 | `JWT_SECRET` | `src/controllers/authController.js` | sim | Assinatura do token das rotas de API (`/api/*`) |
 | `SESSION_SECRET` | `src/app.js` | sim | Assinatura do cookie de sessão das telas web |
 | `TEST_DATABASE_URL` | `tests/helpers/ambiente.js` | só nos testes | Banco **vazio e separado** para a suíte de integração (ver seção 6) |
+| `NOMINATIM_CONTATO` | `src/services/geocodificacaoService.js` | não | E-mail de contato enviado ao Nominatim no `User-Agent`, como a política do serviço recomenda (Módulo 6). Fica fora do repositório de propósito |
 | `CORS_ORIGINS` | `src/config/seguranca.js` | não | Origens autorizadas a chamar a API, separadas por vírgula. Vazio = nenhuma origem cruzada (NF007) |
 
 > `JWT_SECRET` e `SESSION_SECRET` são chaves distintas de propósito: o site usa
@@ -175,9 +176,9 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 287 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 316 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa — 603 testes, todos passando
+npm run test:unit         :: 330 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 342 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 672 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
@@ -208,6 +209,7 @@ npm run test:integration
 |---|---|
 | `tests/unit/` | Regras dos services: orçamento, garantia, estoque, itens da OS, financeiro, relatórios, CSV e histórico do equipamento |
 | `tests/integration/perfis.test.js` | Controle de acesso dos 7 perfis (RF022/RF023) |
+| `tests/integration/entregas.test.js` | Módulo 6: saída de entrega, posição, paradas, cancelamento e auditoria (RN15–RN25) |
 | `tests/integration/modeloEntregas.test.js` | Módulo 6: regras que o banco garante nas entregas e o perfil ENTREGADOR |
 | `tests/integration/estoque.test.js` | Movimentações, saldo × razão, peças na OS (RF014/RF015) |
 | `tests/integration/financeiro.test.js` | Contas a pagar/receber e a conta gerada no encerramento (RF020/RF021) |
@@ -225,7 +227,7 @@ npm run test:integration
 
 ### Situação da suíte
 
-**Os 603 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+**Os 672 testes passam**, inclusive `npm test`. Até 14/10/2026 o
 `tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
 contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 

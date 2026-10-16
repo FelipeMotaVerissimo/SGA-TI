@@ -17,9 +17,17 @@
   </div>
 
   <nav id="menu-principal">
+    <%# Módulo 6: o entregador vai direto para a saída; o dashboard não é para ele. %>
+    <% if (!locals.usuario || locals.usuario.perfil !== 'ENTREGADOR') { %>
     <a href="/dashboard" class="<%= locals.path === '/dashboard' ? 'ativo' : '' %>">
       📊 Dashboard
     </a>
+    <% } %>
+    <% if (pode('ENTREGADOR')) { %>
+    <a href="/entregas/saida" class="<%= locals.path && locals.path.startsWith('/entregas') ? 'ativo' : '' %>">
+      🚚 Entregas
+    </a>
+    <% } %>
     <% if (pode('ATENDENTE')) { %>
     <a href="/clientes" class="<%= locals.path && locals.path.startsWith('/clientes') ? 'ativo' : '' %>">
       👤 Clientes

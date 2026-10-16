@@ -26,6 +26,10 @@ async function limpar() {
   if (memoriaLogin && typeof memoriaLogin.resetAll === 'function') memoriaLogin.resetAll();
   if (memoriaConsulta && typeof memoriaConsulta.resetAll === 'function') memoriaConsulta.resetAll();
 
+  // NF005: o log é gravado sem `await`. Uma gravação atrasada do teste anterior
+  // cairia depois desta limpeza e apareceria no teste seguinte com outro autor.
+  await aguardarGravacoes();
+
   // NF005: os logs saem primeiro — referenciam usuarios, e sem limpar aqui um
   // teste enxergaria a auditoria gerada pelo teste anterior.
   await prisma.logAuditoria.deleteMany();
@@ -171,9 +175,13 @@ async function semear() {
   return { perfis, usuarios, cliente, equipamento, produtos, ordens, servicos, tiposServico, contas, SENHA };
 }
 
-/** Lê o token CSRF do formulário "Sair", presente em toda tela autenticada. */
+/**
+ * Lê o token CSRF do formulário "Sair", presente em toda tela autenticada.
+ * Segue o redirecionamento: o ENTREGADOR é mandado do dashboard para a tela
+ * de entregas (Módulo 6), e a resposta do redirect não tem formulário.
+ */
 async function lerTokenCsrf(agente) {
-  const res = await agente.get('/dashboard');
+  const res = await agente.get('/dashboard').redirects(2);
   const m = res.text.match(/name="_csrf" value="([0-9a-f]{64})"/);
   return m ? m[1] : null;
 }

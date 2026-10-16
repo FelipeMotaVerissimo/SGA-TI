@@ -38,6 +38,11 @@ function logout(req, res) {
  * "Nenhuma ordem de serviço cadastrada" mesmo com o banco cheio.
  */
 async function dashboard(req, res) {
+  // Módulo 6: o entregador não tem o que fazer no dashboard — e ele mostraria
+  // as OS recentes, com nome de cliente, a quem só leva o equipamento.
+  if (req.session.usuario && req.session.usuario.perfil === 'ENTREGADOR') {
+    return res.redirect('/entregas/saida');
+  }
   try {
     const inicioDoMes = new Date();
     inicioDoMes.setDate(1);

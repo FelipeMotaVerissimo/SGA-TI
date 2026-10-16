@@ -95,6 +95,7 @@ usuário. Perde-se quem fez, nunca o registro de que foi feito.
 | RN06 | A tela mostra **só o que mudou**, comparando anterior e novo | Numa alteração que muda o telefone, o gestor quer ver o telefone, não os quinze campos que vieram iguais no `data` |
 | RN07 | Não existe rota de escrita em `/auditoria` | Um log que o operador pode editar não prova nada |
 | RN08 | **Exceção única:** a anonimização de um cliente (NF008) redige os valores pessoais dele no log | O direito do titular (art. 18 da LGPD) prevalece sobre a imutabilidade do log. O registro não é apagado — só os valores pessoais são trocados por uma marca —, e a própria anonimização fica registrada com autor e data. Ver `docs/RETENCAO.md`, seção 3.3 |
+| RN09 | O model `PosicaoEntrega` (Módulo 6) **não é auditado** | Uma posição a cada ~10 s durante a entrega: auditar cada uma multiplicaria o log sem dizer quem alterou o quê. Os eventos da saída — iniciar, marcar entregue ou não entregue, encerrar, cancelar — continuam auditados normalmente |
 
 ### Por que a gravação não usa `await`
 
@@ -159,6 +160,14 @@ Cobertura dos pontos que importam:
   contagem de registros;
 - período invertido volta com aviso em vez de quebrar;
 - falha ao gravar o log não derruba a operação de negócio.
+
+O Módulo 6 acrescenta, em `tests/integration/entregas.test.js`, a prova de
+que os eventos da saída são auditados com o entregador como autor e de que as
+posições **não** são.
+
+Como a gravação não usa `await`, a limpeza da fixture entre os testes espera
+as gravações pendentes antes de apagar o log; sem isso, um registro atrasado
+do teste anterior aparecia no seguinte com outro autor.
 
 ---
 

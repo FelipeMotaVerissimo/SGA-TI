@@ -11,6 +11,7 @@ const financeiroWeb    = require('../controllers/financeiroWebController');     
 const relatorioWeb     = require('../controllers/relatorioWebController');        // Módulo 5
 const tipoServicoWeb   = require('../controllers/tipoServicoWebController');      // Módulo 5
 const auditoriaWeb     = require('../controllers/auditoriaWebController');        // NF005
+const entregaWeb       = require('../controllers/entregaWebController');          // Módulo 6
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
 const { limitadorLogin, limitadorConsulta } = require('../config/seguranca');      // NF007
@@ -28,6 +29,7 @@ const PERFIS_APROVACAO  = ['ATENDENTE', 'VENDEDOR'];            // registrar a r
 const PERFIS_PRODUTO    = ['COMPRAS'];                          // cadastro e estoque (RF015)
 const PERFIS_ITEM_OS    = ['VENDEDOR'];                         // lançar peça na OS
 const PERFIS_FINANCEIRO = ['FINANCEIRO'];                       // contas a pagar/receber
+const PERFIS_ENTREGA    = ['ENTREGADOR'];                       // saída de entrega (Módulo 6)
 
 // Rota raiz
 router.get('/', (req, res) => res.redirect('/login'));
@@ -122,6 +124,16 @@ router.get('/relatorios/:relatorio/csv', sessaoMiddleware, exigirPerfil(), relat
 // Existe só o GET de propósito: sem rota de escrita, não há como alterar ou
 // apagar um registro de auditoria pelo sistema.
 router.get('/auditoria', sessaoMiddleware, exigirPerfil(), auditoriaWeb.exibir);
+
+// Entregas (Módulo 6). O entregador conduz a saída; o administrador também pode
+// (passa em tudo) e é o único que cancela (RN25).
+router.get('/entregas/saida',               sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.exibirSaida);
+router.post('/entregas/saida',              sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.iniciar);
+router.post('/entregas/saida/posicao',      sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.registrarPosicao);
+router.post('/entregas/saida/encerrar',     sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.encerrar);
+router.post('/entregas/:id/entregue',       sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.marcarEntregue);
+router.post('/entregas/:id/nao-entregue',   sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.marcarNaoEntregue);
+router.post('/entregas/saidas/:id/cancelar', sessaoMiddleware, exigirPerfil(),                  entregaWeb.cancelar);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);

@@ -33,7 +33,10 @@ const contexto = require('../config/contextoRequisicao');
  */
 
 /** Models que não são auditados, para não gerar recursão nem ruído. */
-const MODELS_IGNORADOS = new Set(['LogAuditoria']);
+// PosicaoEntrega (Módulo 6): uma linha a cada ~10 s durante a entrega. Auditar
+// cada uma multiplicaria o log sem dizer nada de novo; os eventos da saída
+// (iniciar, marcar, encerrar, cancelar) continuam auditados.
+const MODELS_IGNORADOS = new Set(['LogAuditoria', 'PosicaoEntrega']);
 
 /** Campos que nunca podem ser gravados no log, em nenhum model. */
 const CAMPOS_SENSIVEIS = new Set(['senha']);

@@ -729,6 +729,35 @@ endereço errado).
 posição desta saída". É a tabela de maior volume do sistema; fica fora da
 auditoria e terá prazo de retenção próprio.
 
+#### Regras de fluxo das entregas (RN15 a RN25)
+
+RN13 e RN14 são garantidas pelo banco (5.14 e 5.15). As demais ficam em
+`src/services/entregaService.js`; testes em `tests/unit/entregaService.test.js`
+e `tests/integration/entregas.test.js`.
+
+| ID | Regra | Quando viola |
+|---|---|---|
+| RN15 | Só OS `FINALIZADO` entram numa saída; a seleção é tudo ou nada | 400, nada é criado |
+| RN16 | OS já `ENTREGUE` não volta à lista; `NAO_ENTREGUE` pode sair de novo. A lista mostra as faturadas nos últimos 30 dias `[VALIDAR: prazo]` | Fora da lista; forçada, 400 |
+| RN17 | Saída sem OS não inicia | 400 |
+| RN18 | O entregador da saída é o usuário logado | — |
+| RN19 | Posição só na saída em rota e só pelo entregador dela | 409 sem saída; 403 de outro usuário |
+| RN20 | Latitude entre −90 e 90, longitude entre −180 e 180, precisão ≥ 0 | 400 |
+| RN21 | Posição a menos de 5 s da anterior é descartada sem erro | 202 `{ descartada: true }` |
+| RN22 | Marcar `ENTREGUE`/`NAO_ENTREGUE` só em entrega `PENDENTE` da saída em rota, pelo entregador dela ou pelo administrador; limpa `tokenHash` e `ordemPendenteId` | 400 / 403 |
+| RN23 | `NAO_ENTREGUE` exige motivo de 3 caracteres ou mais | 400 |
+| RN24 | Encerrar exige nenhuma entrega `PENDENTE`; vira `CONCLUIDA` e solta o `emRota` | 400, listando as OS pendentes |
+| RN25 | Só o administrador cancela; pendentes viram `NAO_ENTREGUE` com motivo "Saída cancelada" e todos os tokens são limpos | 403 |
+
+**Geocodificação.** O destino é buscado no Nominatim (OpenStreetMap) **depois**
+que a saída começa, em segundo plano: o entregador não espera a busca para
+sair. A fila respeita 1 requisição por segundo, a política do serviço. Com a
+cidade cadastrada, a busca vai **sem o CEP**: a base de CEPs do OpenStreetMap
+no Brasil é fraca, e com o CEP genérico da cidade uma rua existente não foi
+encontrada — achado no navegador, com o serviço real. Falha não impede nada:
+fica registrada no log do servidor (só o motivo, nunca o endereço) e o destino
+fica nulo.
+
 ---
 
 ## 6. Relacionamentos e cardinalidades

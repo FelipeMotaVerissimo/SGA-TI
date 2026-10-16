@@ -1,0 +1,140 @@
+<%
+  // Módulo 6 — tela da saída de entrega. Versão simples, sem GPS: a Etapa 4
+  // acrescenta o envio de posição, o Wake Lock e o acabamento para celular.
+  const ehAdmin = locals.usuario && locals.usuario.perfil === 'ADMINISTRADOR';
+  const endereco = (c) => [
+    [c.endereco, c.numero].filter(Boolean).join(', '),
+    c.bairro,
+    [c.cidade, c.estado].filter(Boolean).join('/'),
+  ].filter(Boolean).join(' — ') || 'Endereço não cadastrado';
+  const rotulo = { PENDENTE: 'Pendente', ENTREGUE: 'Entregue', NAO_ENTREGUE: 'Não entregue' };
+  const cor    = { PENDENTE: 'badge-amarelo', ENTREGUE: 'badge-verde', NAO_ENTREGUE: 'badge-vermelho' };
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/entregas' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>🚚 Saída de entrega</h1>
+        <p>Leve as OS finalizadas e marque cada parada</p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <% if (ativa) { %>
+      <div class="tabela-box" style="margin-bottom:16px">
+        <div class="tabela-header">
+          <h2>Saída em rota</h2>
+          <span style="font-size:13px; color:#555">
+            Entregador: <strong><%= ativa.entregador.nome %></strong> ·
+            desde <%= new Date(ativa.iniciadaEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %>
+          </span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>OS</th>
+              <th>Cliente e endereço</th>
+              <th>Situação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% ativa.entregas.forEach(e => { const c = e.ordem.equipamento.cliente; %>
+            <tr>
+              <td><%= e.ordemParada %></td>
+              <td><%= e.ordem.numero %></td>
+              <td>
+                <strong><%= c.nome %></strong><br>
+                <span style="font-size:12px; color:#666"><%= endereco(c) %></span>
+              </td>
+              <td>
+                <span class="badge <%= cor[e.status] %>"><%= rotulo[e.status] %></span>
+                <% if (e.motivo) { %><br><span style="font-size:12px; color:#888"><%= e.motivo %></span><% } %>
+              </td>
+              <td>
+                <% if (e.status === 'PENDENTE') { %>
+                <form action="/entregas/<%= e.id %>/entregue" method="POST" style="display:inline"
+                  data-confirmar="Confirmar a entrega da OS <%= e.ordem.numero %>?">
+                  <%- include('../partials/csrf') %>
+                  <button type="submit" class="btn btn-success btn-sm">✅ Entregue</button>
+                </form>
+                <form action="/entregas/<%= e.id %>/nao-entregue" method="POST" style="display:inline-flex; gap:4px; margin-top:4px">
+                  <%- include('../partials/csrf') %>
+                  <input type="text" name="motivo" placeholder="Motivo" required minlength="3" maxlength="200" style="width:140px">
+                  <button type="submit" class="btn btn-danger btn-sm">Não entregue</button>
+                </form>
+                <% } else { %>
+                <span style="color:#aaa">—</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap">
+        <form action="/entregas/saida/encerrar" method="POST"
+          data-confirmar="Encerrar a saída? Todas as paradas precisam estar marcadas.">
+          <%- include('../partials/csrf') %>
+          <button type="submit" class="btn btn-primary">🏁 Encerrar saída</button>
+        </form>
+        <% if (ehAdmin) { %>
+        <form action="/entregas/saidas/<%= ativa.id %>/cancelar" method="POST"
+          data-confirmar="Cancelar a saída? As entregas pendentes ficam como não entregues.">
+          <%- include('../partials/csrf') %>
+          <button type="submit" class="btn btn-danger">Cancelar saída</button>
+        </form>
+        <% } %>
+      </div>
+
+      <% } else { %>
+      <div class="form-box">
+        <h2 style="font-size:15px; font-weight:600; margin-bottom:12px; color:#185FA5">Iniciar saída</h2>
+        <% if (elegiveis.length === 0) { %>
+        <p style="color:#888">
+          Nenhuma OS finalizada aguardando entrega nos últimos <%= diasElegivel %> dias.
+        </p>
+        <% } else { %>
+        <form action="/entregas/saida" method="POST">
+          <%- include('../partials/csrf') %>
+          <div class="tabela-box" style="margin-bottom:12px">
+            <table>
+              <thead>
+                <tr><th></th><th>OS</th><th>Cliente e endereço</th><th>Faturada em</th></tr>
+              </thead>
+              <tbody>
+                <% elegiveis.forEach(os => { const c = os.equipamento.cliente; %>
+                <tr>
+                  <td><input type="checkbox" name="ordemIds" value="<%= os.id %>" id="os-<%= os.id %>"></td>
+                  <td><label for="os-<%= os.id %>"><%= os.numero %></label></td>
+                  <td>
+                    <strong><%= c.nome %></strong><br>
+                    <span style="font-size:12px; color:#666"><%= endereco(c) %></span>
+                  </td>
+                  <td><%= os.dataFechamento ? new Date(os.dataFechamento).toLocaleDateString('pt-BR') : '—' %></td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <button type="submit" class="btn btn-primary">🚚 Iniciar saída</button>
+        </form>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
