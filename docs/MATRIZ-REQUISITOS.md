@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 330 testes unitários + 342 de integração (672 no total, todos passando)
+**Suíte de referência:** 352 testes unitários + 347 de integração (699 no total, todos passando)
 
 ---
 

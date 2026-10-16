@@ -353,3 +353,56 @@ describe('auditoria', () => {
     expect(logs.every((l) => l.usuarioId === dados.usuarios.entregador.id)).toBe(true);
   });
 });
+
+// --------------------------------------------------------------------------
+describe('tela do entregador (Etapa 4)', () => {
+  test('o entregador da saída recebe o script do GPS e a faixa de status', async () => {
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [FIN().id]);
+    const tela = await entregador.get('/entregas/saida');
+
+    expect(tela.text).toContain('<script src="/js/entregador.js" defer></script>');
+    expect(tela.text).toContain('id="painel-gps" class="painel-gps" data-enviar="1"');
+    expect(tela.text).toMatch(/class="gps-faixa/);
+  });
+
+  test('o administrador acompanha, mas não envia posição (RN19)', async () => {
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [FIN().id]);
+    const tela = await (await logar(request, app, 'admin')).get('/entregas/saida');
+
+    expect(tela.text).toContain('data-enviar="0"');
+    expect(tela.text).not.toContain('/js/entregador.js');
+    expect(tela.text).toMatch(/Acompanhando a saída de/);
+  });
+
+  test('sem saída em rota, nada de GPS', async () => {
+    const tela = await (await logar(request, app, 'entregador')).get('/entregas/saida');
+    expect(tela.text).not.toContain('/js/entregador.js');
+    expect(tela.text).not.toContain('painel-gps');
+  });
+
+  test('cada parada pendente tem Navegar, Entregue e o formulário de motivo', async () => {
+    const os = await osFinalizada('OS-T-401');
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [os.id]);
+    await entregaService.aguardarGeocodificacoes();
+    const tela = await entregador.get('/entregas/saida');
+
+    // Com a coordenada geocodificada, o Navegar vai direto ao ponto.
+    expect(tela.text).toContain('https://www.google.com/maps/dir/?api=1&amp;destination=-22.221134%2C-54.805612');
+    expect(tela.text).toMatch(/action="\/entregas\/\d+\/entregue"/);
+    expect(tela.text).toMatch(/<details class="parada-nao-entregue">[\s\S]*name="motivo" required minlength="3"/);
+  });
+
+  test('sem coordenada, o Navegar usa o endereço em texto', async () => {
+    fetchSimulado.mockResolvedValue({ ok: true, json: async () => [] });
+    const os = await osFinalizada('OS-T-402');
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [os.id]);
+    await entregaService.aguardarGeocodificacoes();
+    const tela = await entregador.get('/entregas/saida');
+
+    expect(tela.text).toContain('destination=Rua%20Hayel%20Bon%20Faker%2C%201200%2C%20Centro%2C%20Dourados%2C%20MS');
+  });
+});

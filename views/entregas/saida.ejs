@@ -1,14 +1,26 @@
 <%
-  // Módulo 6 — tela da saída de entrega. Versão simples, sem GPS: a Etapa 4
-  // acrescenta o envio de posição, o Wake Lock e o acabamento para celular.
+  // Módulo 6 — tela da saída de entrega, pensada primeiro para o celular.
+  // O envio da posição (public/js/entregador.js) só liga para o entregador da
+  // saída: o administrador vê a tela, mas não manda posição (RN19).
   const ehAdmin = locals.usuario && locals.usuario.perfil === 'ADMINISTRADOR';
+  const souEntregador = ativa && locals.usuario && ativa.entregadorId === locals.usuario.id;
   const endereco = (c) => [
     [c.endereco, c.numero].filter(Boolean).join(', '),
     c.bairro,
     [c.cidade, c.estado].filter(Boolean).join('/'),
   ].filter(Boolean).join(' — ') || 'Endereço não cadastrado';
+  // "Navegar" abre o app de mapas do celular. Com a coordenada geocodificada
+  // vai direto ao ponto; sem ela, manda o endereço em texto.
+  const linkNavegar = (e) => {
+    const c = e.ordem.equipamento.cliente;
+    const destino = e.destinoLat !== null && e.destinoLng !== null
+      ? `${Number(e.destinoLat)},${Number(e.destinoLng)}`
+      : [c.endereco, c.numero, c.bairro, c.cidade, c.estado].filter(Boolean).join(', ');
+    return destino ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}` : null;
+  };
   const rotulo = { PENDENTE: 'Pendente', ENTREGUE: 'Entregue', NAO_ENTREGUE: 'Não entregue' };
   const cor    = { PENDENTE: 'badge-amarelo', ENTREGUE: 'badge-verde', NAO_ENTREGUE: 'badge-vermelho' };
+  const pendentes = ativa ? ativa.entregas.filter((e) => e.status === 'PENDENTE').length : 0;
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -31,105 +43,103 @@
       <%- include('../partials/alertas') %>
 
       <% if (ativa) { %>
-      <div class="tabela-box" style="margin-bottom:16px">
-        <div class="tabela-header">
-          <h2>Saída em rota</h2>
-          <span style="font-size:13px; color:#555">
-            Entregador: <strong><%= ativa.entregador.nome %></strong> ·
-            desde <%= new Date(ativa.iniciadaEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %>
-          </span>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>OS</th>
-              <th>Cliente e endereço</th>
-              <th>Situação</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% ativa.entregas.forEach(e => { const c = e.ordem.equipamento.cliente; %>
-            <tr>
-              <td><%= e.ordemParada %></td>
-              <td><%= e.ordem.numero %></td>
-              <td>
-                <strong><%= c.nome %></strong><br>
-                <span style="font-size:12px; color:#666"><%= endereco(c) %></span>
-              </td>
-              <td>
-                <span class="badge <%= cor[e.status] %>"><%= rotulo[e.status] %></span>
-                <% if (e.motivo) { %><br><span style="font-size:12px; color:#888"><%= e.motivo %></span><% } %>
-              </td>
-              <td>
-                <% if (e.status === 'PENDENTE') { %>
-                <form action="/entregas/<%= e.id %>/entregue" method="POST" style="display:inline"
-                  data-confirmar="Confirmar a entrega da OS <%= e.ordem.numero %>?">
-                  <%- include('../partials/csrf') %>
-                  <button type="submit" class="btn btn-success btn-sm">✅ Entregue</button>
-                </form>
-                <form action="/entregas/<%= e.id %>/nao-entregue" method="POST" style="display:inline-flex; gap:4px; margin-top:4px">
-                  <%- include('../partials/csrf') %>
-                  <input type="text" name="motivo" placeholder="Motivo" required minlength="3" maxlength="200" style="width:140px">
-                  <button type="submit" class="btn btn-danger btn-sm">Não entregue</button>
-                </form>
-                <% } else { %>
-                <span style="color:#aaa">—</span>
-                <% } %>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
+      <div id="painel-gps" class="painel-gps" data-enviar="<%= souEntregador ? '1' : '0' %>">
+        <% if (souEntregador) { %>
+        <div class="gps-faixa gps-atencao">📍 Localização ainda não enviada</div>
+        <div class="gps-aviso" hidden></div>
+        <div class="gps-tela" hidden>Mantenha a tela acesa durante a entrega: com ela bloqueada, o celular para de enviar a localização.</div>
+        <% } else { %>
+        <div class="gps-faixa gps-info">Acompanhando a saída de <strong><%= ativa.entregador.nome %></strong> — a localização é enviada pelo celular dele.</div>
+        <% } %>
       </div>
 
-      <div style="display:flex; gap:12px; flex-wrap:wrap">
+      <p class="saida-resumo">
+        Em rota desde <%= new Date(ativa.iniciadaEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %> ·
+        <strong><%= pendentes %></strong> de <%= ativa.entregas.length %> parada(s) pendente(s)
+      </p>
+
+      <div class="paradas">
+        <% ativa.entregas.forEach(e => { const c = e.ordem.equipamento.cliente; const nav = linkNavegar(e); %>
+        <div class="parada-cartao <%= e.status === 'PENDENTE' ? '' : 'parada-concluida' %>">
+          <div class="parada-topo">
+            <span class="parada-numero"><%= e.ordemParada %></span>
+            <div class="parada-dados">
+              <strong><%= c.nome %></strong>
+              <span class="parada-endereco"><%= endereco(c) %></span>
+              <span class="parada-os"><%= e.ordem.numero %></span>
+            </div>
+            <span class="badge <%= cor[e.status] %>"><%= rotulo[e.status] %></span>
+          </div>
+          <% if (e.motivo) { %><p class="parada-motivo"><%= e.motivo %></p><% } %>
+
+          <% if (e.status === 'PENDENTE') { %>
+          <div class="parada-acoes">
+            <% if (nav) { %>
+            <a href="<%= nav %>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-grande">🧭 Navegar</a>
+            <% } %>
+            <form action="/entregas/<%= e.id %>/entregue" method="POST"
+              data-confirmar="Confirmar a entrega da OS <%= e.ordem.numero %>?">
+              <%- include('../partials/csrf') %>
+              <button type="submit" class="btn btn-success btn-grande">✅ Entregue</button>
+            </form>
+          </div>
+          <details class="parada-nao-entregue">
+            <summary>Não entregue</summary>
+            <form action="/entregas/<%= e.id %>/nao-entregue" method="POST">
+              <%- include('../partials/csrf') %>
+              <label for="motivo-<%= e.id %>">Motivo</label>
+              <input type="text" id="motivo-<%= e.id %>" name="motivo" required minlength="3" maxlength="200"
+                placeholder="Cliente ausente, endereço errado…">
+              <button type="submit" class="btn btn-danger btn-grande">Registrar não entrega</button>
+            </form>
+          </details>
+          <% } %>
+        </div>
+        <% }) %>
+      </div>
+
+      <div class="saida-fim">
         <form action="/entregas/saida/encerrar" method="POST"
           data-confirmar="Encerrar a saída? Todas as paradas precisam estar marcadas.">
           <%- include('../partials/csrf') %>
-          <button type="submit" class="btn btn-primary">🏁 Encerrar saída</button>
+          <button type="submit" class="btn btn-primary btn-grande">🏁 Encerrar saída</button>
         </form>
         <% if (ehAdmin) { %>
         <form action="/entregas/saidas/<%= ativa.id %>/cancelar" method="POST"
           data-confirmar="Cancelar a saída? As entregas pendentes ficam como não entregues.">
           <%- include('../partials/csrf') %>
-          <button type="submit" class="btn btn-danger">Cancelar saída</button>
+          <button type="submit" class="btn btn-danger btn-grande">Cancelar saída</button>
         </form>
         <% } %>
       </div>
 
+      <% if (souEntregador) { %>
+      <script src="/js/entregador.js" defer></script>
+      <% } %>
+
       <% } else { %>
       <div class="form-box">
-        <h2 style="font-size:15px; font-weight:600; margin-bottom:12px; color:#185FA5">Iniciar saída</h2>
+        <h2 class="secao-titulo">Iniciar saída</h2>
         <% if (elegiveis.length === 0) { %>
-        <p style="color:#888">
+        <p class="texto-apagado">
           Nenhuma OS finalizada aguardando entrega nos últimos <%= diasElegivel %> dias.
         </p>
         <% } else { %>
         <form action="/entregas/saida" method="POST">
           <%- include('../partials/csrf') %>
-          <div class="tabela-box" style="margin-bottom:12px">
-            <table>
-              <thead>
-                <tr><th></th><th>OS</th><th>Cliente e endereço</th><th>Faturada em</th></tr>
-              </thead>
-              <tbody>
-                <% elegiveis.forEach(os => { const c = os.equipamento.cliente; %>
-                <tr>
-                  <td><input type="checkbox" name="ordemIds" value="<%= os.id %>" id="os-<%= os.id %>"></td>
-                  <td><label for="os-<%= os.id %>"><%= os.numero %></label></td>
-                  <td>
-                    <strong><%= c.nome %></strong><br>
-                    <span style="font-size:12px; color:#666"><%= endereco(c) %></span>
-                  </td>
-                  <td><%= os.dataFechamento ? new Date(os.dataFechamento).toLocaleDateString('pt-BR') : '—' %></td>
-                </tr>
-                <% }) %>
-              </tbody>
-            </table>
+          <div class="paradas">
+            <% elegiveis.forEach(os => { const c = os.equipamento.cliente; %>
+            <label class="parada-cartao parada-escolha" for="os-<%= os.id %>">
+              <input type="checkbox" name="ordemIds" value="<%= os.id %>" id="os-<%= os.id %>">
+              <div class="parada-dados">
+                <strong><%= c.nome %></strong>
+                <span class="parada-endereco"><%= endereco(c) %></span>
+                <span class="parada-os"><%= os.numero %> · faturada em <%= os.dataFechamento ? new Date(os.dataFechamento).toLocaleDateString('pt-BR') : '—' %></span>
+              </div>
+            </label>
+            <% }) %>
           </div>
-          <button type="submit" class="btn btn-primary">🚚 Iniciar saída</button>
+          <button type="submit" class="btn btn-primary btn-grande">🚚 Iniciar saída</button>
         </form>
         <% } %>
       </div>

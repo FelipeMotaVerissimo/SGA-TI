@@ -531,3 +531,96 @@ tbody tr:hover {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 }
+
+/* ===== MÓDULO 6 — SAÍDA DE ENTREGA (pensada primeiro para o celular) ===== */
+.painel-gps { margin-bottom: 12px; }
+
+.gps-faixa {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.gps-ok      { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+.gps-atencao { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+.gps-falha   { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+.gps-info    { background: #ebf4ff; color: #185FA5; border: 1px solid #bee3f8; font-weight: 400; }
+
+.gps-aviso, .gps-tela {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.saida-resumo { margin: 0 0 12px; color: #555; font-size: 14px; }
+
+.paradas {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.parada-cartao {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+}
+.parada-concluida { opacity: 0.65; }
+
+.parada-topo { display: flex; gap: 12px; align-items: flex-start; }
+
+.parada-numero {
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #185FA5;
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parada-dados { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.parada-endereco { font-size: 13px; color: #555; }
+.parada-os { font-size: 12px; color: #888; }
+.parada-motivo { margin: 8px 0 0; font-size: 13px; color: #888; }
+
+.parada-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.parada-acoes form { display: contents; }
+
+.parada-nao-entregue { margin-top: 10px; }
+.parada-nao-entregue summary { cursor: pointer; color: #c53030; font-size: 14px; padding: 6px 0; }
+.parada-nao-entregue form { display: grid; gap: 8px; margin-top: 8px; }
+.parada-nao-entregue input { padding: 10px; font-size: 16px; border: 1px solid #cbd5e0; border-radius: 6px; }
+
+.parada-escolha { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.parada-escolha input { width: 22px; height: 22px; margin-top: 2px; }
+
+/* Botões que o polegar acerta na rua: 48 px de altura. */
+.btn-grande {
+  min-height: 48px;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.saida-fim { display: flex; gap: 12px; flex-wrap: wrap; }
+.secao-titulo { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #185FA5; }
+.texto-apagado { color: #888; }
+
+@media (max-width: 768px) {
+  .saida-fim { flex-direction: column; }
+  .saida-fim .btn-grande { width: 100%; }
+}

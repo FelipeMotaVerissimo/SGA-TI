@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 330 | 330 | 0 |
-| Integração | 342 | 342 | 0 |
-| **Total** | **672** | **672** | **0** |
+| Unitários | 352 | 352 | 0 |
+| Integração | 347 | 347 | 0 |
+| **Total** | **699** | **699** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 330 testes
-npm run test:integration  :: 342 testes
-npm test                  :: suíte completa — 672 testes
+npm run test:unit         :: 352 testes
+npm run test:integration  :: 347 testes
+npm test                  :: suíte completa — 699 testes
 ```
 
-### 1.2 Testes unitários — 330 casos
+### 1.2 Testes unitários — 352 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -50,12 +50,13 @@ banco, rodam em cerca de 3 segundos.
 | `retencaoService.test.js` | 12 | NF008 — busca do dado pessoal em texto livre |
 | `entregaService.test.js` | 28 | Módulo 6 — regras da saída de entrega (RN15–RN25) |
 | `geocodificacaoService.test.js` | 15 | Módulo 6 — busca no Nominatim, falhas, timeout e intervalo da fila |
+| `entregadorScript.test.js` | 22 | Módulo 6 — mensagens do GPS, idade do envio e reação às respostas do servidor (script do celular) |
 | `csvService.test.js` | 12 | Separador, BOM, decimal com vírgula |
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 342 casos
+### 1.3 Testes de integração — 347 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -66,7 +67,7 @@ isolado, recriado a cada suíte.
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
 | `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
-| `entregas.test.js` | 26 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria e perfis |
+| `entregas.test.js` | 31 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis e a tela do entregador |
 | `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
@@ -89,7 +90,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **330 unitários e 342 de integração passando**. Isso importa porque o
+números: **352 unitários e 347 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
