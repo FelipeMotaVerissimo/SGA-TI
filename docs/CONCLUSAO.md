@@ -14,7 +14,7 @@ desenvolvido em Node.js com Express, Prisma e MySQL, com interface renderizada n
 servidor em EJS. Cobre o ciclo completo de um atendimento: cadastro de cliente e
 equipamento, abertura da ordem de serviço, orçamento, registro dos serviços
 executados com controle de garantia, consumo de peças do estoque, faturamento e
-relatórios gerenciais. O acesso é segmentado em seis perfis, e o cliente
+relatórios gerenciais. O acesso é segmentado em sete perfis, e o cliente
 acompanha o próprio conserto por uma consulta pública, sem autenticação.
 
 O desenvolvimento foi dividido em cinco módulos entregues em sequência, cada um

@@ -16,8 +16,8 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
 | Unitários | 287 | 287 | 0 |
-| Integração | 295 | 295 | 0 |
-| **Total** | **582** | **582** | **0** |
+| Integração | 316 | 316 | 0 |
+| **Total** | **603** | **603** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -26,8 +26,8 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 
 ```cmd
 npm run test:unit         :: 287 testes
-npm run test:integration  :: 295 testes
-npm test                  :: suíte completa — 582 testes
+npm run test:integration  :: 316 testes
+npm test                  :: suíte completa — 603 testes
 ```
 
 ### 1.2 Testes unitários — 287 casos
@@ -53,17 +53,18 @@ banco, rodam em cerca de 3 segundos.
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 295 casos
+### 1.3 Testes de integração — 316 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
 
 | Arquivo | Casos | O que cobre |
 |---|---|---|
-| `api.test.js` | 32 | API REST com JWT, inclusive a criação de usuário restrita ao admin |
+| `api.test.js` | 33 | API REST com JWT, inclusive a criação de usuário restrita ao admin |
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
 | `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
-| `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 6 perfis |
+| `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
+| `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
 | `dashboard.test.js` | 16 | Blocos por perfil e exportação CSV |
@@ -85,7 +86,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **287 unitários e 295 de integração passando**. Isso importa porque o
+números: **287 unitários e 316 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -350,7 +351,7 @@ oculto, margem de 220 px no conteúdo — exatamente como antes.
 | **Software — migrations** | ✅ Executado | CI aplica as 5 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); Firefox, Safari e aparelho real pendentes |
-| **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 14 tabelas comparadas, 0 divergências |
+| **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 17 tabelas comparadas, 0 divergências |
 | **Carga e concorrência** | ⬜ Fora de escopo | — |
 
 As três atividades não executadas dependem de ação fora do código: agenda do

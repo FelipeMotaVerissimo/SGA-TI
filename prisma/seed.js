@@ -5,26 +5,28 @@ const prisma = new PrismaClient();
 /**
  * Seed do SGA TI.
  *
- *   npm run seed        → os 6 perfis e o usuário `admin`
+ *   npm run seed        → os 7 perfis e o usuário `admin`
  *   npm run seed:demo   → o mesmo, mais um usuário por perfil
  *
  * Os usuários de demonstração ficam atrás de um comando próprio de propósito.
- * Criar seis contas com senha conhecida é aceitável numa máquina de
+ * Criar sete contas com senha conhecida é aceitável numa máquina de
  * demonstração e inaceitável em produção — e um seed que faz isso por padrão
  * acaba rodando em produção mais cedo ou mais tarde.
  */
 
-const PERFIS = ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS'];
+// Módulo 6: ENTREGADOR leva as OS finalizadas e só acessa as telas de entrega.
+const PERFIS = ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS', 'ENTREGADOR'];
 
 const SENHA_PADRAO = 'admin123';
 
-/** Os cinco perfis não administrativos, para exercitar o RF022/RF023. */
+/** Os seis perfis não administrativos, para exercitar o RF022/RF023. */
 const USUARIOS_DEMO = [
   { login: 'atendente',  nome: 'Atendente de Demonstração',  perfil: 'ATENDENTE' },
   { login: 'tecnico',    nome: 'Técnico de Demonstração',    perfil: 'TECNICO' },
   { login: 'vendedor',   nome: 'Vendedor de Demonstração',   perfil: 'VENDEDOR' },
   { login: 'financeiro', nome: 'Financeiro de Demonstração', perfil: 'FINANCEIRO' },
   { login: 'compras',    nome: 'Compras de Demonstração',    perfil: 'COMPRAS' },
+  { login: 'entregador', nome: 'Entregador de Demonstração', perfil: 'ENTREGADOR' },
 ];
 
 /** Cria o usuário se ainda não existir. Devolve se criou, para o relatório. */

@@ -16,12 +16,12 @@
 |---|---|
 | `npm ci` | Instala exatamente o que está no `package-lock.json` |
 | `prisma generate` | Gera o client a partir do schema de **MySQL**, não do de desenvolvimento |
-| `prisma migrate deploy` | Aplica as 7 migrations num MySQL 8 vazio |
+| `prisma migrate deploy` | Aplica as 8 migrations num MySQL 8 vazio |
 | `prisma migrate diff --exit-code` | **Falha o build** se o banco criado pelas migrations divergir do `schema.prisma` |
 | `npm run seed` | Prova que o seed roda num banco recém-migrado |
 | `npm run test:unit` | 287 testes |
-| `npm run test:integration` | 295 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
-| `npm run backup` + `conferir-restauracao.sh` | NF006: gera o dump, restaura num banco novo e compara as 14 tabelas |
+| `npm run test:integration` | 316 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
+| `npm run backup` + `conferir-restauracao.sh` | NF006: gera o dump, restaura num banco novo e compara as 17 tabelas |
 
 ### O ganho que isso traz
 
@@ -124,7 +124,7 @@ set DATABASE_URL=mysql://avnadmin:SENHA@sga-ti-xxxx.aivencloud.com:12345/default
 npm run seed
 ```
 
-Isso cria os 6 perfis e o usuário `admin` / `admin123`.
+Isso cria os 7 perfis e o usuário `admin` / `admin123`.
 
 > **Trocar a senha do `admin` imediatamente após o primeiro acesso.** Ela está
 > escrita neste documento, no `prisma/seed.js` e no `COMO-RODAR.md` — ou seja, é

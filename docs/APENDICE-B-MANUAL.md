@@ -65,7 +65,7 @@ dentro da própria caixa, sem empurrar a página.
 
 ![Dashboard no celular, menu aberto](prints/32-celular-menu-aberto.png)
 
-### Os seis perfis
+### Os sete perfis
 
 | Perfil | O que faz |
 |---|---|
@@ -74,6 +74,7 @@ dentro da própria caixa, sem empurrar a página.
 | **Técnico** | Executa: muda status, registra serviços e garantia |
 | **Compras** | Cadastra produtos e movimenta o estoque |
 | **Financeiro** | Contas a pagar e a receber |
+| **Entregador** | Leva as OS finalizadas até o cliente. Acessa só as telas de entrega `[VALIDAR: descrever as telas quando o Módulo 6 estiver concluído]` |
 | **Administrador** | Tudo, mais usuários, relatórios, auditoria e o **faturamento** |
 
 ### Sair

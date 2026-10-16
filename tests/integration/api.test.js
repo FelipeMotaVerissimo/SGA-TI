@@ -25,6 +25,7 @@ const LOGIN_DO_PERFIL = {
   VENDEDOR:      'vendedor',
   FINANCEIRO:    'financeiro',
   COMPRAS:       'compras',
+  ENTREGADOR:    'entregador',
 };
 
 /**
@@ -83,7 +84,7 @@ describe('criação de usuário pela API (RF022 / RF023)', () => {
     expect(await prisma.usuario.count()).toBe(antes);
   });
 
-  test.each(['ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS'])(
+  test.each(['ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS', 'ENTREGADOR'])(
     '%s não pode criar usuário',
     async (perfil) => {
       const antes = await prisma.usuario.count();

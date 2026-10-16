@@ -29,6 +29,10 @@ async function limpar() {
   // NF005: os logs saem primeiro — referenciam usuarios, e sem limpar aqui um
   // teste enxergaria a auditoria gerada pelo teste anterior.
   await prisma.logAuditoria.deleteMany();
+  // Módulo 6: entregas referenciam OS, saídas e usuários (RESTRICT).
+  await prisma.posicaoEntrega.deleteMany();
+  await prisma.entregaOS.deleteMany();
+  await prisma.saidaEntrega.deleteMany();
   await prisma.contaReceber.deleteMany();
   await prisma.contaPagar.deleteMany();
   await prisma.movimentoEstoque.deleteMany();
@@ -48,7 +52,7 @@ async function semear() {
 
   // ---------------------------------------------------------- perfis/usuários
   const perfis = {};
-  for (const nomePerfil of ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS']) {
+  for (const nomePerfil of ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS', 'ENTREGADOR']) {
     perfis[nomePerfil] = await prisma.perfil.create({ data: { nomePerfil } });
   }
 
@@ -61,6 +65,7 @@ async function semear() {
     ['vendedor',   'VENDEDOR'],
     ['financeiro', 'FINANCEIRO'],
     ['compras',    'COMPRAS'],
+    ['entregador', 'ENTREGADOR'],
   ]) {
     usuarios[login] = await prisma.usuario.create({
       data: { nome: `Usuario ${login}`, login, senha, perfilId: perfis[perfil].id },

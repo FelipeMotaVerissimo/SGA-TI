@@ -19,6 +19,9 @@ const PERFIS = [
   'VENDEDOR',
   'FINANCEIRO',
   'COMPRAS',
+  // Módulo 6: só as telas de entrega. Quem anda na rua com o celular logado
+  // não precisa ver caixa, cadastros nem usuários.
+  'ENTREGADOR',
 ];
 
 const PERFIL_TOTAL = 'ADMINISTRADOR';

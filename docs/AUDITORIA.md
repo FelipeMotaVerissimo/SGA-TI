@@ -10,7 +10,7 @@
 
 Até aqui o sistema não registrava nada sobre quem fez o quê. Um orçamento
 alterado, um produto excluído ou uma conta quitada não deixavam rastro além do
-próprio efeito. Numa assistência com seis perfis operando o mesmo banco, isso
+próprio efeito. Numa assistência com sete perfis operando o mesmo banco, isso
 significa que não há como responder à pergunta mais básica de auditoria: **quem
 mudou isto, e quando?**
 

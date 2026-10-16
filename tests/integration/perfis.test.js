@@ -223,13 +223,13 @@ describe('nome de perfil é único no banco', () => {
     ).rejects.toThrow();
   });
 
-  test('os seis perfis continuam existindo, um de cada', async () => {
+  test('os sete perfis existem, um de cada', async () => {
     const perfis = await prisma.perfil.findMany();
     const nomes  = perfis.map((p) => p.nomePerfil);
 
     expect(nomes).toHaveLength(new Set(nomes).size);
     expect(new Set(nomes)).toEqual(new Set(
-      ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS']
+      ['ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS', 'ENTREGADOR']
     ));
   });
 });

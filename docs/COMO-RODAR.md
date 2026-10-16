@@ -63,12 +63,12 @@ npm run seed
 |---|---|
 | `db:mysql:client` | Gera o Prisma Client a partir de `prisma/schema.prisma` |
 | `db:mysql` | Aplica as migrations versionadas (`prisma migrate deploy`) |
-| `seed` | Cria os 6 perfis e o usuário `admin` |
+| `seed` | Cria os 7 perfis e o usuário `admin` |
 | `seed:demo` | O mesmo, **mais um usuário por perfil** (ver seção 5) |
 | `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
 | `reparar:anonimizacoes` | NF008 — limpa contas e log de clientes anonimizados antes de 14/10/2026 (ver `docs/RETENCAO.md`, seção 3.4) |
 
-### As sete migrations
+### As oito migrations
 
 | Migration | O que acrescenta |
 |---|---|
@@ -78,6 +78,7 @@ npm run seed
 | `20261005120000_nf005_auditoria` | NF005: `logs_auditoria` e o enum `AcaoAuditoria` |
 | `20261006120000_nf008_retencao` | NF008: `equipamentos.ativo` e `clientes.anonimizadoEm` |
 | `20261013120000_perfil_nome_unico` | Torna `perfis.nomePerfil` único — ver aviso abaixo |
+| `20261016120000_modulo6_entregas` | Módulo 6: `saidas_entrega`, `entregas_os`, `posicoes_entrega` e os enums `StatusSaida` e `StatusEntrega`. Tabelas novas; nenhuma existente muda |
 | `20261015120000_tecnico_e_peca_do_servico` | `servicos_executados.usuarioId` (quem executou) e `itens_ordem.servicoId` (serviço em que a peça foi usada). Colunas opcionais, sem preenchimento retroativo |
 
 As três primeiras já foram aplicadas num servidor MySQL real, em banco vazio, com o
@@ -117,7 +118,7 @@ login** — é a tela que o cliente usa para acompanhar o conserto pelo número 
 
 ### O que o seed cria
 
-`npm run seed` cria os **6 perfis** e **um único usuário**:
+`npm run seed` cria os **7 perfis** e **um único usuário**:
 
 | Login | Senha | Perfil |
 |---|---|---|
@@ -175,8 +176,8 @@ A suíte de integração usa exatamente esses seis logins
 
 ```cmd
 npm run test:unit         :: 287 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 295 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa — 582 testes, todos passando
+npm run test:integration  :: 316 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 603 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
@@ -206,7 +207,8 @@ npm run test:integration
 | Arquivo | Cobre |
 |---|---|
 | `tests/unit/` | Regras dos services: orçamento, garantia, estoque, itens da OS, financeiro, relatórios, CSV e histórico do equipamento |
-| `tests/integration/perfis.test.js` | Controle de acesso dos 6 perfis (RF022/RF023) |
+| `tests/integration/perfis.test.js` | Controle de acesso dos 7 perfis (RF022/RF023) |
+| `tests/integration/modeloEntregas.test.js` | Módulo 6: regras que o banco garante nas entregas e o perfil ENTREGADOR |
 | `tests/integration/estoque.test.js` | Movimentações, saldo × razão, peças na OS (RF014/RF015) |
 | `tests/integration/financeiro.test.js` | Contas a pagar/receber e a conta gerada no encerramento (RF020/RF021) |
 | `tests/integration/garantia.test.js` | Serviços executados e garantia (Módulo 3) |
@@ -223,7 +225,7 @@ npm run test:integration
 
 ### Situação da suíte
 
-**Os 582 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+**Os 603 testes passam**, inclusive `npm test`. Até 14/10/2026 o
 `tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
 contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 

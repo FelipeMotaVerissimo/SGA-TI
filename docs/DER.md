@@ -1,9 +1,10 @@
 # DER — Diagrama Entidade-Relacionamento
 
 **Sistema:** SGA TI — Sistema de Gerenciamento de Assistência Técnica
-**Origem:** gerado a partir de `prisma/schema.prisma` e das sete migrations em
+**Origem:** gerado a partir de `prisma/schema.prisma` e das oito migrations em
 `prisma/migrations/`, na `main` consolidada
-**Data:** 05/10/2026 — atualizado em 15/10/2026 (técnico e peça do serviço)
+**Data:** 05/10/2026 — atualizado em 15/10/2026 (técnico e peça do serviço) e
+16/10/2026 (Módulo 6, entregas)
 **SGBD:** MySQL 8 (`provider = "mysql"`)
 
 > `[VALIDAR: confronto com a Figura 4 da monografia.]` O documento acadêmico não
@@ -15,7 +16,7 @@
 
 ## 1. Visão geral
 
-O modelo tem **13 tabelas** e **4 enumerações**, organizadas em cinco blocos:
+O modelo tem **16 tabelas** e **6 enumerações**, organizadas em seis blocos:
 
 | Bloco | Tabelas | Módulos |
 |---|---|---|
@@ -24,6 +25,7 @@ O modelo tem **13 tabelas** e **4 enumerações**, organizadas em cinco blocos:
 | Estoque | `produtos`, `itens_ordem`, `movimentos_estoque` | 4 |
 | Financeiro | `contas_pagar`, `contas_receber` | 4 |
 | Rastreabilidade | `logs_auditoria` | NF005 |
+| Entregas | `saidas_entrega`, `entregas_os`, `posicoes_entrega` | 6 |
 
 O núcleo do sistema é a trilha **cliente → equipamento → ordem de serviço**. Tudo
 o mais pendura nela: os serviços executados e as peças descrevem o que foi feito
@@ -61,6 +63,11 @@ erDiagram
     USUARIOS |o--o{ CONTAS_PAGAR : "da_baixa"
 
     USUARIOS |o--o{ LOGS_AUDITORIA : "e_responsavel_por"
+
+    USUARIOS ||--o{ SAIDAS_ENTREGA : "entrega"
+    SAIDAS_ENTREGA ||--o{ POSICOES_ENTREGA : "percorre"
+    ORDENS_SERVICO ||--o{ ENTREGAS_OS : "sai_em"
+    SAIDAS_ENTREGA ||--o{ ENTREGAS_OS : "leva"
 
     PERFIS {
         int id PK
@@ -195,19 +202,54 @@ erDiagram
         int clienteId FK
         int quitadaPorId FK
     }
+
+    SAIDAS_ENTREGA {
+        int id PK
+        enum status
+        boolean emRota UK
+        datetime iniciadaEm
+        datetime encerradaEm
+        int entregadorId FK
+    }
+
+    ENTREGAS_OS {
+        int id PK
+        int ordemParada
+        enum status
+        int ordemPendenteId UK
+        decimal destinoLat
+        decimal destinoLng
+        varchar tokenHash UK
+        varchar motivo
+        datetime entregueEm
+        int saidaId FK
+        int ordemId FK
+    }
+
+    POSICOES_ENTREGA {
+        int id PK
+        decimal lat
+        decimal lng
+        float precisao
+        datetime registradaEm
+        int saidaId FK
+    }
 ```
 
 ### 2.1 Figuras exportadas
 
 | Arquivo | Conteúdo | Dimensões |
 |---|---|---|
-| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 6632 px |
-| `docs/der-visao-geral.png` | Só entidades e relacionamentos | 5800 × 3180 px |
+| `docs/der.png` | Diagrama completo, com os atributos | 5092 × 4768 px |
+| `docs/der-visao-geral.png` | Só entidades e relacionamentos | 5800 × 2176 px |
 
-As figuras de 05/10/2026, anteriores aos dois relacionamentos de 15/10/2026,
-ficam guardadas em `docs/der-antigo/` só para comparação:
-`der-2026-10-05.png` (5092 × 4124 px) e `der-visao-geral-2026-10-05.png`
-(5802 × 2109 px). Não representam o modelo atual.
+As versões anteriores ficam em `docs/der-antigo/`, só para comparação — não
+representam o modelo atual:
+
+| Arquivos | Data | Conteúdo |
+|---|---|---|
+| `der-2026-10-05.png`, `der-visao-geral-2026-10-05.png` | 05/10/2026 | 13 tabelas, 15 relacionamentos |
+| `der-2026-10-15.png`, `der-visao-geral-2026-10-15.png` | 15/10/2026 | 13 tabelas, 17 relacionamentos (técnico e peça do serviço) |
 
 Geradas com `@mermaid-js/mermaid-cli` 11 a partir do bloco acima, tema
 `neutral`, fundo branco, escala 4 — o mesmo layout e o mesmo estilo das figuras
@@ -220,27 +262,33 @@ npx @mermaid-js/mermaid-cli@11 -i der.mmd -o der.png -t neutral -b white -s 4 -w
 ```
 
 **A ordem das linhas no bloco muda o desenho.** O mermaid posiciona as tabelas
-conforme a ordem em que os relacionamentos aparecem. Na atualização de
-15/10/2026, as 256 posições possíveis para os dois relacionamentos novos foram
-geradas e comparadas com as figuras antigas; a escolhida — "usa" logo depois de
-"consome", "executa" logo depois do "registra" de `MOVIMENTOS_ESTOQUE` — é a que
-mais preserva a disposição original. Mudar a ordem do bloco reorganiza a figura.
+conforme a ordem em que os relacionamentos aparecem. A cada atualização, as
+posições possíveis para os relacionamentos novos foram geradas e comparadas com
+a figura anterior, e a escolhida é a que menos cruza linhas sobre tabelas e mais
+preserva a disposição:
+
+- 15/10/2026, 256 posições: "usa" logo depois de "consome", "executa" logo
+  depois do "registra" de `MOVIMENTOS_ESTOQUE`;
+- 16/10/2026, 432 posições: o bloco de entregas no fim, na ordem "entrega",
+  "percorre", "sai_em", "leva".
+
+Mudar a ordem do bloco reorganiza a figura.
 
 Linhas que passam por cima de uma tabela, conferidas no SVG: no diagrama
-completo, nenhuma (a versão de 05/10 tinha três); na visão geral, uma — a linha
-"fatura" encosta na base de `TIPOS_SERVICO` (a de 05/10 também tinha uma).
-Nenhuma das 256 posições zerava as duas figuras ao mesmo tempo.
+completo, uma — "e_vendido_em" encosta no canto de `CONTAS_RECEBER`; na visão
+geral, nenhuma. (A versão de 05/10 tinha três e uma; a de 15/10, nenhuma e uma.)
 
-**Sobre a impressão em A4 retrato.** Medido no arquivo: a altura das letras (do
-topo do "P" à base) é de 30 px em 5092 px de largura. Na área útil de uma
-página ABNT (160 × 247 mm, margens da NBR 14724), a figura ocupa 160 × 208 mm e
-as letras ficam com **cerca de 0,9 mm** — pequeno demais para leitura em papel.
-Aumentar a fonte não resolve, porque as caixas crescem junto e a proporção não
-muda.
+**Sobre a impressão em A4 retrato.** Com as três tabelas de entrega o diagrama
+ficou mais largo, e o texto, proporcionalmente menor. Medido no arquivo: o
+título "PERFIS" tem 21 px de altura em 5092 px de largura (na versão de 15/10,
+29 px na mesma largura). Na área útil de uma página ABNT (160 × 247 mm, margens
+da NBR 14724), a figura ocupa 160 × 150 mm e as letras ficam com **cerca de
+0,7 mm** — pequeno demais para leitura em papel. Aumentar a resolução não
+resolve: o que conta é a proporção entre o texto e a largura do diagrama.
 
 O encaminhamento honesto é usar as duas figuras com papéis diferentes:
 
-- **`der-visao-geral.png` no corpo do texto.** Mostra as 13 entidades e os 17
+- **`der-visao-geral.png` no corpo do texto.** Mostra as 16 entidades e os 21
   relacionamentos com os nomes legíveis, que é o que o leitor precisa para
   entender o modelo.
 - **`der.png` como figura de página inteira**, em apêndice, para quem quiser
@@ -259,7 +307,7 @@ financeiro). Dá quatro diagramas pequenos e confortáveis de ler. É só pedir.
 
 | Convenção | Adotada |
 |---|---|
-| Chave primária | `id INT AUTO_INCREMENT`, em todas as 12 tabelas |
+| Chave primária | `id INT AUTO_INCREMENT`, em todas as 16 tabelas |
 | Nome da tabela | Plural e em `snake_case`, via `@@map` (`ordens_servico`, `itens_ordem`) |
 | Nome da coluna | `camelCase`, como no modelo Prisma |
 | Data de criação | `criadoEm DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3)` |
@@ -303,6 +351,16 @@ que "Dell Inspiron" e "Dell PowerEdge" são um notebook e um servidor.
 Criada no NF005. O registro automático cobre só as operações de escrita;
 `LEITURA` existe no catálogo porque o requisito a prevê, mas logar toda consulta
 multiplicaria o volume sem acrescentar rastreabilidade de quem alterou o quê.
+
+### `StatusSaida` — a viagem do entregador
+
+`EM_ROTA` → `CONCLUIDA` ou `CANCELADA`. Criada no Módulo 6.
+
+### `StatusEntrega` — cada OS dentro da saída
+
+`PENDENTE` → `ENTREGUE` ou `NAO_ENTREGUE`. Criada no Módulo 6. O estado da
+entrega fica aqui, e **não** no `StatusOS`: a OS continua `FINALIZADO`. Mexer no
+enum da OS afetaria relatórios, dashboards e testes que já funcionam.
 
 ---
 
@@ -598,6 +656,79 @@ de consulta da tela. `registroId` é nulo quando a operação não atinge um reg
 único; `usuarioId` é nulo nas operações sem sessão, como o seed. Detalhes em
 `docs/AUDITORIA.md`.
 
+### 5.14 `saidas_entrega` (`SaidaEntrega`)
+
+**Papel:** uma viagem do entregador, levando uma ou mais OS finalizadas
+(Módulo 6).
+
+| Campo | Tipo | Nulo | Chave | Padrão |
+|---|---|---|---|---|
+| `id` | `INT` | não | PK | auto |
+| `status` | `ENUM StatusSaida` | não | — | `EM_ROTA` |
+| `emRota` | `BOOLEAN` | sim | UK | `true` |
+| `iniciadaEm` | `DATETIME(3)` | não | — | agora |
+| `encerradaEm` | `DATETIME(3)` | sim | — | — |
+| `entregadorId` | `INT` | não | FK → `usuarios.id` (`RESTRICT`) | — |
+
+**RN13 — só existe uma saída em rota por vez**, e quem garante é o banco.
+`emRota` vale `true` enquanto a saída está `EM_ROTA` e `null` depois; o índice
+único aceita vários nulos, então o histórico guarda quantas saídas encerradas
+houver, mas uma segunda saída em rota é recusada. Uma checagem só no código não
+bastaria: dois toques em "Iniciar saída" no celular abrem duas transações, e as
+duas leriam "nenhuma em rota" antes de gravar.
+
+### 5.15 `entregas_os` (`EntregaOS`)
+
+**Papel:** uma OS dentro da saída — uma parada do trajeto.
+
+| Campo | Tipo | Nulo | Chave | Padrão |
+|---|---|---|---|---|
+| `id` | `INT` | não | PK | auto |
+| `ordemParada` | `INT` | não | — | — |
+| `status` | `ENUM StatusEntrega` | não | — | `PENDENTE` |
+| `ordemPendenteId` | `INT` | sim | UK | — |
+| `destinoLat` | `DECIMAL(9,6)` | sim | — | — |
+| `destinoLng` | `DECIMAL(9,6)` | sim | — | — |
+| `tokenHash` | `VARCHAR(64)` | sim | UK | — |
+| `motivo` | `VARCHAR(200)` | sim | — | — |
+| `entregueEm` | `DATETIME(3)` | sim | — | — |
+| `saidaId` | `INT` | não | FK → `saidas_entrega.id` (`RESTRICT`) | — |
+| `ordemId` | `INT` | não | FK → `ordens_servico.id` (`RESTRICT`) | — |
+
+Única em `(saidaId, ordemId)`: a mesma OS não aparece duas vezes na mesma saída.
+
+**RN14 — uma OS não pode estar em duas entregas pendentes**, garantida pelo
+banco do mesmo jeito que a RN13: `ordemPendenteId` recebe o `ordemId` enquanto a
+entrega está `PENDENTE` e `null` depois.
+
+`destinoLat`/`destinoLng` são o endereço do cliente geocodificado **uma vez**,
+na saída. Nulos quando a geocodificação falha: a entrega segue, sem o pino de
+destino. Seis casas decimais dão cerca de 11 cm.
+
+`tokenHash` é o **SHA-256** do token que o cliente recebe para ver o mapa — o
+token em si nunca é gravado. Ele dá acesso à posição do entregador; guardado em
+claro, vazaria junto com qualquer backup do banco.
+
+`motivo` registra por que a entrega foi `NAO_ENTREGUE` (cliente ausente,
+endereço errado).
+
+### 5.16 `posicoes_entrega` (`PosicaoEntrega`)
+
+**Papel:** o trajeto do entregador durante a saída, uma posição a cada ~10 s.
+
+| Campo | Tipo | Nulo | Chave | Padrão |
+|---|---|---|---|---|
+| `id` | `INT` | não | PK | auto |
+| `lat` | `DECIMAL(9,6)` | não | — | — |
+| `lng` | `DECIMAL(9,6)` | não | — | — |
+| `precisao` | `DOUBLE` | sim | — | — |
+| `registradaEm` | `DATETIME(3)` | não | — | agora |
+| `saidaId` | `INT` | não | FK → `saidas_entrega.id` (`RESTRICT`) | — |
+
+Índice em `(saidaId, registradaEm)`: a consulta mais frequente é "a última
+posição desta saída". É a tabela de maior volume do sistema; fica fora da
+auditoria e terá prazo de retenção próprio.
+
 ---
 
 ## 6. Relacionamentos e cardinalidades
@@ -619,6 +750,12 @@ de consulta da tela. `registroId` é nulo quando a operação não atinge um reg
 | R13 | `usuarios` | `contas_receber` | 0..1 : 0..N | `contas_receber.quitadaPorId` | `SET NULL` |
 | R14 | `usuarios` | `contas_pagar` | 0..1 : 0..N | `contas_pagar.quitadaPorId` | `SET NULL` |
 | R15 | `usuarios` | `logs_auditoria` | 0..1 : 0..N | `logs_auditoria.usuarioId` | `SET NULL` |
+| R16 | `usuarios` | `servicos_executados` | 0..1 : 0..N | `servicos_executados.usuarioId` | `RESTRICT` |
+| R17 | `servicos_executados` | `itens_ordem` | 0..1 : 0..N | `itens_ordem.servicoId` | `RESTRICT` |
+| R18 | `usuarios` | `saidas_entrega` | 1 : 0..N | `saidas_entrega.entregadorId` | `RESTRICT` |
+| R19 | `saidas_entrega` | `entregas_os` | 1 : 1..N | `entregas_os.saidaId` | `RESTRICT` |
+| R20 | `ordens_servico` | `entregas_os` | 1 : 0..N | `entregas_os.ordemId` | `RESTRICT` |
+| R21 | `saidas_entrega` | `posicoes_entrega` | 1 : 0..N | `posicoes_entrega.saidaId` | `RESTRICT` |
 
 **Leitura das ações de exclusão.** A regra que o Prisma gerou é coerente e vale
 explicar na defesa:
@@ -630,6 +767,11 @@ explicar na defesa:
 - **`SET NULL`** nas relações opcionais de autoria e classificação. Desativar um
   tipo de serviço ou remover um usuário não pode apagar o histórico financeiro
   nem o serviço executado: o vínculo se perde, o registro permanece.
+- **Exceções, `RESTRICT` em relação opcional:** R16 e R17 (técnico e peça do
+  serviço, 15/10/2026). O vínculo é desfeito pela aplicação, para que a
+  auditoria registre; um `SET NULL` no banco o apagaria fora do log.
+- R19 é 1 : 1..N pela regra de negócio — saída sem OS não é iniciada —, mas o
+  banco só garante 1 : 0..N; a regra mora no service.
 - `ON UPDATE CASCADE` em todas, o padrão do Prisma. Sem efeito prático aqui,
   porque nenhuma PK é atualizada.
 
@@ -654,6 +796,7 @@ disponível.]` A lista abaixo parte da descrição do plano de trabalho.
 | 10 | **`Cliente.bairro` é novo** | Módulo 4, defeito P10: a edição de cliente quebrava sem ele |
 | 11 | **`MovimentoEstoque.usuarioId` e `*.quitadaPorId` são novos** | Módulo 4 V03, rastreabilidade de quem movimentou e de quem deu baixa |
 | 12 | **`ServicoExecutado.usuarioId` e `ItemOrdem.servicoId` são novos** | 15/10/2026: quem executou cada serviço e em qual serviço cada peça foi usada (M05 e M06, seção 8.2) |
+| 13 | **`SaidaEntrega`, `EntregaOS`, `PosicaoEntrega` e os enums `StatusSaida` e `StatusEntrega` são novos** | Módulo 6, rastreamento de entregas em mapa |
 
 ---
 

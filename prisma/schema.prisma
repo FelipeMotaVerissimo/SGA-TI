@@ -46,6 +46,21 @@ enum AcaoAuditoria {
   EXCLUSAO
 }
 
+// Módulo 6 — rastreamento de entregas. O estado da entrega vive nestas
+// tabelas, e não no StatusOS: mexer no enum da OS afetaria relatórios,
+// dashboards e testes que já funcionam.
+enum StatusSaida {
+  EM_ROTA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum StatusEntrega {
+  PENDENTE
+  ENTREGUE
+  NAO_ENTREGUE
+}
+
 model Usuario {
   id                 Int                @id @default(autoincrement())
   nome               String             @db.VarChar(150)
@@ -64,6 +79,8 @@ model Usuario {
   logsAuditoria      LogAuditoria[]
   // Backlog item 2: serviços que este usuário executou (RN09)
   servicosExecutados ServicoExecutado[]
+  // Módulo 6: saídas em que este usuário foi o entregador
+  saidasEntrega      SaidaEntrega[]
 
   @@map("usuarios")
 }
@@ -150,6 +167,8 @@ model OrdemServico {
   servicos        ServicoExecutado[]
   itens           ItemOrdem[]
   contaReceber    ContaReceber?
+  // Módulo 6: vezes em que a OS saiu para entrega
+  entregas        EntregaOS[]
 
   @@map("ordens_servico")
 }
@@ -312,4 +331,71 @@ model LogAuditoria {
   @@index([entidade, registroId])
   @@index([usuarioId])
   @@map("logs_auditoria")
+}
+
+// =============================================================================
+// Módulo 6 — rastreamento de entregas
+// =============================================================================
+
+// Uma viagem do entregador, levando uma ou mais OS finalizadas.
+model SaidaEntrega {
+  id           Int              @id @default(autoincrement())
+  status       StatusSaida      @default(EM_ROTA)
+  // RN13: só existe uma saída em rota por vez. `true` enquanto EM_ROTA e
+  // `null` depois — o índice único aceita vários nulos, então o próprio banco
+  // recusa a segunda saída em rota, mesmo com dois cliques simultâneos.
+  emRota       Boolean?         @unique @default(true)
+  iniciadaEm   DateTime         @default(now())
+  // Fim da saída, concluída ou cancelada.
+  encerradaEm  DateTime?
+  entregadorId Int
+  entregador   Usuario          @relation(fields: [entregadorId], references: [id], onDelete: Restrict)
+  entregas     EntregaOS[]
+  posicoes     PosicaoEntrega[]
+
+  @@index([entregadorId])
+  @@map("saidas_entrega")
+}
+
+// Uma OS dentro da saída: uma parada do trajeto.
+model EntregaOS {
+  id              Int           @id @default(autoincrement())
+  ordemParada     Int
+  status          StatusEntrega @default(PENDENTE)
+  // RN14: uma OS não pode estar em duas entregas pendentes. Recebe o ordemId
+  // enquanto PENDENTE e `null` depois; o índice único faz o banco garantir.
+  ordemPendenteId Int?          @unique
+  // Coordenadas do destino, geocodificadas uma vez. Nulas quando a
+  // geocodificação falha: a entrega segue sem o pino de destino.
+  destinoLat      Decimal?      @db.Decimal(9, 6)
+  destinoLng      Decimal?      @db.Decimal(9, 6)
+  // SHA-256 do token de rastreio, nunca o token: ele dá acesso à posição do
+  // entregador e não pode vazar num backup do banco.
+  tokenHash       String?       @unique @db.VarChar(64)
+  // Por que não foi entregue (cliente ausente, endereço errado...).
+  motivo          String?       @db.VarChar(200)
+  entregueEm      DateTime?
+  saidaId         Int
+  saida           SaidaEntrega  @relation(fields: [saidaId], references: [id], onDelete: Restrict)
+  ordemId         Int
+  ordem           OrdemServico  @relation(fields: [ordemId], references: [id], onDelete: Restrict)
+
+  @@unique([saidaId, ordemId])
+  @@index([ordemId])
+  @@map("entregas_os")
+}
+
+// Posição do entregador durante a saída. Uma a cada ~10 s: fica fora da
+// auditoria (só os eventos da saída são auditados) e tem retenção própria.
+model PosicaoEntrega {
+  id           Int          @id @default(autoincrement())
+  lat          Decimal      @db.Decimal(9, 6)
+  lng          Decimal      @db.Decimal(9, 6)
+  precisao     Float?
+  registradaEm DateTime     @default(now())
+  saidaId      Int
+  saida        SaidaEntrega @relation(fields: [saidaId], references: [id], onDelete: Restrict)
+
+  @@index([saidaId, registradaEm])
+  @@map("posicoes_entrega")
 }
