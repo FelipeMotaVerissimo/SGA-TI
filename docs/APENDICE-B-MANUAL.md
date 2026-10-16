@@ -542,6 +542,10 @@ O que aparece:
 > **Guarde o número da OS.** É só com ele que a consulta funciona — e é o que
 > protege seus dados de quem não deveria vê-los.
 
+Se aparecer **"Muitas consultas sem sucesso"**, foram vários números errados
+seguidos a partir da mesma conexão. Aguarde 15 minutos, confira o número no
+comprovante e tente de novo.
+
 ---
 
 ## 10. Perguntas frequentes

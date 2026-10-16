@@ -259,3 +259,57 @@ describe('redirecionamento para HTTPS', () => {
     });
   });
 });
+
+/**
+ * NF007 — limitador que só conta os erros, usado pela consulta pública.
+ *
+ * Testado com um app mínimo e limite 2, para exercitar o critério de sucesso
+ * vindo de `res.locals` sem banco nem a tela real.
+ */
+describe('criarLimitadorDeErros', () => {
+  const express = require('express');
+  const supertest = require('supertest');
+  const { MemoryStore } = require('express-rate-limit');
+  const { criarLimitadorDeErros } = require('../../src/config/seguranca');
+
+  function appDeTeste() {
+    const app = express();
+    app.post('/teste',
+      criarLimitadorDeErros({
+        store:      new MemoryStore(),
+        limite:     2,
+        janelaMs:   60 * 1000,
+        acertou:    (req, res) => res.locals.ok === true,
+        aoEstourar: (req, res) => res.status(429).send('barrado'),
+      }),
+      (req, res) => {
+        if (req.query.ok) res.locals.ok = true;
+        res.status(200).send(req.query.ok ? 'achou' : 'não achou');
+      });
+    return supertest(app);
+  }
+
+  test('conta os erros e barra o que passa do limite', async () => {
+    const app = appDeTeste();
+    expect((await app.post('/teste')).status).toBe(200);
+    expect((await app.post('/teste')).status).toBe(200);
+    const r = await app.post('/teste');
+    expect(r.status).toBe(429);
+    expect(r.text).toBe('barrado');
+  });
+
+  test('acertos não contam, mesmo respondendo 200 como os erros', async () => {
+    const app = appDeTeste();
+    for (let i = 0; i < 10; i += 1) expect((await app.post('/teste?ok=1')).status).toBe(200);
+    expect((await app.post('/teste')).status).toBe(200);
+    expect((await app.post('/teste')).status).toBe(200);
+    expect((await app.post('/teste')).status).toBe(429);
+  });
+
+  test('a consulta pública usa 10 erros em 15 minutos', () => {
+    const s = require('../../src/config/seguranca');
+    expect(s.TENTATIVAS_CONSULTA).toBe(10);
+    expect(s.JANELA_CONSULTA_MS).toBe(15 * 60 * 1000);
+    expect(typeof s.limitadorConsulta).toBe('function');
+  });
+});

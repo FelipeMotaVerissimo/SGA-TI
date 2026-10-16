@@ -133,6 +133,8 @@ async function buscarConsultaPublica(req, res) {
     // Módulo 3 - parte 2: o cliente também vê os serviços e a garantia
     const servicos = servicoExecutadoService.enriquecerComGarantia(ordem.servicos || []);
 
+    // NF007: só a consulta que acha a OS deixa de contar no limite de tentativas.
+    res.locals.consultaEncontrada = true;
     res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem, servicos, erro: null });
   } catch (err) {
     res.render('ordens/consulta-publica', {

@@ -244,6 +244,39 @@ alterar o banco; um formulário com o token adulterado mostrou a página
 
 ---
 
+## 4.3 Limite de tentativas na consulta pública
+
+Implementado em 15/10/2026. A consulta pública de OS (`POST /consulta`) não
+exige login: basta o número da OS.
+
+**O achado.** O número é gerado por `gerarNumeroOS()` com os 6 últimos dígitos
+de `Date.now()` (`OS-2026-123456`): um milhão de combinações. E a consulta não
+tinha limite nenhum. Dava para testar números em sequência e ler, de OS
+alheias, status, equipamento, defeito relatado, orçamento e serviços. A API
+`/api/ordens/*` não tem o mesmo problema: exige JWT.
+
+**A correção.** Limite de **10 consultas sem sucesso por IP a cada 15
+minutos**, com o `express-rate-limit` que já servia ao login. Estourado, a
+tela responde **429** com "Muitas consultas sem sucesso. Aguarde 15 minutos e
+tente novamente." — inclusive para um número válido, até a janela passar.
+
+| Decisão | Motivo |
+|---|---|
+| Só a consulta **sem sucesso** conta | Varrer números é errar quase sempre. O cliente que confere a própria OS várias vezes no dia não é barrado |
+| O controller marca `res.locals.consultaEncontrada` | A tela responde 200 quando acha e quando não acha. O critério padrão da biblioteca (status abaixo de 400) consideraria tudo sucesso e o limite nunca dispararia — o mesmo problema que o limite de login teve com o 302 (seção 4.1) |
+| Cota separada da do login | Um não consome o outro |
+| `criarLimitadorDeErros()` em `src/config/seguranca.js` | A mesma regra vai servir à verificação de telefone do rastreamento de entregas (Módulo 6) |
+
+Com 10 erros a cada 15 minutos, percorrer o milhão de números leva cerca de
+2,9 anos por IP (100 mil janelas de 15 minutos).
+
+**O que continua.** A numeração em si não mudou: trocar o formato mexe em
+número já impresso nos comprovantes e fica fora deste ajuste (P08). Quem
+dispuser de muitos IPs ainda divide a varredura entre eles; o limite torna o
+ataque caro, não impossível.
+
+---
+
 ## 5. Variáveis de ambiente
 
 | Variável | Efeito |
@@ -259,9 +292,9 @@ alterar o banco; um formulário com o token adulterado mostrou a página
 
 | Suíte | Arquivo | Casos |
 |---|---|---|
-| Unitários | `tests/unit/seguranca.test.js` | 24 |
+| Unitários | `tests/unit/seguranca.test.js` | 27 |
 | Unitários | `tests/unit/csrf.test.js` | 22 |
-| Integração | `tests/integration/seguranca.test.js` | 19 |
+| Integração | `tests/integration/seguranca.test.js` | 23 |
 | Integração | `tests/integration/csrf.test.js` | 16 |
 
 Os unitários cobrem a decisão produção × desenvolvimento de cada proteção. Os de
@@ -297,3 +330,4 @@ falham; a varredura das views também falha sem o parcial nos formulários.
 | P05 | O ciclo HTTPS real não foi exercitado — não há ambiente com TLS. A lógica está testada, o comportamento sob TLS de verdade não | média |
 | P06 | Sem cabeçalho `Permissions-Policy` nem `Cross-Origin-*` | baixa |
 | P07 | `'unsafe-inline'` em `style-src`: as views usam `style="..."` em dezenas de pontos. Remover exige mover esses estilos para classes do `style.css` | baixa |
+| P08 | O número da OS tem só um milhão de combinações e é derivado do relógio. O limite da seção 4.3 torna a varredura cara; trocar a numeração resolveria de vez, mas mexe em número já emitido | média |

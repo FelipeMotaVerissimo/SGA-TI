@@ -13,7 +13,7 @@ const tipoServicoWeb   = require('../controllers/tipoServicoWebController');    
 const auditoriaWeb     = require('../controllers/auditoriaWebController');        // NF005
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
-const { limitadorLogin }   = require('../config/seguranca');                     // NF007
+const { limitadorLogin, limitadorConsulta } = require('../config/seguranca');      // NF007
 
 /**
  * Módulo 4 — perfis por rota (RF023).
@@ -125,7 +125,7 @@ router.get('/auditoria', sessaoMiddleware, exigirPerfil(), auditoriaWeb.exibir);
 
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);
-router.post('/consulta', ordemServicoWeb.buscarConsultaPublica);
+router.post('/consulta', limitadorConsulta, ordemServicoWeb.buscarConsultaPublica); // NF007: trava a varredura de números
 
 // Usuários — exclusivo do administrador
 router.get('/usuarios',            sessaoMiddleware, exigirPerfil(), usuarioWeb.listar);

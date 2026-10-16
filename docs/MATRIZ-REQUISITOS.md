@@ -2,7 +2,7 @@
 
 **Versão:** V01 · 12/10/2026
 **Commit medido:** `923acea`
-**Suíte de referência:** 284 testes unitários + 291 de integração (575 no total, todos passando)
+**Suíte de referência:** 287 testes unitários + 295 de integração (582 no total, todos passando)
 
 ---
 
@@ -90,7 +90,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 | **NF004** | Análise geográfica | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
 | **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
 | **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `scripts/conferir-restauracao.sh`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos; o **ciclo dump → restauração roda no CI a cada push**, comparando tabela a tabela | ✅ completo |
-| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (24), `unit/csrf.test.js` (22), `seguranca.test.js` (19), `csrf.test.js` (16) | 🔶 parcial |
+| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login e da consulta pública; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (27), `unit/csrf.test.js` (22), `seguranca.test.js` (23), `csrf.test.js` (16) | 🔶 parcial |
 | **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `scripts/reparar-anonimizacoes.js`, `docs/RETENCAO.md` | `retencao.test.js` (34), `unit/retencaoService.test.js` (12) | 🔶 parcial |
 
 ### Por que NF006, NF007 e NF008 são parciais

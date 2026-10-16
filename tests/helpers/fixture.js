@@ -9,7 +9,7 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../../src/config/database');
 const { aguardarGravacoes } = require('../../src/services/auditoriaExtensao');
-const { memoriaLogin } = require('../../src/config/seguranca');
+const { memoriaLogin, memoriaConsulta } = require('../../src/config/seguranca');
 
 const SENHA = 'teste123';
 
@@ -24,6 +24,7 @@ async function limpar() {
   // NF007: as suítes rodam no mesmo processo, e as tentativas de login falhas
   // que um arquivo cria de propósito contariam para o seguinte.
   if (memoriaLogin && typeof memoriaLogin.resetAll === 'function') memoriaLogin.resetAll();
+  if (memoriaConsulta && typeof memoriaConsulta.resetAll === 'function') memoriaConsulta.resetAll();
 
   // NF005: os logs saem primeiro — referenciam usuarios, e sem limpar aqui um
   // teste enxergaria a auditoria gerada pelo teste anterior.

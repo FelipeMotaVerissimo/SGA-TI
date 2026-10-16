@@ -224,3 +224,62 @@ describe('limite de tentativas de login', () => {
     expect(tela.text).not.toMatch(/Muitas tentativas/i);
   });
 });
+
+/**
+ * NF007 — limite de tentativas na consulta pública de OS.
+ *
+ * A consulta não exige login e o número da OS tem só um milhão de
+ * combinações. Sem limite, dava para varrer números e ler OS alheias.
+ */
+describe('limite de tentativas na consulta pública', () => {
+  const { TENTATIVAS_CONSULTA, TENTATIVAS_LOGIN } = require('../../src/config/seguranca');
+
+  const consultar = (numero) =>
+    request(app).post('/consulta').type('form').send({ numero });
+
+  test('erra até o limite e a próxima é barrada com 429', async () => {
+    for (let i = 0; i < TENTATIVAS_CONSULTA; i += 1) {
+      const r = await consultar(`OS-2026-${String(900000 + i)}`);
+      expect(r.status).toBe(200);
+      expect(r.text).toMatch(/não encontrada/i);
+    }
+
+    const barrada = await consultar('OS-2026-999999');
+    expect(barrada.status).toBe(429);
+    expect(barrada.text).toMatch(/Muitas consultas sem sucesso/);
+  });
+
+  test('consultar a própria OS várias vezes não consome o limite', async () => {
+    const numero = dados.ordens.andamento.numero;
+
+    for (let i = 0; i < TENTATIVAS_CONSULTA * 3; i += 1) {
+      const r = await consultar(numero);
+      expect(r.status).toBe(200);
+      expect(r.text).toContain(numero);
+    }
+
+    // A cota de erros continua inteira: um erro ainda é tratado como erro.
+    const r = await consultar('OS-2026-000000');
+    expect(r.status).toBe(200);
+    expect(r.text).toMatch(/não encontrada/i);
+  });
+
+  test('depois de estourar, até um número válido é barrado', async () => {
+    for (let i = 0; i < TENTATIVAS_CONSULTA; i += 1) await consultar('OS-NAO-EXISTE');
+
+    const r = await consultar(dados.ordens.andamento.numero);
+    expect(r.status).toBe(429);
+    expect(r.text).not.toContain(dados.ordens.andamento.defeitoRelatado);
+  });
+
+  test('a cota da consulta é separada da do login', async () => {
+    for (let i = 0; i < TENTATIVAS_CONSULTA; i += 1) await consultar('OS-NAO-EXISTE');
+    expect((await consultar('OS-NAO-EXISTE')).status).toBe(429);
+
+    // O login, no mesmo IP, continua com a cota dele intacta.
+    const login = await request(app).post('/login').type('form')
+      .send({ login: 'admin', senha: dados.SENHA });
+    expect(login.headers.location).toBe('/dashboard');
+    expect(TENTATIVAS_LOGIN).toBeGreaterThan(0);
+  });
+});

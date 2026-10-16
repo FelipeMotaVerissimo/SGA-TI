@@ -243,12 +243,74 @@ const limitadorLogin = rateLimit({
   },
 });
 
+/**
+ * Limitador de tentativas que só conta os erros, para as telas públicas.
+ *
+ * Mesmo desenho do de login, mas o critério de sucesso é recebido de fora:
+ * essas telas respondem 200 quando acertam e quando erram, então nem o status
+ * nem o redirecionamento dizem o que aconteceu. Quem sabe é o controller, que
+ * marca o resultado em `res.locals`.
+ *
+ * Usado pela consulta pública de OS e, no Módulo 6, pela verificação do
+ * telefone antes de mostrar o mapa da entrega.
+ */
+function criarLimitadorDeErros({ store, limite, janelaMs, acertou, aoEstourar }) {
+  return rateLimit({
+    store,
+    windowMs: janelaMs,
+    limit:    limite,
+    skipSuccessfulRequests: true,
+    requestWasSuccessful: acertou,
+    standardHeaders: 'draft-7',
+    legacyHeaders:   false,
+    handler: aoEstourar,
+  });
+}
+
+/**
+ * Consulta pública de OS (`POST /consulta`), que não exige login.
+ *
+ * O número da OS tem 6 dígitos tirados do relógio (`OS-2026-123456`), ou seja,
+ * um milhão de combinações, e sem limite dava para testar números à vontade e
+ * ler status, equipamento, defeito e serviços de OS alheias. Mudar a numeração
+ * mexe em dado já emitido e fica fora deste ajuste; o limite torna a varredura
+ * cara: com 10 erros a cada 15 minutos por IP, percorrer o espaço todo
+ * levaria cerca de 2,9 anos (100 mil janelas de 15 minutos).
+ *
+ * Só o erro conta. O cliente que confere a própria OS várias vezes no dia não
+ * é barrado.
+ */
+const TENTATIVAS_CONSULTA = 10;
+const JANELA_CONSULTA_MS  = 15 * 60 * 1000;
+const memoriaConsulta     = new MemoryStore();
+
+const limitadorConsulta = criarLimitadorDeErros({
+  store:    memoriaConsulta,
+  limite:   TENTATIVAS_CONSULTA,
+  janelaMs: JANELA_CONSULTA_MS,
+  // O controller marca `consultaEncontrada` quando acha a OS.
+  acertou:  (req, res) => res.locals.consultaEncontrada === true,
+  aoEstourar(req, res) {
+    return res.status(429).render('ordens/consulta-publica', {
+      titulo:   'Consultar OS',
+      ordem:    null,
+      servicos: [],
+      erro:     'Muitas consultas sem sucesso. Aguarde 15 minutos e tente novamente.',
+    });
+  },
+});
+
 module.exports = {
   emProducao,
   TENTATIVAS_LOGIN,
   JANELA_LOGIN_MS,
   limitadorLogin,
   memoriaLogin,
+  criarLimitadorDeErros,
+  TENTATIVAS_CONSULTA,
+  JANELA_CONSULTA_MS,
+  limitadorConsulta,
+  memoriaConsulta,
   DIRETIVAS_CSP,
   diretivasDoAmbiente,
   opcoesHelmet,
