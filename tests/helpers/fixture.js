@@ -9,7 +9,7 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../../src/config/database');
 const { aguardarGravacoes } = require('../../src/services/auditoriaExtensao');
-const { memoriaLogin, memoriaConsulta } = require('../../src/config/seguranca');
+const { memoriaLogin, memoriaConsulta, memoriaRastreioIp, memoriaRastreioOs } = require('../../src/config/seguranca');
 
 const SENHA = 'teste123';
 
@@ -25,6 +25,7 @@ async function limpar() {
   // que um arquivo cria de propósito contariam para o seguinte.
   if (memoriaLogin && typeof memoriaLogin.resetAll === 'function') memoriaLogin.resetAll();
   if (memoriaConsulta && typeof memoriaConsulta.resetAll === 'function') memoriaConsulta.resetAll();
+  for (const m of [memoriaRastreioIp, memoriaRastreioOs]) if (m && typeof m.resetAll === 'function') m.resetAll();
 
   // NF005: o log é gravado sem `await`. Uma gravação atrasada do teste anterior
   // cairia depois desta limpeza e apareceria no teste seguinte com outro autor.

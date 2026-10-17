@@ -624,3 +624,35 @@ tbody tr:hover {
   .saida-fim { flex-direction: column; }
   .saida-fim .btn-grande { width: 100%; }
 }
+
+/* ===== MÓDULO 6 — ACOMPANHAMENTO DA ENTREGA (consulta pública) ===== */
+.bloco-entrega {
+  margin-top: 24px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+.mapa-entrega {
+  height: 320px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+.mapa-status { font-size: 13px; color: #555; margin: 0; }
+.mapa-encerrado { color: #92400e; font-weight: 600; }
+.form-rastreio { display: grid; gap: 8px; }
+.form-rastreio label { font-size: 14px; color: #333; }
+.form-rastreio input {
+  font-size: 22px; letter-spacing: 8px; text-align: center;
+  padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px;
+}
+.entrega-concluida { color: #276749; font-weight: 600; margin: 0; }
+
+/* Botão do WhatsApp na tela do entregador: ocupa a linha inteira do cartão. */
+.btn-whatsapp {
+  grid-column: 1 / -1;
+  background: #25D366;
+  color: #fff;
+  flex-direction: column;
+}
+.btn-whatsapp:hover { background: #1ebe5a; color: #fff; }
+.aviso-fixo { font-size: 11px; font-weight: 400; opacity: 0.9; }

@@ -39,7 +39,8 @@ const DIRETIVAS_CSP = {
   defaultSrc: ["'self'"],
   scriptSrc:  ["'self'"],
   styleSrc:   ["'self'", "'unsafe-inline'"],
-  imgSrc:     ["'self'", 'data:'],
+  // Módulo 6: os tiles do mapa vêm do OpenStreetMap — e só dele.
+  imgSrc:     ["'self'", 'data:', 'https://tile.openstreetmap.org'],
   fontSrc:    ["'self'"],
   connectSrc: ["'self'"],
   formAction: ["'self'"],
@@ -300,8 +301,60 @@ const limitadorConsulta = criarLimitadorDeErros({
   },
 });
 
+/**
+ * Módulo 6 — verificação dos 4 últimos dígitos do telefone antes do mapa da
+ * entrega (RN28). São só 10 mil combinações, então há dois limites:
+ *  - por IP: 5 erros a cada 15 minutos;
+ *  - por OS: 10 erros durante a saída (janela de 3 horas), para segurar quem
+ *    troca de IP para continuar tentando a mesma OS.
+ * Só o erro conta: quem acerta não consome a cota.
+ */
+const TENTATIVAS_RASTREIO_IP = 5;
+const TENTATIVAS_RASTREIO_OS = 10;
+const JANELA_RASTREIO_IP_MS  = 15 * 60 * 1000;
+const JANELA_RASTREIO_OS_MS  = 3 * 60 * 60 * 1000;
+const memoriaRastreioIp      = new MemoryStore();
+const memoriaRastreioOs      = new MemoryStore();
+
+function recusarRastreio(req, res) {
+  return res.status(429).render('ordens/consulta-publica', {
+    titulo:   'Consultar OS',
+    ordem:    null,
+    servicos: [],
+    erro:     'Muitas tentativas de verificação. Aguarde e tente novamente, ou fale com a loja.',
+    numeroInformado: '',
+  });
+}
+
+const acertouDigitos = (req, res) => res.locals.digitosConferem === true;
+
+const limitadorRastreioIp = criarLimitadorDeErros({
+  store: memoriaRastreioIp, limite: TENTATIVAS_RASTREIO_IP, janelaMs: JANELA_RASTREIO_IP_MS,
+  acertou: acertouDigitos, aoEstourar: recusarRastreio,
+});
+
+const limitadorRastreioOs = rateLimit({
+  store:    memoriaRastreioOs,
+  windowMs: JANELA_RASTREIO_OS_MS,
+  limit:    TENTATIVAS_RASTREIO_OS,
+  skipSuccessfulRequests: true,
+  requestWasSuccessful: acertouDigitos,
+  // A chave é a OS, não o IP: é o que barra a tentativa distribuída.
+  keyGenerator: (req) => `os:${String((req.body && req.body.numero) || '').trim().toUpperCase()}`,
+  validate: { keyGeneratorIpFallback: false },
+  standardHeaders: 'draft-7',
+  legacyHeaders:   false,
+  handler: recusarRastreio,
+});
+
 module.exports = {
   emProducao,
+  TENTATIVAS_RASTREIO_IP,
+  TENTATIVAS_RASTREIO_OS,
+  limitadorRastreioIp,
+  limitadorRastreioOs,
+  memoriaRastreioIp,
+  memoriaRastreioOs,
   TENTATIVAS_LOGIN,
   JANELA_LOGIN_MS,
   limitadorLogin,

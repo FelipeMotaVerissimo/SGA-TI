@@ -19,8 +19,8 @@
 | `prisma migrate deploy` | Aplica as 8 migrations num MySQL 8 vazio |
 | `prisma migrate diff --exit-code` | **Falha o build** se o banco criado pelas migrations divergir do `schema.prisma` |
 | `npm run seed` | Prova que o seed roda num banco recém-migrado |
-| `npm run test:unit` | 356 testes |
-| `npm run test:integration` | 348 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
+| `npm run test:unit` | 381 testes |
+| `npm run test:integration` | 365 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
 | `npm run backup` + `conferir-restauracao.sh` | NF006: gera o dump, restaura num banco novo e compara as 17 tabelas |
 
 ### O ganho que isso traz

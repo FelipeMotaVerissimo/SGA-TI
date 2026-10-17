@@ -758,6 +758,26 @@ encontrada — achado no navegador, com o serviço real. Falha não impede nada:
 fica registrada no log do servidor (só o motivo, nunca o endereço) e o destino
 fica nulo.
 
+#### Acompanhamento pelo cliente (RN26 a RN32)
+
+Em `src/services/rastreioService.js`; testes em `tests/unit/rastreioService.test.js`
+e `tests/integration/rastreio.test.js`.
+
+| ID | Regra |
+|---|---|
+| RN26 | O bloco da entrega só aparece na consulta pública se a OS tiver entrega `PENDENTE` numa saída `EM_ROTA` |
+| RN27 | Para ver o mapa, o cliente digita os 4 últimos dígitos do celular ou do fixo cadastrado |
+| RN28 | Limite nos dígitos: 5 erros por IP a cada 15 min e 10 erros por OS em 3 h; acerto não conta |
+| RN29 | Acertou: token novo de 32 bytes; só o SHA-256 vai para `tokenHash`; uma verificação nova substitui a anterior |
+| RN30 | A posição pública devolve só `lat`, `lng`, `atualizadoEm`, `destino` e `status`; qualquer problema é 404 genérico |
+| RN31 | Cliente sem telefone não recebe o formulário: "Para acompanhar a entrega, fale com a loja" `[VALIDAR]` |
+| RN32 | Depois de entregue, a consulta mostra "Entregue em DD/MM às HH:MM" (fuso de Dourados/MS) |
+
+O aviso ao cliente é um botão "Avisar no WhatsApp" na tela do entregador: link
+`wa.me` com a mensagem pronta e o link da consulta já com o número da OS
+(`/consulta?numero=…`, que só preenche o campo). Usa o celular; sem ele, o fixo,
+com o aviso de que pode não ter WhatsApp; sem nenhum, o botão não aparece.
+
 ---
 
 ## 6. Relacionamentos e cardinalidades

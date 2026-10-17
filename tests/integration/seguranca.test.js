@@ -33,10 +33,13 @@ describe('cabeçalhos de segurança', () => {
     expect(res.headers['content-security-policy']).toContain("frame-ancestors 'none'");
   });
 
-  test('o CSP não autoriza nenhuma origem externa', async () => {
+  test('o CSP só autoriza uma origem externa: os tiles do mapa, em img-src', async () => {
     const res = await request(app).get('/login');
+    const csp = res.headers['content-security-policy'];
+    const externas = csp.split(';').map((d) => d.trim())
+      .filter((d) => /https?:\/\//.test(d));
 
-    expect(res.headers['content-security-policy']).not.toMatch(/https?:\/\/[a-z]/i);
+    expect(externas).toEqual(["img-src 'self' data: https://tile.openstreetmap.org"]);
   });
 
   test("o CSP não autoriza script embutido — script-src é só 'self'", async () => {

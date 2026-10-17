@@ -277,6 +277,44 @@ ataque caro, não impossível.
 
 ---
 
+## 4.4 Rastreamento da entrega pelo cliente (Módulo 6)
+
+Implementado em 17/10/2026. O cliente acompanha num mapa o equipamento sendo
+levado até ele, a partir da consulta pública. O que protege a localização do
+entregador:
+
+| Defesa | Como |
+|---|---|
+| Segundo fator | Só o número da OS não basta: o mapa pede os **4 últimos dígitos** do celular ou do fixo cadastrado |
+| Limite duplo nos dígitos | 5 erros por IP a cada 15 minutos **e** 10 erros por OS numa janela de 3 horas. São só 10 mil combinações; o limite por OS segura quem troca de IP para insistir na mesma OS. Acertar não consome a cota |
+| Token só como hash | Acertou os dígitos: um token de 32 bytes vai para a página, e **só o SHA-256** dele fica no banco (`entregas_os.tokenHash`). Uma verificação nova substitui a anterior |
+| Resposta mínima | `GET /rastreio/:token/posicao` devolve **só** `lat`, `lng`, `atualizadoEm`, `destino` e `status` — nada de nome do entregador, outros destinos ou trajeto. Qualquer problema é **404 genérico** |
+| Fim do acesso | Entrega marcada, saída encerrada ou cancelada: o token é limpo e o endpoint passa a dar 404 |
+
+**CSP.** `img-src` passou a aceitar **uma** origem externa: `https://tile.openstreetmap.org`,
+de onde vêm os tiles do mapa. O Leaflet é servido pelo próprio sistema
+(`/vendor/leaflet`), então `script-src` continua só `'self'`. Os testes de
+segurança conferem que essa é a única origem externa e que ela só aparece em
+`img-src`.
+
+**Referer para os tiles.** O sistema manda `Referrer-Policy: same-origin`, e a
+política de uso dos tiles do OpenStreetMap exige Referer. Os tiles são pedidos
+com `strict-origin-when-cross-origin`: vai só a origem do sistema, nunca a URL
+da página.
+
+**CSRF na consulta pública.** `POST /consulta` e `POST /consulta/rastreio`
+ficaram fora da exigência de token. São formulários públicos, que nada mudam
+na sessão de quem estiver logado, e o site atacante não lê a resposta. Antes, o
+funcionário **logado** que usasse a consulta pública levava 403 — defeito que
+existia desde a seção 4.2 e só apareceu no navegador, porque todos os testes da
+consulta eram feitos sem login. Há teste com usuário logado agora.
+
+**Aviso pelo WhatsApp.** O link é montado na tela do entregador (`wa.me`), sem
+API: nenhum dado do cliente sai do sistema para um serviço de mensagens; quem
+envia é o próprio entregador, pelo celular dele.
+
+---
+
 ## 5. Variáveis de ambiente
 
 | Variável | Efeito |

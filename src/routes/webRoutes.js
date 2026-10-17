@@ -12,9 +12,10 @@ const relatorioWeb     = require('../controllers/relatorioWebController');      
 const tipoServicoWeb   = require('../controllers/tipoServicoWebController');      // Módulo 5
 const auditoriaWeb     = require('../controllers/auditoriaWebController');        // NF005
 const entregaWeb       = require('../controllers/entregaWebController');          // Módulo 6
+const rastreioWeb      = require('../controllers/rastreioWebController');         // Módulo 6
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
-const { limitadorLogin, limitadorConsulta } = require('../config/seguranca');      // NF007
+const { limitadorLogin, limitadorConsulta, limitadorRastreioIp, limitadorRastreioOs } = require('../config/seguranca'); // NF007
 
 /**
  * Módulo 4 — perfis por rota (RF023).
@@ -138,6 +139,9 @@ router.post('/entregas/saidas/:id/cancelar', sessaoMiddleware, exigirPerfil(),  
 // Consulta pública (sem login)
 router.get('/consulta',  ordemServicoWeb.consultaPublica);
 router.post('/consulta', limitadorConsulta, ordemServicoWeb.buscarConsultaPublica); // NF007: trava a varredura de números
+// Módulo 6: o cliente acompanha a entrega. Os 4 dígitos têm limite por OS e por IP (RN28).
+router.post('/consulta/rastreio', limitadorRastreioOs, limitadorRastreioIp, rastreioWeb.verificar);
+router.get('/rastreio/:token/posicao', rastreioWeb.posicao);
 
 // Usuários — exclusivo do administrador
 router.get('/usuarios',            sessaoMiddleware, exigirPerfil(), usuarioWeb.listar);

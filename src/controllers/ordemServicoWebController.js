@@ -2,6 +2,7 @@ const ordemServicoService     = require('../services/ordemServicoService');
 const equipamentoService      = require('../services/equipamentoService');
 const clienteService          = require('../services/clienteService');
 const servicoExecutadoService = require('../services/servicoExecutadoService'); // Módulo 3 - parte 2
+const rastreioService         = require('../services/rastreioService');          // Módulo 6
 const itemOrdemService        = require('../services/itemOrdemService');        // Módulo 4
 const produtoService          = require('../services/produtoService');          // Módulo 4
 const tipoServicoService      = require('../services/tipoServicoService');      // Módulo 5
@@ -122,27 +123,45 @@ async function registrarOrcamento(req, res) {
 }
 
 // Consulta pública para clientes (sem login)
+/**
+ * Dados da consulta pública de uma OS: a própria OS, os serviços com a
+ * garantia e, no Módulo 6, a situação da entrega (em rota, entregue).
+ */
+async function dadosDaConsulta(numero) {
+  const ordem = await ordemServicoService.buscarOrdemPorNumero(numero);
+  // Módulo 3 - parte 2: o cliente também vê os serviços e a garantia
+  const servicos = servicoExecutadoService.enriquecerComGarantia(ordem.servicos || []);
+  const entrega  = await rastreioService.situacaoDaOrdem(ordem.id); // Módulo 6
+  return { ordem, servicos, entrega };
+}
+
+function renderizarConsulta(res, dados = {}) {
+  res.render('ordens/consulta-publica', {
+    titulo: 'Consultar OS',
+    ordem: null, servicos: [], erro: null, entrega: null,
+    numeroInformado: '', tokenRastreio: null, erroRastreio: null,
+    ...dados,
+  });
+}
+
+/**
+ * Módulo 6: o link enviado pelo WhatsApp traz `?numero=`. Ele só PREENCHE o
+ * campo — a busca continua sendo o POST, que passa pelo limite de tentativas.
+ */
 async function consultaPublica(req, res) {
-  res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem: null, servicos: [], erro: null });
+  const numero = String(req.query.numero || '').trim();
+  renderizarConsulta(res, { numeroInformado: /^[A-Za-z0-9-]{1,30}$/.test(numero) ? numero : '' });
 }
 
 async function buscarConsultaPublica(req, res) {
   try {
-    const ordem = await ordemServicoService.buscarOrdemPorNumero(req.body.numero);
-
-    // Módulo 3 - parte 2: o cliente também vê os serviços e a garantia
-    const servicos = servicoExecutadoService.enriquecerComGarantia(ordem.servicos || []);
+    const dados = await dadosDaConsulta(req.body.numero);
 
     // NF007: só a consulta que acha a OS deixa de contar no limite de tentativas.
     res.locals.consultaEncontrada = true;
-    res.render('ordens/consulta-publica', { titulo: 'Consultar OS', ordem, servicos, erro: null });
+    renderizarConsulta(res, { ...dados, numeroInformado: dados.ordem.numero });
   } catch (err) {
-    res.render('ordens/consulta-publica', {
-      titulo: 'Consultar OS',
-      ordem: null,
-      servicos: [],
-      erro: 'Ordem de serviço não encontrada.',
-    });
+    renderizarConsulta(res, { erro: 'Ordem de serviço não encontrada.' });
   }
 }
 
@@ -169,6 +188,8 @@ async function rejeitarOrcamento(req, res) {
 }
 
 module.exports = {
+  dadosDaConsulta,
+  renderizarConsulta,
   listar,
   exibirDetalhe,
   exibirForm,

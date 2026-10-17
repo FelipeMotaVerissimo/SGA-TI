@@ -1,3 +1,9 @@
+<%
+  // Módulo 6 — horários no fuso da loja (Dourados/MS): o servidor de
+  // hospedagem roda em UTC e mostraria a hora adiantada.
+  const FUSO = { timeZone: 'America/Campo_Grande' };
+  const entrega = locals.entrega || null;
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,6 +11,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consultar OS — SGA TI</title>
   <link rel="stylesheet" href="/css/style.css">
+  <% if (locals.tokenRastreio) { %>
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <% } %>
 </head>
 <body class="login-page">
   <div style="width:100%; max-width:500px; margin:0 auto; padding:24px">
@@ -22,7 +31,8 @@
       <form class="form-login" action="/consulta" method="POST">
         <div class="form-group">
           <label>Número da OS</label>
-          <input type="text" name="numero" placeholder="Ex: OS-2026-123456" required autofocus>
+          <input type="text" name="numero" placeholder="Ex: OS-2026-123456" required autofocus
+                 value="<%= locals.numeroInformado || '' %>">
         </div>
         <button type="submit" class="btn btn-primary">🔍 Consultar</button>
       </form>
@@ -67,6 +77,40 @@
           </div>
           <% } %>
         </div>
+
+        <!-- Módulo 6 — acompanhamento da entrega -->
+        <% if (entrega && entrega.emRota) { %>
+        <div class="bloco-entrega">
+          <h3 class="secao-titulo">🚚 Seu equipamento saiu para entrega</h3>
+
+          <% if (locals.tokenRastreio) { %>
+          <div id="mapa-entrega" class="mapa-entrega" data-token="<%= tokenRastreio %>"></div>
+          <p class="mapa-status">Carregando o mapa…</p>
+          <script src="/vendor/leaflet/leaflet.js" defer></script>
+          <script src="/js/rastreio.js" defer></script>
+
+          <% } else if (!entrega.temTelefone) { %>
+          <p class="texto-apagado">Para acompanhar a entrega, fale com a loja.</p>
+
+          <% } else { %>
+          <% if (locals.erroRastreio) { %><div class="alert alert-erro"><%= erroRastreio %></div><% } %>
+          <form action="/consulta/rastreio" method="POST" class="form-rastreio">
+            <input type="hidden" name="numero" value="<%= ordem.numero %>">
+            <label for="digitos">Para ver no mapa, digite os 4 últimos dígitos do telefone cadastrado</label>
+            <input type="text" id="digitos" name="digitos" inputmode="numeric" pattern="[0-9]{4}"
+                   maxlength="4" minlength="4" required autocomplete="off" placeholder="0000">
+            <button type="submit" class="btn btn-primary btn-grande">📍 Ver no mapa</button>
+          </form>
+          <% } %>
+        </div>
+        <% } else if (entrega && entrega.entregueEm) { %>
+        <div class="bloco-entrega">
+          <p class="entrega-concluida">
+            ✅ Entregue em <%= new Date(entrega.entregueEm).toLocaleDateString('pt-BR', FUSO) %>
+            às <%= new Date(entrega.entregueEm).toLocaleTimeString('pt-BR', { ...FUSO, hour: '2-digit', minute: '2-digit' }) %>
+          </p>
+        </div>
+        <% } %>
 
         <!-- Módulo 3 (parte 2) — Serviços executados e garantia visíveis ao cliente -->
         <% if (servicos && servicos.length > 0) { %>

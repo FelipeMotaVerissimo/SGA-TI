@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 356 | 356 | 0 |
-| Integração | 348 | 348 | 0 |
-| **Total** | **704** | **704** | **0** |
+| Unitários | 381 | 381 | 0 |
+| Integração | 365 | 365 | 0 |
+| **Total** | **746** | **746** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 356 testes
-npm run test:integration  :: 348 testes
-npm test                  :: suíte completa — 704 testes
+npm run test:unit         :: 381 testes
+npm run test:integration  :: 365 testes
+npm test                  :: suíte completa — 746 testes
 ```
 
-### 1.2 Testes unitários — 356 casos
+### 1.2 Testes unitários — 381 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -43,20 +43,21 @@ banco, rodam em cerca de 3 segundos.
 | `ordemServicoService.test.js` | 18 | Travas de status, validação do orçamento, fuso da previsão |
 | `relatorioService.test.js` | 26 | Período, agregações dos quatro relatórios |
 | `seguranca.test.js` | 27 | NF007 — produção × desenvolvimento de cada proteção; views sem script embutido; limitador que só conta erros |
-| `csrf.test.js` | 22 | NF007 — regra do token CSRF; todo formulário POST autenticado leva o token |
+| `csrf.test.js` | 23 | NF007 — regra do token CSRF; todo formulário POST autenticado leva o token |
 | `servicoExecutadoService.test.js` | 21 | Garantia derivada, travas de registro e exclusão, técnico do serviço |
 | `auditoriaExtensao.test.js` | 15 | NF005 — gravação automática, senha omitida, contexto |
 | `backup.test.js` | 15 | NF006 — leitura da URL, nome do arquivo, argumentos |
 | `retencaoService.test.js` | 12 | NF008 — busca do dado pessoal em texto livre |
 | `entregaService.test.js` | 28 | Módulo 6 — regras da saída de entrega (RN15–RN25) |
 | `geocodificacaoService.test.js` | 15 | Módulo 6 — busca no Nominatim, falhas, timeout e intervalo da fila |
+| `rastreioService.test.js` | 24 | Módulo 6 — número e mensagem do WhatsApp, 4 dígitos, token e script do mapa |
 | `entregadorScript.test.js` | 26 | Módulo 6 — mensagens do GPS, idade do envio, reação às respostas do servidor e trava contra rajada (script do celular) |
 | `csvService.test.js` | 12 | Separador, BOM, decimal com vírgula |
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 348 casos
+### 1.3 Testes de integração — 365 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -67,6 +68,7 @@ isolado, recriado a cada suíte.
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
 | `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
+| `rastreio.test.js` | 17 | Módulo 6 — consulta com entrega em rota, dígitos, limites por IP e por OS, token, posição pública, WhatsApp, consulta com usuário logado |
 | `entregas.test.js` | 32 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis e a tela do entregador |
 | `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
@@ -90,7 +92,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **356 unitários e 348 de integração passando**. Isso importa porque o
+números: **381 unitários e 365 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -388,8 +390,8 @@ e unitário da trava do celular; os dois falham com a correção desligada.
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 356 passando, a cada push |
-| **Software — integração** | ✅ Executado | 348 passando em SQLite e em MySQL 8 |
+| **Software — unitários** | ✅ Executado | 381 passando, a cada push |
+| **Software — integração** | ✅ Executado | 365 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); Firefox, Safari e o restante em aparelho real pendentes |

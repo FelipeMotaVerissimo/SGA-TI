@@ -82,6 +82,12 @@
               <%- include('../partials/csrf') %>
               <button type="submit" class="btn btn-success btn-grande">✅ Entregue</button>
             </form>
+            <%# Opção A (16/10/2026): o aviso ao cliente sai do celular do entregador. %>
+            <% if (e.whatsapp) { %>
+            <a href="<%= e.whatsapp.href %>" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-grande">
+              📲 Avisar no WhatsApp<% if (e.whatsapp.fixo) { %><span class="aviso-fixo">número fixo — pode não ter WhatsApp</span><% } %>
+            </a>
+            <% } %>
           </div>
           <details class="parada-nao-entregue">
             <summary>Não entregue</summary>

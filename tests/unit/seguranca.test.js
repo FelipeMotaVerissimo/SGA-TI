@@ -99,9 +99,10 @@ describe('helmet', () => {
     expect(d.defaultSrc).toEqual(["'self'"]);
     expect(d.frameAncestors).toEqual(["'none'"]);
     expect(d.objectSrc).toEqual(["'none'"]);
-    // Nenhuma diretiva pode liberar host externo.
-    const tudo = Object.values(d).flat().join(' ');
-    expect(tudo).not.toMatch(/https?:\/\//);
+    // Módulo 6: a única origem externa é a dos tiles do mapa, e só em img-src.
+    const externas = Object.entries(d).flatMap(([diretiva, valores]) =>
+      valores.filter((v) => /https?:\/\//.test(v)).map((v) => `${diretiva} ${v}`));
+    expect(externas).toEqual(['imgSrc https://tile.openstreetmap.org']);
   });
 });
 

@@ -1,4 +1,5 @@
-const entregaService = require('../services/entregaService');
+const entregaService  = require('../services/entregaService');
+const rastreioService = require('../services/rastreioService');
 
 /**
  * Módulo 6 — telas e ações da saída de entrega.
@@ -12,6 +13,13 @@ async function exibirSaida(req, res) {
   try {
     const ativa = await entregaService.saidaAtiva();
     const elegiveis = ativa ? [] : await entregaService.listarElegiveis();
+
+    // Botão "Avisar no WhatsApp": o link da consulta usa o endereço público
+    // (URL_PUBLICA, quando houver domínio) ou a origem desta própria requisição.
+    if (ativa) {
+      const urlBase = process.env.URL_PUBLICA || `${req.protocol}://${req.get('host')}`;
+      for (const e of ativa.entregas) e.whatsapp = rastreioService.linkWhatsApp(e, urlBase);
+    }
     res.render('entregas/saida', {
       titulo: 'Saída de entrega',
       ativa,

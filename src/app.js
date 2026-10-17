@@ -28,6 +28,9 @@ app.set('views', path.join(__dirname, '..', 'views'));
 
 // Arquivos estáticos
 app.use(express.static(path.join(__dirname, '..', 'public')));
+// Módulo 6: o Leaflet (mapa) é servido pelo próprio app, e não por CDN, para o
+// CSP continuar com script-src 'self'.
+app.use('/vendor/leaflet', express.static(path.join(__dirname, '..', 'node_modules', 'leaflet', 'dist')));
 
 // NF007 — atrás do proxy da hospedagem, é o que faz o Express enxergar o
 // protocolo e o IP originais. Só em produção: em desenvolvimento não há proxy,

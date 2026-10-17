@@ -98,6 +98,11 @@ describe('quando o token é exigido', () => {
     expect(rodar(requisicao({ url: '/login', token: TOKEN })).seguiu).toBe(true);
   });
 
+  test('a consulta pública e a verificação do mapa passam sem token, mesmo logado', () => {
+    expect(rodar(requisicao({ url: '/consulta', token: TOKEN })).seguiu).toBe(true);
+    expect(rodar(requisicao({ url: '/consulta/rastreio', token: TOKEN })).seguiu).toBe(true);
+  });
+
   test.each(['POST', 'PUT', 'PATCH', 'DELETE'])('%s logado sem token: 403', (metodo) => {
     const r = rodar(requisicao({ metodo, token: TOKEN }));
     expect(r.seguiu).toBe(false);

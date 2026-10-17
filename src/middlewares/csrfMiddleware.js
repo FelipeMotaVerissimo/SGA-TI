@@ -17,6 +17,7 @@ const crypto = require('crypto');
  *
  *  - `GET`, `HEAD` e `OPTIONS`, que não alteram nada;
  *  - `POST /login`, que descarta a sessão anterior e cria outra;
+ *  - `POST /consulta` e `POST /consulta/rastreio`, formulários públicos;
  *  - requisição sem usuário na sessão (`/login`, `/consulta`, sessão
  *    expirada): não há sessão para sequestrar, e as rotas protegidas já
  *    devolvem para o login no `sessaoMiddleware`;
@@ -49,6 +50,12 @@ function precisaDeToken(req) {
   // sequestrar. E o formulário de login só aparece para quem não está
   // logado, logo nunca tem token: exigir aqui recusaria a segunda aba.
   if (req.path === '/login') return false;
+  // Consulta pública (Módulo 2) e verificação do mapa da entrega (Módulo 6):
+  // formulários sem sessão, que nada mudam na sessão de quem estiver logado —
+  // e o site atacante não consegue ler a resposta. Exigir o token aqui
+  // recusava (403) o funcionário logado que usasse a consulta pública; achado
+  // no navegador, porque os testes da consulta eram todos sem login.
+  if (req.path === '/consulta' || req.path === '/consulta/rastreio') return false;
   return Boolean(req.session && req.session.usuario);
 }
 
