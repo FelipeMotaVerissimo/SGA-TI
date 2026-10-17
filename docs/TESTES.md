@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 352 | 352 | 0 |
-| Integração | 347 | 347 | 0 |
-| **Total** | **699** | **699** | **0** |
+| Unitários | 356 | 356 | 0 |
+| Integração | 348 | 348 | 0 |
+| **Total** | **704** | **704** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 352 testes
-npm run test:integration  :: 347 testes
-npm test                  :: suíte completa — 699 testes
+npm run test:unit         :: 356 testes
+npm run test:integration  :: 348 testes
+npm test                  :: suíte completa — 704 testes
 ```
 
-### 1.2 Testes unitários — 352 casos
+### 1.2 Testes unitários — 356 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -50,13 +50,13 @@ banco, rodam em cerca de 3 segundos.
 | `retencaoService.test.js` | 12 | NF008 — busca do dado pessoal em texto livre |
 | `entregaService.test.js` | 28 | Módulo 6 — regras da saída de entrega (RN15–RN25) |
 | `geocodificacaoService.test.js` | 15 | Módulo 6 — busca no Nominatim, falhas, timeout e intervalo da fila |
-| `entregadorScript.test.js` | 22 | Módulo 6 — mensagens do GPS, idade do envio e reação às respostas do servidor (script do celular) |
+| `entregadorScript.test.js` | 26 | Módulo 6 — mensagens do GPS, idade do envio, reação às respostas do servidor e trava contra rajada (script do celular) |
 | `csvService.test.js` | 12 | Separador, BOM, decimal com vírgula |
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 347 casos
+### 1.3 Testes de integração — 348 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -67,7 +67,7 @@ isolado, recriado a cada suíte.
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
 | `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
-| `entregas.test.js` | 31 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis e a tela do entregador |
+| `entregas.test.js` | 32 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis e a tela do entregador |
 | `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
@@ -90,7 +90,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **352 unitários e 347 de integração passando**. Isso importa porque o
+números: **356 unitários e 348 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -344,17 +344,55 @@ oculto, margem de 220 px no conteúdo — exatamente como antes.
 |---|---|
 | L06 | ~~O sistema não foi projetado para telas de celular~~ — **resolvido**, ver 3.7. O que continua valendo: a emulação reproduz a largura e o toque, mas não substitui um aparelho de verdade. As colunas Android e iOS da matriz ainda pedem teste em aparelho físico |
 
+### 3.9 Tela do entregador em aparelho real (Módulo 6)
+
+**Executado em 16/10/2026, às 21:54 (horário local).** Celular:
+`[VALIDAR: modelo, sistema e navegador]`. Acesso por HTTPS através de um túnel
+temporário (`cloudflared`, endereço `trycloudflare.com`), porque o GPS do
+celular só funciona em `https://` ou em `localhost`. Roteiro em
+`TESTE-CELULAR-MODULO6.md`, fora do repositório.
+
+| Verificação | Resultado |
+|---|---|
+| Login do `entregador` cai direto na tela de entregas | ✅ |
+| Iniciar a saída com uma OS | ✅ "Saída iniciada com 1 OS." |
+| Pedido de permissão e envio da localização | ✅ faixa verde, "Localização enviada há 8 s" |
+| Wake Lock | ✅ o aviso de "Mantenha a tela acesa" não apareceu — o navegador aceitou a trava |
+| Posições gravadas | 7, entre 21:54:30 e 21:56:24, precisão de 6 a 13 m |
+| Intervalo com a tela acesa | 10 s, como previsto |
+| Tela bloqueada | buracos de 45 e 50 s — o navegador pausa o GPS, limitação já prevista (rastrear em segundo plano exigiria app nativo) |
+| Destino geocodificado | ✅ |
+| Navegar, Entregue e Encerrar | `[VALIDAR]` — a saída ficou em rota ao fim do teste e foi cancelada depois, pelo administrador |
+| Trajeto | não medido: o aparelho praticamente não se deslocou (cerca de 2 m) |
+
+**Defeito encontrado.** Ao desbloquear a tela, o navegador disparou de uma vez
+os envios que o timer acumulou: **três posições idênticas gravadas no mesmo
+milissegundo**. A regra de descartar posição a menos de 5 s da anterior (RN21)
+lia a última posição e só depois gravava, e os três envios simultâneos leram a
+mesma "última". Corrigido nas duas pontas:
+
+- **servidor:** os registros de posição da mesma saída passam por uma fila
+  dentro do processo, e o segundo envio já enxerga o primeiro. Basta porque o
+  sistema roda numa instância só, a mesma premissa da sessão em memória
+  (`SEGURANCA.md`, P04);
+- **celular:** um envio por vez e pelo menos 5 s entre tentativas. Não exige
+  posição nova do GPS: parado num semáforo, o entregador continua aparecendo
+  como ativo.
+
+Teste de integração com três envios simultâneos (antes: 3 gravados; depois: 1)
+e unitário da trava do celular; os dois falham com a correção desligada.
+
 ---
 
 ## 4. Situação geral
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 223 passando, a cada push |
-| **Software — integração** | ✅ Executado | 223 passando em SQLite e em MySQL 8 |
-| **Software — migrations** | ✅ Executado | CI aplica as 5 e confere contra o schema |
+| **Software — unitários** | ✅ Executado | 356 passando, a cada push |
+| **Software — integração** | ✅ Executado | 348 passando em SQLite e em MySQL 8 |
+| **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
-| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); Firefox, Safari e aparelho real pendentes |
+| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); Firefox, Safari e o restante em aparelho real pendentes |
 | **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 17 tabelas comparadas, 0 divergências |
 | **Carga e concorrência** | ⬜ Fora de escopo | — |
 

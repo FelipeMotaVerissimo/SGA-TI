@@ -80,3 +80,25 @@ describe('reação à resposta do servidor', () => {
     expect(e.interpretarResposta({ status: 201, redirected: true, url: 'https://x.com/loginfo' })).toEqual({ estado: 'enviada' });
   });
 });
+
+describe('trava contra rajada de envios', () => {
+  const base = { temPosicao: true, enviando: false, ultimaTentativa: null, agora: 100000 };
+
+  test('primeiro envio, com posição: pode', () => {
+    expect(e.podeEnviar(base)).toBe(true);
+  });
+
+  test('sem posição do GPS ainda: não', () => {
+    expect(e.podeEnviar({ ...base, temPosicao: false })).toBe(false);
+  });
+
+  test('com um envio em andamento: não — é o que barra a rajada', () => {
+    expect(e.podeEnviar({ ...base, enviando: true })).toBe(false);
+  });
+
+  test('menos de 5 s desde a última tentativa: não; 5 s ou mais: pode', () => {
+    expect(e.podeEnviar({ ...base, ultimaTentativa: 100000 - 4999 })).toBe(false);
+    expect(e.podeEnviar({ ...base, ultimaTentativa: 100000 - 5000 })).toBe(true);
+    expect(e.MINIMO_ENTRE_ENVIOS_MS).toBe(5000);
+  });
+});

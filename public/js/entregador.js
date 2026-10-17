@@ -67,8 +67,26 @@
     return { estado: 'erro', mensagem: 'Falha ao enviar. Nova tentativa em 10 s.' };
   }
 
+  /**
+   * Pode disparar um envio agora?
+   * Com a tela bloqueada, o Android congela o timer; ao desbloquear, dispara
+   * de uma vez os ciclos acumulados. Sem esta trava, saíam vários envios
+   * simultâneos da mesma posição (visto no teste com celular real). Regra: um
+   * envio por vez e pelo menos MINIMO_ENTRE_ENVIOS_MS desde a última tentativa.
+   * Não depende de o GPS ter lido posição nova: parado num semáforo, o
+   * entregador continua mandando a mesma posição, e o cliente vê que está vivo.
+   */
+  var MINIMO_ENTRE_ENVIOS_MS = 5000;
+  function podeEnviar(estado) {
+    if (!estado.temPosicao || estado.enviando) return false;
+    if (estado.ultimaTentativa === null || estado.ultimaTentativa === undefined) return true;
+    return estado.agora - estado.ultimaTentativa >= MINIMO_ENTRE_ENVIOS_MS;
+  }
+
   var api = {
     INTERVALO_ENVIO_MS: INTERVALO_ENVIO_MS,
+    MINIMO_ENTRE_ENVIOS_MS: MINIMO_ENTRE_ENVIOS_MS,
+    podeEnviar: podeEnviar,
     mensagemErroGeo: mensagemErroGeo,
     descreverIdade: descreverIdade,
     classeIdade: classeIdade,
@@ -94,6 +112,8 @@
 
     var ultima = null;          // última posição lida do GPS
     var ultimoEnvio = null;     // instante do último envio aceito
+    var ultimaTentativa = null; // instante do último envio disparado
+    var enviando = false;       // há um envio em andamento
     var ativo = true;
     var watchId = null;
     var relogios = [];
@@ -140,7 +160,11 @@
     );
 
     function enviar() {
-      if (!ativo || !ultima) return;
+      if (!ativo) return;
+      var agora = Date.now();
+      if (!podeEnviar({ temPosicao: Boolean(ultima), enviando: enviando, ultimaTentativa: ultimaTentativa, agora: agora })) return;
+      enviando = true;
+      ultimaTentativa = agora;
       fetch('/entregas/saida/posicao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
@@ -161,6 +185,8 @@
         if (ativo) atualizarFaixa();
       }).catch(function () {
         mostrarAviso('Falha ao enviar. Nova tentativa em 10 s.');
+      }).then(function () {
+        enviando = false;
       });
     }
 

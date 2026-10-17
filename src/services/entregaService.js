@@ -193,18 +193,41 @@ async function registrarPosicao(dados, usuario, agora = new Date()) {
     throw erro('Só o entregador da saída envia a posição.', 403);
   }
 
-  const ultima = await prisma.posicaoEntrega.findFirst({
-    where:   { saidaId: saida.id },
-    orderBy: { registradaEm: 'desc' },
-  });
-  if (ultima && agora.getTime() - new Date(ultima.registradaEm).getTime() < INTERVALO_MINIMO_POSICAO_MS) {
-    return { descartada: true };
-  }
+  // RN21 lê a última posição e só então grava: sem fila, envios simultâneos
+  // leem todos a mesma "última" e passam juntos. Aconteceu no teste com
+  // celular real — ao desbloquear a tela, o Android disparou de uma vez três
+  // envios acumulados, e os três foram gravados no mesmo milissegundo.
+  return emFila(saida.id, async () => {
+    const ultima = await prisma.posicaoEntrega.findFirst({
+      where:   { saidaId: saida.id },
+      orderBy: { registradaEm: 'desc' },
+    });
+    if (ultima && agora.getTime() - new Date(ultima.registradaEm).getTime() < INTERVALO_MINIMO_POSICAO_MS) {
+      return { descartada: true };
+    }
 
-  const criada = await prisma.posicaoEntrega.create({
-    data: { saidaId: saida.id, ...posicao, registradaEm: agora },
+    const criada = await prisma.posicaoEntrega.create({
+      data: { saidaId: saida.id, ...posicao, registradaEm: agora },
+    });
+    return { descartada: false, posicao: criada };
   });
-  return { descartada: false, posicao: criada };
+}
+
+/**
+ * Fila por saída, dentro do processo: cada registro de posição espera o
+ * anterior da mesma saída terminar. Basta porque o sistema roda numa instância
+ * só — a mesma premissa da sessão em memória (docs/SEGURANCA.md, P04). Com
+ * várias instâncias, a garantia teria de ir para o banco.
+ */
+const filasPosicao = new Map();
+
+function emFila(chave, tarefa) {
+  const anterior = filasPosicao.get(chave) || Promise.resolve();
+  const atual = anterior.then(tarefa, tarefa);
+  const fim = atual.catch(() => {});
+  filasPosicao.set(chave, fim);
+  fim.then(() => { if (filasPosicao.get(chave) === fim) filasPosicao.delete(chave); });
+  return atual;
 }
 
 // ---------------------------------------------------------------- paradas

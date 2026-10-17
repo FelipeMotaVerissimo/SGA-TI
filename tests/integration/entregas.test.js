@@ -229,6 +229,19 @@ describe('posição do entregador', () => {
     expect(await prisma.posicaoEntrega.count()).toBe(1);
   });
 
+  test('RN21 sob rajada: envios simultâneos gravam uma posição só', async () => {
+    // Visto no teste com celular real: ao desbloquear a tela, o Android
+    // disparou de uma vez os envios acumulados, e os três passavam.
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [FIN().id]);
+
+    const respostas = await Promise.all([1, 2, 3].map(() =>
+      entregador.post('/entregas/saida/posicao').send(POS)));
+
+    expect(respostas.map((r) => r.status).sort()).toEqual([201, 202, 202]);
+    expect(await prisma.posicaoEntrega.count()).toBe(1);
+  });
+
   test('RN20: latitude ou longitude fora do intervalo é recusada (400)', async () => {
     const entregador = await logar(request, app, 'entregador');
     await iniciar(entregador, [FIN().id]);
