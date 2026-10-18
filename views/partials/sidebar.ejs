@@ -24,7 +24,8 @@
     </a>
     <% } %>
     <% if (pode('ENTREGADOR')) { %>
-    <a href="/entregas/saida" class="<%= locals.path && locals.path.startsWith('/entregas') ? 'ativo' : '' %>">
+    <%# O administrador abre o painel (/entregas); o entregador, a tela da saída. %>
+    <a href="<%= locals.usuario && locals.usuario.perfil === 'ADMINISTRADOR' ? '/entregas' : '/entregas/saida' %>" class="<%= locals.path && locals.path.startsWith('/entregas') ? 'ativo' : '' %>">
       🚚 Entregas
     </a>
     <% } %>

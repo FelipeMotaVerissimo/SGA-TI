@@ -60,6 +60,88 @@ async function saidaAtiva() {
   });
 }
 
+// ------------------------------------------------- painel do administrador
+
+/** Teto do histórico. Como na auditoria, a tela não pagina. */
+const LIMITE_HISTORICO = 50;
+
+/** Uma saída do histórico, com a contagem das paradas por resultado. */
+function resumirSaida(saida) {
+  const contar = (status) => saida.entregas.filter((e) => e.status === status).length;
+  return {
+    id:           saida.id,
+    status:       saida.status,
+    iniciadaEm:   saida.iniciadaEm,
+    encerradaEm:  saida.encerradaEm,
+    entregador:   saida.entregador,
+    totalOS:      saida.entregas.length,
+    entregues:    contar('ENTREGUE'),
+    naoEntregues: contar('NAO_ENTREGUE'),
+    pendentes:    contar('PENDENTE'),
+  };
+}
+
+/** As últimas saídas, da mais nova para a mais antiga (inclui a em rota). */
+async function listarHistorico(limite = LIMITE_HISTORICO) {
+  const saidas = await prisma.saidaEntrega.findMany({
+    orderBy: { iniciadaEm: 'desc' },
+    take:    limite,
+    include: {
+      entregador: { select: { id: true, nome: true } },
+      entregas:   { select: { status: true } },
+    },
+  });
+  return saidas.map(resumirSaida);
+}
+
+const numero = (v) => (v === null || v === undefined ? null : Number(v));
+
+/**
+ * RN34 — pinos do mapa do painel: todas as paradas com destino geocodificado.
+ * Só número da parada, OS e status; nome e endereço ficam na tabela da página.
+ */
+function destinosDoMapa(entregas) {
+  return entregas
+    .filter((e) => e.destinoLat !== null && e.destinoLng !== null)
+    .map((e) => ({
+      id:      e.id,
+      parada:  e.ordemParada,
+      os:      e.ordem.numero,
+      lat:     numero(e.destinoLat),
+      lng:     numero(e.destinoLng),
+      status:  e.status,
+    }));
+}
+
+/** JSON da atualização do painel: última posição e status de cada parada. */
+function montarPainel(saida, ultima) {
+  return {
+    saidaId:  saida.id,
+    status:   saida.status,
+    posicao:  ultima ? { lat: numero(ultima.lat), lng: numero(ultima.lng), atualizadoEm: ultima.registradaEm } : null,
+    entregas: saida.entregas.map((e) => ({ id: e.id, status: e.status })),
+  };
+}
+
+/** RN33 — dados do mapa do painel. `null` quando não há saída em rota. */
+async function painelPosicao() {
+  const saida = await prisma.saidaEntrega.findUnique({
+    where:  { emRota: true },
+    select: {
+      id: true, status: true,
+      entregas: { select: { id: true, status: true }, orderBy: { ordemParada: 'asc' } },
+    },
+  });
+  if (!saida) return null;
+
+  const ultima = await prisma.posicaoEntrega.findFirst({
+    where:   { saidaId: saida.id },
+    orderBy: { registradaEm: 'desc' },
+    select:  { lat: true, lng: true, registradaEm: true },
+  });
+  return montarPainel(saida, ultima);
+}
+
 // -------------------------------------------------------- geocodificação
 
 /** Buscas em andamento — os testes esperam por elas, como na auditoria. */
@@ -331,8 +413,14 @@ module.exports = {
   INTERVALO_MINIMO_POSICAO_MS,
   MOTIVO_MINIMO,
   MOTIVO_CANCELAMENTO,
+  LIMITE_HISTORICO,
   listarElegiveis,
   saidaAtiva,
+  resumirSaida,
+  listarHistorico,
+  destinosDoMapa,
+  montarPainel,
+  painelPosicao,
   iniciarSaida,
   validarPosicao,
   registrarPosicao,

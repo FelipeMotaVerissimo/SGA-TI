@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 381 | 381 | 0 |
-| Integração | 365 | 365 | 0 |
-| **Total** | **746** | **746** | **0** |
+| Unitários | 395 | 395 | 0 |
+| Integração | 379 | 379 | 0 |
+| **Total** | **774** | **774** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 381 testes
-npm run test:integration  :: 365 testes
-npm test                  :: suíte completa — 746 testes
+npm run test:unit         :: 395 testes
+npm run test:integration  :: 379 testes
+npm test                  :: suíte completa — 774 testes
 ```
 
-### 1.2 Testes unitários — 381 casos
+### 1.2 Testes unitários — 395 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -48,16 +48,17 @@ banco, rodam em cerca de 3 segundos.
 | `auditoriaExtensao.test.js` | 15 | NF005 — gravação automática, senha omitida, contexto |
 | `backup.test.js` | 15 | NF006 — leitura da URL, nome do arquivo, argumentos |
 | `retencaoService.test.js` | 12 | NF008 — busca do dado pessoal em texto livre |
-| `entregaService.test.js` | 28 | Módulo 6 — regras da saída de entrega (RN15–RN25) |
+| `entregaService.test.js` | 34 | Módulo 6 — regras da saída de entrega (RN15–RN25) e dados do painel (RN33–RN34) |
 | `geocodificacaoService.test.js` | 15 | Módulo 6 — busca no Nominatim, falhas, timeout e intervalo da fila |
 | `rastreioService.test.js` | 24 | Módulo 6 — número e mensagem do WhatsApp, 4 dígitos, token e script do mapa |
 | `entregadorScript.test.js` | 26 | Módulo 6 — mensagens do GPS, idade do envio, reação às respostas do servidor e trava contra rajada (script do celular) |
+| `painelEntregasScript.test.js` | 8 | Módulo 6 — texto da posição, reação às respostas (inclusive sessão expirada) e cor do pino (script do painel) |
 | `csvService.test.js` | 12 | Separador, BOM, decimal com vírgula |
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 365 casos
+### 1.3 Testes de integração — 379 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -69,7 +70,7 @@ isolado, recriado a cada suíte.
 | `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
 | `rastreio.test.js` | 17 | Módulo 6 — consulta com entrega em rota, dígitos, limites por IP e por OS, token, posição pública, WhatsApp, consulta com usuário logado |
-| `entregas.test.js` | 32 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis e a tela do entregador |
+| `entregas.test.js` | 46 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis, a tela do entregador e o painel do administrador |
 | `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
@@ -92,7 +93,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **381 unitários e 365 de integração passando**. Isso importa porque o
+números: **395 unitários e 379 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -384,17 +385,48 @@ mesma "última". Corrigido nas duas pontas:
 Teste de integração com três envios simultâneos (antes: 3 gravados; depois: 1)
 e unitário da trava do celular; os dois falham com a correção desligada.
 
+### 3.10 Painel de entregas do administrador (Módulo 6)
+
+**Executado em 17/10/2026**, no Chromium do ambiente de desenvolvimento, com
+uma saída de duas OS geocodificadas pelo Nominatim real e posições gravadas no
+banco de desenvolvimento (o celular não participou).
+
+| Verificação | Resultado |
+|---|---|
+| Mapa com tiles, marcador do entregador e um pino numerado por destino | ✅ enquadrado nos três pontos |
+| Parada mudada para entregue / não entregue com a página aberta | ✅ pino e tabela recoloridos no ciclo seguinte (10 s), sem recarregar |
+| "Localização do entregador há X s" | ✅ |
+| Saída cancelada com a página aberta | ✅ "A saída não está mais em rota", com link para recarregar |
+| Cancelar pelo painel | ✅ volta para `/entregas`, que mostra o histórico com a saída cancelada |
+| Histórico | ✅ contagem por resultado e horários no fuso de Dourados/MS |
+| Console | ✅ nenhum erro de CSP; o único 404 é o da posição depois do cancelamento, esperado |
+| 375 px | ✅ sem rolagem horizontal; a tabela rola dentro da caixa, como nas outras telas |
+| Firefox | `[VALIDAR]` |
+
+**Três defeitos vistos só no navegador**, corrigidos antes do commit:
+
+- **número fora do centro no pino:** o `leaflet.css` põe `display: block` no
+  ícone e anulava o `inline-flex` da classe. Seletor mais específico;
+- **mapa desbotado:** com a aba em segundo plano o navegador pausa a animação
+  do zoom no meio, e as duas camadas de tiles ficam sobrepostas. O
+  enquadramento, feito uma vez só ao carregar, passou a ser sem animação;
+- **sessão expirada sem aviso:** o `fetch` segue o redirecionamento e recebe a
+  tela de login com status 200; o mapa ficava parado, e o relógio de 1 s
+  apagava a mensagem de falha. Agora resposta redirecionada encerra a
+  atualização com "Sua sessão expirou", e o aviso de falha de conexão fica até
+  a resposta seguinte. Teste unitário, que falha sem a correção.
+
 ---
 
 ## 4. Situação geral
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 381 passando, a cada push |
-| **Software — integração** | ✅ Executado | 365 passando em SQLite e em MySQL 8 |
+| **Software — unitários** | ✅ Executado | 395 passando, a cada push |
+| **Software — integração** | ✅ Executado | 379 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
-| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); Firefox, Safari e o restante em aparelho real pendentes |
+| **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |
 | **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 17 tabelas comparadas, 0 divergências |
 | **Carga e concorrência** | ⬜ Fora de escopo | — |
 

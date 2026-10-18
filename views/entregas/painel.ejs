@@ -1,0 +1,128 @@
+<%
+  // Módulo 6 — painel do administrador (RN33): a saída em rota com o mapa e o
+  // histórico das saídas. O mapa é desenhado por public/js/painel-entregas.js,
+  // que lê os destinos do atributo data-destinos e atualiza a posição a cada 10 s.
+  const FUSO = { timeZone: 'America/Campo_Grande' };
+  const hora = (d) => new Date(d).toLocaleTimeString('pt-BR', { ...FUSO, hour: '2-digit', minute: '2-digit' });
+  const dataHora = (d) => `${new Date(d).toLocaleDateString('pt-BR', FUSO)} ${hora(d)}`;
+  const bairroCidade = (c) => [c.bairro, [c.cidade, c.estado].filter(Boolean).join('/')].filter(Boolean).join(' — ') || '—';
+  const rotulo = { PENDENTE: 'Pendente', ENTREGUE: 'Entregue', NAO_ENTREGUE: 'Não entregue' };
+  const cor    = { PENDENTE: 'badge-amarelo', ENTREGUE: 'badge-verde', NAO_ENTREGUE: 'badge-vermelho' };
+  const rotuloSaida = { EM_ROTA: 'Em rota', CONCLUIDA: 'Concluída', CANCELADA: 'Cancelada' };
+  const corSaida    = { EM_ROTA: 'badge-azul', CONCLUIDA: 'badge-verde', CANCELADA: 'badge-cinza' };
+  const comDestino = new Set(destinos.map((d) => d.id));
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> — SGA TI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <% if (ativa) { %><link rel="stylesheet" href="/vendor/leaflet/leaflet.css"><% } %>
+</head>
+<body>
+  <div class="layout">
+    <%- include('../partials/sidebar', { path: '/entregas' }) %>
+
+    <div class="conteudo">
+      <div class="page-header">
+        <h1>🚚 Painel de entregas</h1>
+        <p>Saída em andamento e histórico · <a href="/entregas/saida">abrir a tela da saída</a></p>
+      </div>
+
+      <%- include('../partials/alertas') %>
+
+      <% if (ativa) { %>
+      <div class="tabela-box painel-saida">
+        <div class="tabela-header">
+          <h2>Em rota com <%= ativa.entregador.nome %> desde <%= hora(ativa.iniciadaEm) %></h2>
+          <form action="/entregas/saidas/<%= ativa.id %>/cancelar" method="POST"
+            data-confirmar="Cancelar a saída? As entregas pendentes ficam como não entregues.">
+            <%- include('../partials/csrf') %>
+            <button type="submit" class="btn btn-danger btn-sm">Cancelar saída</button>
+          </form>
+        </div>
+
+        <div id="mapa-painel" class="mapa-entrega mapa-painel" data-destinos="<%= JSON.stringify(destinos) %>"></div>
+        <p class="mapa-status">Carregando o mapa…</p>
+
+        <table class="tabela-paradas">
+          <thead>
+            <tr>
+              <th>Nº</th>
+              <th>OS</th>
+              <th>Cliente</th>
+              <th>Bairro / cidade</th>
+              <th>Status</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% ativa.entregas.forEach(e => { const c = e.ordem.equipamento.cliente; %>
+            <tr data-entrega="<%= e.id %>">
+              <td><span class="pino-parada pino-<%= e.status %>"><%= e.ordemParada %></span></td>
+              <td><a href="/ordens/<%= e.ordem.id %>"><%= e.ordem.numero %></a></td>
+              <td><%= c.nome %></td>
+              <td><%= bairroCidade(c) %><% if (!comDestino.has(e.id)) { %> <span class="texto-apagado">(sem localização)</span><% } %></td>
+              <td><span class="badge <%= cor[e.status] %> status-parada"><%= rotulo[e.status] %></span></td>
+              <td>
+                <% if (e.status === 'ENTREGUE' && e.entregueEm) { %>às <%= hora(e.entregueEm) %><% } %>
+                <% if (e.motivo) { %><%= e.motivo %><% } %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <script src="/vendor/leaflet/leaflet.js" defer></script>
+      <script src="/js/painel-entregas.js" defer></script>
+      <% } else { %>
+      <div class="form-box">
+        <p class="texto-apagado">Nenhuma saída em rota no momento.</p>
+      </div>
+      <% } %>
+
+      <div class="tabela-box">
+        <div class="tabela-header">
+          <h2>📜 Histórico das saídas</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Início</th>
+              <th>Entregador</th>
+              <th>OS</th>
+              <th>Entregues</th>
+              <th>Não entregues</th>
+              <th>Status</th>
+              <th>Fim</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (historico.length === 0) { %>
+            <tr>
+              <td colspan="7" style="text-align:center; color:#aaa; padding:32px">Nenhuma saída registrada.</td>
+            </tr>
+            <% } %>
+            <% historico.forEach(s => { %>
+            <tr class="linha-saida">
+              <td><%= dataHora(s.iniciadaEm) %></td>
+              <td><%= s.entregador.nome %></td>
+              <td><%= s.totalOS %></td>
+              <td><%= s.entregues %></td>
+              <td><%= s.naoEntregues %></td>
+              <td><span class="badge <%= corSaida[s.status] %>"><%= rotuloSaida[s.status] %></span></td>
+              <td><%= s.encerradaEm ? dataHora(s.encerradaEm) : '—' %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% if (historico.length === limiteHistorico) { %>
+        <p class="texto-apagado">Mostrando as <%= limiteHistorico %> saídas mais recentes.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

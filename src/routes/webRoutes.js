@@ -127,7 +127,9 @@ router.get('/relatorios/:relatorio/csv', sessaoMiddleware, exigirPerfil(), relat
 router.get('/auditoria', sessaoMiddleware, exigirPerfil(), auditoriaWeb.exibir);
 
 // Entregas (Módulo 6). O entregador conduz a saída; o administrador também pode
-// (passa em tudo) e é o único que cancela (RN25).
+// (passa em tudo) e é o único que cancela (RN25). O painel é só dele (RN33).
+router.get('/entregas',                     sessaoMiddleware, exigirPerfil(),                  entregaWeb.exibirPainel);
+router.get('/entregas/painel/posicao',      sessaoMiddleware, exigirPerfil(),                  entregaWeb.painelPosicao);
 router.get('/entregas/saida',               sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.exibirSaida);
 router.post('/entregas/saida',              sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.iniciar);
 router.post('/entregas/saida/posicao',      sessaoMiddleware, exigirPerfil(...PERFIS_ENTREGA), entregaWeb.registrarPosicao);

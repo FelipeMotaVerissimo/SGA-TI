@@ -778,6 +778,23 @@ O aviso ao cliente é um botão "Avisar no WhatsApp" na tela do entregador: link
 (`/consulta?numero=…`, que só preenche o campo). Usa o celular; sem ele, o fixo,
 com o aviso de que pode não ter WhatsApp; sem nenhum, o botão não aparece.
 
+#### Painel do administrador (RN33 e RN34)
+
+Em `src/services/entregaService.js` (`listarHistorico`, `destinosDoMapa`,
+`painelPosicao`) e `views/entregas/painel.ejs`; o mapa em
+`public/js/painel-entregas.js`. Testes em `tests/unit/entregaService.test.js`,
+`tests/unit/painelEntregasScript.test.js` e `tests/integration/entregas.test.js`.
+
+| ID | Regra |
+|---|---|
+| RN33 | O painel `/entregas` e a posição dele (`GET /entregas/painel/posicao`) são só do administrador; sem saída em rota, a posição responde 404 |
+| RN34 | O mapa do painel mostra todos os destinos geocodificados da saída em rota, levando só o número da parada, a OS, a coordenada e o status; nome e endereço ficam na tabela da página |
+
+A posição do painel devolve só `saidaId`, `status`, a última posição
+(`lat`, `lng`, `atualizadoEm`) e o status de cada parada. O histórico mostra
+as 50 saídas mais recentes, sem paginação, como a auditoria. Não há tabela
+nova: o painel lê `saidas_entrega`, `entregas_os` e `posicoes_entrega`.
+
 ---
 
 ## 6. Relacionamentos e cardinalidades

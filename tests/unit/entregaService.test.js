@@ -1,6 +1,6 @@
 jest.mock('../../src/config/database', () => ({
   ordemServico:   { findMany: jest.fn() },
-  saidaEntrega:   { findUnique: jest.fn(), update: jest.fn() },
+  saidaEntrega:   { findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn() },
   entregaOS:      { findUnique: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
   posicaoEntrega: { findFirst: jest.fn(), create: jest.fn() },
   $transaction:   jest.fn(),
@@ -198,5 +198,79 @@ describe('encerrar e cancelar', () => {
     expect(porId[2]).toEqual({ status: 'NAO_ENTREGUE', motivo: 'Saída cancelada', ordemPendenteId: null, tokenHash: null });
     expect(porId[3]).toEqual({ tokenHash: null });
     expect(r).toMatchObject({ status: 'CANCELADA', emRota: null });
+  });
+});
+
+describe('painel do administrador', () => {
+  const entregaOS = (id, parada, status, lat = '-22.221134', lng = '-54.805612') => ({
+    id, ordemParada: parada, status, destinoLat: lat, destinoLng: lng,
+    ordem: { numero: `OS-${id}`, equipamento: { cliente: { nome: 'Fulano', telefone: '67999990000' } } },
+  });
+
+  test('resumirSaida conta as paradas por resultado', () => {
+    const r = entrega.resumirSaida({
+      id: 4, status: 'CONCLUIDA', iniciadaEm: 'i', encerradaEm: 'f', entregador: { id: 7, nome: 'Zé' },
+      // Contagens diferentes entre si, para uma troca de status não passar.
+      entregas: [
+        { status: 'ENTREGUE' }, { status: 'NAO_ENTREGUE' }, { status: 'NAO_ENTREGUE' },
+        { status: 'PENDENTE' }, { status: 'PENDENTE' }, { status: 'PENDENTE' },
+      ],
+    });
+    expect(r).toEqual({
+      id: 4, status: 'CONCLUIDA', iniciadaEm: 'i', encerradaEm: 'f', entregador: { id: 7, nome: 'Zé' },
+      totalOS: 6, entregues: 1, naoEntregues: 2, pendentes: 3,
+    });
+  });
+
+  test('listarHistorico pede as mais novas, com o teto de 50', async () => {
+    prisma.saidaEntrega.findMany.mockResolvedValue([]);
+    await entrega.listarHistorico();
+    const args = prisma.saidaEntrega.findMany.mock.calls[0][0];
+    expect(args.orderBy).toEqual({ iniciadaEm: 'desc' });
+    expect(args.take).toBe(50);
+    expect(entrega.LIMITE_HISTORICO).toBe(50);
+  });
+
+  test('RN34: destinosDoMapa leva só as paradas geocodificadas e só os campos do mapa', () => {
+    const d = entrega.destinosDoMapa([
+      entregaOS(1, 1, 'ENTREGUE'),
+      entregaOS(2, 2, 'PENDENTE', null, null),
+      entregaOS(3, 3, 'PENDENTE'),
+    ]);
+    expect(d).toEqual([
+      { id: 1, parada: 1, os: 'OS-1', lat: -22.221134, lng: -54.805612, status: 'ENTREGUE' },
+      { id: 3, parada: 3, os: 'OS-3', lat: -22.221134, lng: -54.805612, status: 'PENDENTE' },
+    ]);
+    expect(JSON.stringify(d)).not.toMatch(/Fulano|67999990000/);
+  });
+
+  test('montarPainel converte a posição e não leva campos extras', () => {
+    const p = entrega.montarPainel(
+      { id: 5, status: 'EM_ROTA', entregas: [{ id: 1, status: 'ENTREGUE', motivo: 'x' }] },
+      { lat: '-22.23', lng: '-54.81', registradaEm: 't', precisao: 8 },
+    );
+    expect(p).toEqual({
+      saidaId: 5, status: 'EM_ROTA',
+      posicao: { lat: -22.23, lng: -54.81, atualizadoEm: 't' },
+      entregas: [{ id: 1, status: 'ENTREGUE' }],
+    });
+    expect(entrega.montarPainel({ id: 5, status: 'EM_ROTA', entregas: [] }, null).posicao).toBeNull();
+  });
+
+  test('RN33: painelPosicao sem saída em rota devolve null sem buscar posição', async () => {
+    prisma.saidaEntrega.findUnique.mockResolvedValue(null);
+    expect(await entrega.painelPosicao()).toBeNull();
+    expect(prisma.saidaEntrega.findUnique.mock.calls[0][0].where).toEqual({ emRota: true });
+    expect(prisma.posicaoEntrega.findFirst).not.toHaveBeenCalled();
+  });
+
+  test('painelPosicao busca a última posição da saída em rota', async () => {
+    prisma.saidaEntrega.findUnique.mockResolvedValue({ id: 5, status: 'EM_ROTA', entregas: [] });
+    prisma.posicaoEntrega.findFirst.mockResolvedValue({ lat: '-22.2', lng: '-54.8', registradaEm: 't' });
+    const p = await entrega.painelPosicao();
+    const args = prisma.posicaoEntrega.findFirst.mock.calls[0][0];
+    expect(args.where).toEqual({ saidaId: 5 });
+    expect(args.orderBy).toEqual({ registradaEm: 'desc' });
+    expect(p.posicao).toEqual({ lat: -22.2, lng: -54.8, atualizadoEm: 't' });
   });
 });

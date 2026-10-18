@@ -7,7 +7,39 @@ const rastreioService = require('../services/rastreioService');
  * exceção é a posição, enviada pelo celular via fetch, que responde JSON.
  */
 
-const TELA = '/entregas/saida';
+const TELA   = '/entregas/saida';
+const PAINEL = '/entregas';
+
+/** RN33 — painel do administrador: saída em rota com mapa e histórico. */
+async function exibirPainel(req, res) {
+  try {
+    const [ativa, historico] = await Promise.all([
+      entregaService.saidaAtiva(),
+      entregaService.listarHistorico(),
+    ]);
+    res.render('entregas/painel', {
+      titulo: 'Painel de entregas',
+      ativa,
+      destinos: ativa ? entregaService.destinosDoMapa(ativa.entregas) : [],
+      historico,
+      limiteHistorico: entregaService.LIMITE_HISTORICO,
+    });
+  } catch (err) {
+    req.flash('erro', err.message);
+    res.redirect('/dashboard');
+  }
+}
+
+/** Atualização do mapa do painel (JSON). 404 quando não há saída em rota. */
+async function painelPosicao(req, res) {
+  try {
+    const dados = await entregaService.painelPosicao();
+    if (!dados) return res.status(404).json({ erro: 'Nenhuma saída em rota.' });
+    return res.json(dados);
+  } catch (err) {
+    return res.status(500).json({ erro: err.message });
+  }
+}
 
 async function exibirSaida(req, res) {
   try {
@@ -82,10 +114,13 @@ async function cancelar(req, res) {
   } catch (err) {
     req.flash('erro', err.message);
   }
-  res.redirect(TELA);
+  // Só o administrador cancela (RN25), e o lugar dele é o painel.
+  res.redirect(PAINEL);
 }
 
 module.exports = {
+  exibirPainel,
+  painelPosicao,
   exibirSaida,
   iniciar,
   registrarPosicao,

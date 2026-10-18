@@ -419,3 +419,157 @@ describe('tela do entregador (Etapa 4)', () => {
     expect(tela.text).toContain('destination=Rua%20Hayel%20Bon%20Faker%2C%201200%2C%20Centro%2C%20Dourados%2C%20MS');
   });
 });
+
+// --------------------------------------------------------------------------
+describe('painel do administrador (Etapa 6)', () => {
+  const ROTAS_PAINEL = ['/entregas', '/entregas/painel/posicao'];
+  const porParada = (entregas) => [...entregas].sort((a, b) => a.ordemParada - b.ordemParada);
+
+  test('RN33: o administrador abre o painel', async () => {
+    const r = await (await logar(request, app, 'admin')).get('/entregas');
+    expect(r.status).toBe(200);
+    expect(r.text).toContain('Painel de entregas');
+  });
+
+  test.each(['entregador', 'atendente', 'tecnico', 'vendedor', 'financeiro', 'compras'])(
+    'RN33: %s não abre o painel nem a posição dele', async (login) => {
+      const agente = await logar(request, app, login);
+      for (const rota of ROTAS_PAINEL) {
+        const r = await agente.get(rota);
+        expect(r.status).toBe(302);
+        expect(r.headers.location).toBe('/dashboard');
+      }
+    });
+
+  test('o menu leva o administrador ao painel e o entregador à saída', async () => {
+    const admin = await (await logar(request, app, 'admin')).get('/dashboard');
+    expect(admin.text).toContain('href="/entregas" class');
+    expect(admin.text).not.toContain('href="/entregas/saida" class');
+
+    const entregador = await (await logar(request, app, 'entregador')).get('/entregas/saida');
+    expect(entregador.text).toContain('href="/entregas/saida" class');
+    expect(entregador.text).not.toContain('href="/entregas" class');
+  });
+
+  test('sem saída em rota: aviso na tela e 404 na posição', async () => {
+    const admin = await logar(request, app, 'admin');
+    const tela = await admin.get('/entregas');
+    expect(tela.text).toContain('Nenhuma saída em rota no momento.');
+    expect(tela.text).not.toContain('id="mapa-painel"');
+
+    expect((await admin.get('/entregas/painel/posicao')).status).toBe(404);
+  });
+
+  test('RN34: com saída em rota, mostra as paradas, os destinos e o botão de cancelar', async () => {
+    // A fixture não tem rua; estas duas têm endereço e são geocodificadas.
+    const os1 = await osFinalizada('OS-T-601');
+    const os2 = await osFinalizada('OS-T-611');
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [os1.id, os2.id]);
+    await entregaService.aguardarGeocodificacoes();
+    const saida = await ativa();
+
+    const tela = await (await logar(request, app, 'admin')).get('/entregas');
+    expect(tela.text).toContain('id="mapa-painel"');
+    expect(tela.text).toContain('OS-T-611');
+    expect(tela.text).toContain('Cliente OS-T-601');
+    expect(tela.text).not.toContain('(sem localização)');
+    expect(tela.text).toContain(`action="/entregas/saidas/${saida.id}/cancelar"`);
+    expect(tela.text).toContain('/js/painel-entregas.js');
+
+    // Os pinos vão no atributo data-destinos: as duas paradas, só os campos do mapa.
+    const attr = tela.text.match(/data-destinos="([^"]*)"/)[1].replace(/&#34;/g, '"');
+    const destinos = JSON.parse(attr);
+    expect(destinos.map((d) => d.parada)).toEqual([1, 2]);
+    for (const d of destinos) {
+      expect(Object.keys(d).sort()).toEqual(['id', 'lat', 'lng', 'os', 'parada', 'status']);
+      expect(d.lat).toBeCloseTo(-22.221134, 5);
+      expect(d.status).toBe('PENDENTE');
+    }
+  });
+
+  test('parada sem geocodificação fica fora do mapa e marcada na tabela', async () => {
+    fetchSimulado.mockResolvedValue({ ok: true, json: async () => [] });
+    const os = await osFinalizada('OS-T-604');
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [os.id]);
+    await entregaService.aguardarGeocodificacoes();
+
+    const tela = await (await logar(request, app, 'admin')).get('/entregas');
+    expect(tela.text).toContain('data-destinos="[]"');
+    expect(tela.text).toContain('(sem localização)');
+  });
+
+  test('a posição do painel traz o entregador e o status de cada parada, e nada mais', async () => {
+    const outra = await osFinalizada('OS-T-602');
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [FIN().id, outra.id]);
+    const saida = await ativa();
+    const admin = await logar(request, app, 'admin');
+
+    // Antes da primeira posição, o entregador ainda não aparece.
+    let r = await admin.get('/entregas/painel/posicao');
+    expect(r.status).toBe(200);
+    expect(r.body.posicao).toBeNull();
+
+    await entregador.post('/entregas/saida/posicao').send({ lat: -22.2301, lng: -54.8102 });
+    const [e1] = porParada(saida.entregas);
+    await entregador.post(`/entregas/${e1.id}/entregue`).send({});
+
+    r = await admin.get('/entregas/painel/posicao');
+    expect(r.status).toBe(200);
+    expect(Object.keys(r.body).sort()).toEqual(['entregas', 'posicao', 'saidaId', 'status']);
+    expect(r.body).toMatchObject({ saidaId: saida.id, status: 'EM_ROTA' });
+    expect(Object.keys(r.body.posicao).sort()).toEqual(['atualizadoEm', 'lat', 'lng']);
+    expect(r.body.posicao.lat).toBeCloseTo(-22.2301, 4);
+    expect(r.body.posicao.lng).toBeCloseTo(-54.8102, 4);
+    expect(r.body.entregas.map((e) => e.status)).toEqual(['ENTREGUE', 'PENDENTE']);
+    for (const e of r.body.entregas) expect(Object.keys(e).sort()).toEqual(['id', 'status']);
+  });
+
+  test('histórico: mais nova primeiro, com a contagem por resultado', async () => {
+    const outra = await osFinalizada('OS-T-603');
+    const entregador = await logar(request, app, 'entregador');
+
+    // 1ª saída: uma entregue, uma não entregue, encerrada.
+    await iniciar(entregador, [FIN().id, outra.id]);
+    const primeira = await ativa();
+    const [a, b] = porParada(primeira.entregas);
+    await entregador.post(`/entregas/${a.id}/entregue`).send({});
+    await entregador.post(`/entregas/${b.id}/nao-entregue`).type('form').send({ motivo: 'Cliente ausente' });
+    await entregador.post('/entregas/saida/encerrar').send({});
+
+    // 2ª saída: a não entregue sai de novo e fica em rota.
+    await iniciar(entregador, [outra.id]);
+    const segunda = await ativa();
+    await prisma.saidaEntrega.update({ where: { id: segunda.id }, data: { iniciadaEm: new Date(Date.now() + 60000) } });
+
+    const hist = await entregaService.listarHistorico();
+    expect(hist.map((s) => s.id)).toEqual([segunda.id, primeira.id]);
+    expect(hist[1]).toMatchObject({ status: 'CONCLUIDA', totalOS: 2, entregues: 1, naoEntregues: 1, pendentes: 0 });
+    expect(hist[0]).toMatchObject({ status: 'EM_ROTA', totalOS: 1, entregues: 0, naoEntregues: 0, pendentes: 1 });
+    expect(hist[0].entregador.nome).toBeTruthy();
+
+    const tela = await (await logar(request, app, 'admin')).get('/entregas');
+    expect(tela.text.match(/class="linha-saida"/g)).toHaveLength(2);
+    expect(tela.text).toContain('Concluída');
+
+    // O teto corta pelas mais antigas.
+    expect((await entregaService.listarHistorico(1)).map((s) => s.id)).toEqual([segunda.id]);
+  });
+
+  test('cancelar pelo painel volta ao painel, sem saída em rota', async () => {
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [FIN().id]);
+    const saida = await ativa();
+
+    const admin = await logar(request, app, 'admin');
+    const r = await admin.post(`/entregas/saidas/${saida.id}/cancelar`).send({});
+    expect(r.headers.location).toBe('/entregas');
+
+    const tela = await admin.get('/entregas');
+    expect(tela.text).toContain('Saída cancelada.');
+    expect(tela.text).toContain('Nenhuma saída em rota no momento.');
+    expect(tela.text).toMatch(/badge-cinza">Cancelada</);
+  });
+});

@@ -656,3 +656,20 @@ tbody tr:hover {
 }
 .btn-whatsapp:hover { background: #1ebe5a; color: #fff; }
 .aviso-fixo { font-size: 11px; font-weight: 400; opacity: 0.9; }
+
+/* ===== MÓDULO 6 — PAINEL DE ENTREGAS (administrador) ===== */
+.painel-saida { margin-bottom: 24px; }
+.mapa-painel { height: 380px; margin: 0 16px 8px; }
+.painel-saida .mapa-status { padding: 0 16px 12px; }
+/* Pino numerado do mapa e o mesmo número na tabela; a cor é o status. */
+.pino-parada {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  font-size: 12px; font-weight: 700; color: #fff;
+}
+/* O leaflet.css põe display: block no ícone; sem isto o número sai do centro. */
+.leaflet-marker-icon.pino-parada { display: flex; box-sizing: border-box; }
+.pino-PENDENTE     { background: #d69e2e; }
+.pino-ENTREGUE     { background: #38a169; }
+.pino-NAO_ENTREGUE { background: #e53e3e; }
