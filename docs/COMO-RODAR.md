@@ -69,6 +69,7 @@ npm run seed
 | `seed:demo` | O mesmo, **mais um usuário por perfil** (ver seção 5) |
 | `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
 | `reparar:anonimizacoes` | NF008 — limpa contas e log de clientes anonimizados antes de 14/10/2026 (ver `docs/RETENCAO.md`, seção 3.4) |
+| `simular:entrega` | Módulo 6 — move o entregador da saída em rota por um trajeto de Dourados, sem GPS (ver seção 4, "Demonstração do Módulo 6") |
 
 ### As oito migrations
 
@@ -113,6 +114,58 @@ Acesse `http://localhost:3000`.
 
 A consulta pública de OS fica em `http://localhost:3000/consulta` e **não pede
 login** — é a tela que o cliente usa para acompanhar o conserto pelo número da OS.
+
+### Demonstração do Módulo 6 (entrega no mapa)
+
+A posição do entregador pode vir de três jeitos. O sistema funciona igual nos
+três; muda só o que aparece no mapa.
+
+| Jeito | Quando usar | O que precisa |
+|---|---|---|
+| **Simulador** | Apresentação, sala sem sinal de GPS | Só o computador |
+| **GPS do celular** | Uso real; demonstração ao ar livre | HTTPS (o celular só libera o GPS em `https://` ou `localhost`): túnel `cloudflared` ou o deploy no Render. O marcador só anda se o celular andar |
+| **Sem posição** | Mostrar só o fluxo da saída | Nada. O painel mostra os destinos e "O entregador ainda não enviou a localização"; o cliente vê "Aguardando a primeira localização" |
+
+**Roteiro com o simulador:**
+
+1. Entrar como `entregador`, marcar as OS em `/entregas/saida` e clicar em
+   **Iniciar saída**. Para o trajeto de demonstração, escolher primeiro a OS da
+   Padaria Pão Quente e depois a de Marcos Aurélio Soares, que são as paradas 1 e 2
+   dele. Com outros clientes, o trajeto roda igual, mas não passa pelos pinos.
+2. Num terminal:
+
+   ```cmd
+   npm run simular:entrega -- --intervalo 3
+   ```
+
+   | Opção | Padrão | O que faz |
+   |---|---|---|
+   | `--intervalo N` | 10 | Segundos entre uma posição e outra (o celular usa 10). Com 3, o trajeto inteiro leva uns 6 min |
+   | `--pausa N` | 30 | Segundos parado em cada parada |
+   | `--repetir` | não | Recomeça o trajeto até a saída sair de rota |
+   | `--trajeto arquivo` | `scripts/trajetos/dourados-demo.json` | Outro trajeto, gerado como abaixo |
+   | `--confirmar` | — | Exigido com `NODE_ENV=production`: lá o cliente veria um entregador simulado |
+
+3. Em outra janela, como `admin`, abrir `/entregas`: o mapa acompanha a cada 10 s.
+   Na consulta pública, o número da OS e os 4 últimos dígitos do telefone do
+   cliente mostram o mapa dele.
+4. Ao chegar a cada parada, marcar **Entregue** na tela da saída. No fim,
+   **Encerrar saída**. O simulador para sozinho quando a saída deixa de estar em
+   rota, e com Ctrl+C a qualquer momento.
+
+Não deixe o celular do entregador enviando GPS ao mesmo tempo: o marcador pularia
+entre as duas posições (o simulador avisa se isso acontecer).
+
+**Outro trajeto.** O trajeto é a rota de carro do OSRM sobre o OpenStreetMap,
+reamostrada a cada ~70 m. Para gerar um novo, com rede, uma única vez:
+
+```cmd
+node scripts/gerar-trajeto.js --partida -22.2211,-54.8056 --parada LAT,LNG --parada LAT,LNG --saida scripts/trajetos/novo.json
+```
+
+As coordenadas das paradas são as que a geocodificação gravou em
+`entregas_os.destinoLat/destinoLng`. A partida do trajeto atual é o centro de
+Dourados `[VALIDAR: trocar pelo endereço da Lelo Informática]`.
 
 ---
 
@@ -177,9 +230,9 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 395 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 379 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa — 774 testes, todos passando
+npm run test:unit         :: 424 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 385 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 809 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
@@ -212,6 +265,7 @@ npm run test:integration
 | `tests/integration/perfis.test.js` | Controle de acesso dos 7 perfis (RF022/RF023) |
 | `tests/integration/rastreio.test.js` | Módulo 6: o cliente acompanha a entrega — dígitos, limites, token, posição pública, WhatsApp (RN26–RN32) |
 | `tests/integration/entregas.test.js` | Módulo 6: saída de entrega, posição, paradas, cancelamento e auditoria (RN15–RN25); painel do administrador (RN33–RN34) |
+| `tests/integration/simulador.test.js` | Módulo 6: simulador de entrega contra o banco — ordem dos pontos, saída cancelada no meio, auditoria, painel |
 | `tests/integration/modeloEntregas.test.js` | Módulo 6: regras que o banco garante nas entregas e o perfil ENTREGADOR |
 | `tests/integration/estoque.test.js` | Movimentações, saldo × razão, peças na OS (RF014/RF015) |
 | `tests/integration/financeiro.test.js` | Contas a pagar/receber e a conta gerada no encerramento (RF020/RF021) |
@@ -229,7 +283,7 @@ npm run test:integration
 
 ### Situação da suíte
 
-**Os 774 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+**Os 809 testes passam**, inclusive `npm test`. Até 14/10/2026 o
 `tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
 contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 

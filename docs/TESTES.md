@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 395 | 395 | 0 |
-| Integração | 379 | 379 | 0 |
-| **Total** | **774** | **774** | **0** |
+| Unitários | 424 | 424 | 0 |
+| Integração | 385 | 385 | 0 |
+| **Total** | **809** | **809** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 395 testes
-npm run test:integration  :: 379 testes
-npm test                  :: suíte completa — 774 testes
+npm run test:unit         :: 424 testes
+npm run test:integration  :: 385 testes
+npm test                  :: suíte completa — 809 testes
 ```
 
-### 1.2 Testes unitários — 395 casos
+### 1.2 Testes unitários — 424 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -52,13 +52,14 @@ banco, rodam em cerca de 3 segundos.
 | `geocodificacaoService.test.js` | 15 | Módulo 6 — busca no Nominatim, falhas, timeout e intervalo da fila |
 | `rastreioService.test.js` | 24 | Módulo 6 — número e mensagem do WhatsApp, 4 dígitos, token e script do mapa |
 | `entregadorScript.test.js` | 26 | Módulo 6 — mensagens do GPS, idade do envio, reação às respostas do servidor e trava contra rajada (script do celular) |
+| `simuladorEntrega.test.js` | 29 | Módulo 6 — simulador: argumentos, trava de produção, validação e limites do trajeto de Dourados, pausa nas paradas, parada quando a saída sai de rota, aviso de outra fonte de GPS; reamostragem do gerador |
 | `painelEntregasScript.test.js` | 8 | Módulo 6 — texto da posição, reação às respostas (inclusive sessão expirada) e cor do pino (script do painel) |
 | `csvService.test.js` | 12 | Separador, BOM, decimal com vírgula |
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 379 casos
+### 1.3 Testes de integração — 385 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -71,6 +72,7 @@ isolado, recriado a cada suíte.
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
 | `rastreio.test.js` | 17 | Módulo 6 — consulta com entrega em rota, dígitos, limites por IP e por OS, token, posição pública, WhatsApp, consulta com usuário logado |
 | `entregas.test.js` | 46 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis, a tela do entregador e o painel do administrador |
+| `simulador.test.js` | 6 | Módulo 6 — simulador contra o banco: pontos em ordem, sem saída não grava, saída cancelada interrompe, fora da auditoria, painel mostra a posição, trajeto inteiro |
 | `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
@@ -93,7 +95,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **395 unitários e 379 de integração passando**. Isso importa porque o
+números: **424 unitários e 385 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -416,14 +418,35 @@ banco de desenvolvimento (o celular não participou).
   atualização com "Sua sessão expirou", e o aviso de falha de conexão fica até
   a resposta seguinte. Teste unitário, que falha sem a correção.
 
+### 3.11 Demonstração do Módulo 6 com o simulador
+
+**Executada em 17/10/2026**, sem celular e sem GPS, seguindo o roteiro do
+`COMO-RODAR.md` (seção 4) com `--intervalo 2 --pausa 20`:
+
+| Passo | Resultado |
+|---|---|
+| Entregador inicia a saída com 2 OS pela tela | ✅ "Saída iniciada com 2 OS." |
+| `npm run simular:entrega` | ✅ 97 posições, as duas paradas com pausa, "Fim do trajeto" |
+| Painel do administrador | ✅ o marcador anda pelas ruas (Av. Marcelino Pires) até os pinos |
+| Consulta pública com os 4 dígitos | ✅ mapa do cliente com o entregador se aproximando do destino |
+| Parada 1 marcada como entregue | ✅ o cliente passa a ver "Entregue em 17/10/2026 às 23:31" |
+| Parada 2 e encerramento | ✅ "Saída encerrada."; histórico com 2 de 2 entregues |
+| Simulador depois do encerramento | ✅ para de gravar; sem saída em rota, explica como iniciar |
+| `NODE_ENV=production` sem `--confirmar` | ✅ recusa |
+
+**Defeito visto rodando:** em desenvolvimento, o Prisma do sistema registra toda
+consulta SQL no terminal, e as mensagens do simulador se perdiam no meio. O
+simulador passou a usar um cliente próprio, sem esse log; as posições já ficam
+fora da auditoria, então nada se perde.
+
 ---
 
 ## 4. Situação geral
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 395 passando, a cada push |
-| **Software — integração** | ✅ Executado | 379 passando em SQLite e em MySQL 8 |
+| **Software — unitários** | ✅ Executado | 424 passando, a cada push |
+| **Software — integração** | ✅ Executado | 385 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |
