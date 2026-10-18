@@ -78,6 +78,16 @@ const TAMANHO_MINIMO_PROCURADO = 4;
  */
 const DESCRICAO_GERADA = /^(OS \S+) — .+$/;
 
+/**
+ * Módulo 6 — campos da entrega que apontam a casa do cliente. A coordenada
+ * identifica o endereço tanto quanto o endereço escrito.
+ */
+const CAMPOS_DE_LOCAL_DA_ENTREGA = ['destinoLat', 'destinoLng'];
+
+/** RN35/RN36 — prazo do trajeto depois do fim da saída. `[VALIDAR: 30 dias]` */
+const DIAS_RETENCAO_TRAJETO = 30;
+const STATUS_SAIDA_ENCERRADA = ['CONCLUIDA', 'CANCELADA'];
+
 function erro(mensagem, status = 400) {
   return Object.assign(new Error(mensagem), { status });
 }
@@ -156,7 +166,9 @@ function mapearStrings(valor, fn) {
 /**
  * Redige o JSON de um registro de log.
  *
- * - `porCampo`: troca o valor dos campos pessoais pela marca (log do cliente);
+ * - `porCampo`: troca o valor dos campos pessoais pela marca (log do cliente).
+ *   `true` usa os campos do cliente; uma lista usa os campos dela (log das
+ *   entregas, com a coordenada do destino);
  * - `pares`: procura os dados originais em qualquer texto (log das contas);
  * - `descricaoGerada`: normaliza o campo `descricao` no formato do faturamento.
  */
@@ -167,8 +179,9 @@ function redigir(json, { porCampo = false, pares = [], descricaoGerada = false }
   try { objeto = JSON.parse(json); } catch { return { texto: json, alterou: false }; }
   if (!objeto || typeof objeto !== 'object') return { texto: json, alterou: false };
 
-  if (porCampo) {
-    for (const campo of CAMPOS_PESSOAIS_NO_LOG) {
+  const campos = porCampo === true ? CAMPOS_PESSOAIS_NO_LOG : (Array.isArray(porCampo) ? porCampo : []);
+  if (campos.length) {
+    for (const campo of campos) {
       if (campo in objeto && objeto[campo] !== null && objeto[campo] !== MARCA_NO_LOG) {
         objeto[campo] = MARCA_NO_LOG;
       }
@@ -245,19 +258,45 @@ async function apagarVestigios(clienteId, originais = {}) {
     }
   }
 
-  // 2. Os passos acima — e a própria anonimização, quando houver — geram log
+  // 2. Entregas do Módulo 6 (RN37): a coordenada do destino e o motivo da não
+  //    entrega. `updateMany`, e não `update`: o update copiaria para o log o
+  //    estado anterior, com a coordenada. O passo 6 a redigiria de qualquer
+  //    jeito; assim ela nem chega a ser copiada.
+  const entregas = await prisma.entregaOS.findMany({
+    where:  { ordem: { equipamento: { clienteId: id } } },
+    select: { id: true, saidaId: true, destinoLat: true, destinoLng: true, motivo: true },
+  });
+  let entregasRedigidas = 0;
+  for (const e of entregas) {
+    const motivo = substituirEmTexto(e.motivo, pares);
+    if (e.destinoLat === null && e.destinoLng === null && motivo === e.motivo) continue;
+    await prisma.entregaOS.updateMany({
+      where: { id: e.id },
+      data:  { destinoLat: null, destinoLng: null, motivo },
+    });
+    entregasRedigidas += 1;
+  }
+
+  //    O trajeto termina na porta do cliente: sai o trajeto inteiro das
+  //    saídas que levaram OS dele. Saída, paradas e resultados ficam.
+  const saidas = [...new Set(entregas.map((e) => e.saidaId))];
+  const { count: posicoesApagadas } = saidas.length
+    ? await prisma.posicaoEntrega.deleteMany({ where: { saidaId: { in: saidas } } })
+    : { count: 0 };
+
+  // 3. Os passos acima — e a própria anonimização, quando houver — geram log
   //    sem `await` (ver auditoriaExtensao). O valorAnterior desses logs traz
   //    justamente o que está sendo apagado. Sem esperar, a limpeza rodaria
   //    antes de eles chegarem ao banco, e eles escapariam.
   await aguardarGravacoes();
 
-  // 3. Log do cliente: por campo, e também por texto.
+  // 4. Log do cliente: por campo, e também por texto.
   const logsCliente = await prisma.logAuditoria.findMany({
     where: { entidade: 'Cliente', registroId: id },
   });
   const logClienteRedigidos = await redigirRegistros(logsCliente, () => ({ porCampo: true, pares }));
 
-  // 4. Log das contas do cliente: por texto, e a descrição gerada.
+  // 5. Log das contas do cliente: por texto, e a descrição gerada.
   const logsContas = contas.length
     ? await prisma.logAuditoria.findMany({
         where: { entidade: 'ContaReceber', registroId: { in: contas.map((c) => c.id) } },
@@ -267,7 +306,22 @@ async function apagarVestigios(clienteId, originais = {}) {
     pares, descricaoGerada: geradas.has(r.registroId),
   }));
 
-  return { contasRedigidas, logClienteRedigidos, logContasRedigidos };
+  // 6. Log das entregas: a coordenada (gravada pela geocodificação e copiada
+  //    no estado anterior de cada alteração seguinte), por campo; o motivo,
+  //    por texto.
+  const logsEntregas = entregas.length
+    ? await prisma.logAuditoria.findMany({
+        where: { entidade: 'EntregaOS', registroId: { in: entregas.map((e) => e.id) } },
+      })
+    : [];
+  const logEntregasRedigidos = await redigirRegistros(logsEntregas, () => ({
+    porCampo: CAMPOS_DE_LOCAL_DA_ENTREGA, pares,
+  }));
+
+  return {
+    contasRedigidas, logClienteRedigidos, logContasRedigidos,
+    entregasRedigidas, posicoesApagadas, logEntregasRedigidos,
+  };
 }
 
 // --------------------------------------------------------------------------
@@ -292,6 +346,10 @@ async function apagarVestigios(clienteId, originais = {}) {
  *  - RN06: os dados pessoais saem também **do log de auditoria**.
  *  - RN07: e de onde o sistema os **copiou** — a descrição das contas a
  *    receber geradas no faturamento, e o log dessas contas.
+ *  - RN37 (Módulo 6): e da entrega — a coordenada do destino, o motivo da
+ *    não entrega, o log delas e o trajeto das saídas que levaram OS dele.
+ *  - RN38: cliente com entrega pendente não é anonimizado; o entregador
+ *    perderia o destino no meio da rota.
  */
 async function anonimizarCliente(id) {
   const clienteId = Number(id);
@@ -307,6 +365,13 @@ async function anonimizarCliente(id) {
       'Este cliente já foi anonimizado em ' +
       new Date(cliente.anonimizadoEm).toLocaleDateString('pt-BR') + '.'
     );
+  }
+
+  const emEntrega = await prisma.entregaOS.count({
+    where: { status: 'PENDENTE', ordem: { equipamento: { clienteId } } },
+  });
+  if (emEntrega > 0) {
+    throw erro('Este cliente tem uma entrega em andamento. Conclua ou cancele a entrega antes de anonimizar.'); // RN38
   }
 
   // Lido ANTES de sobrescrever: depois do update, a única forma de saber o que
@@ -392,6 +457,48 @@ async function repararTodas() {
 
 // --------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------
+// Retenção do trajeto das entregas (Módulo 6)
+// --------------------------------------------------------------------------
+
+/** Data antes da qual o fim da saída já passou do prazo. */
+function corteDoTrajeto(agora = new Date()) {
+  return new Date(agora.getTime() - DIAS_RETENCAO_TRAJETO * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * RN35 e RN36 — as posições de saídas encerradas ou canceladas há mais de
+ * DIAS_RETENCAO_TRAJETO dias são apagadas, e o destino das entregas delas é
+ * anulado. A saída e as entregas ficam: início, fim, status, resultado,
+ * horário e motivo. Saída em rota nunca entra (não tem `encerradaEm`).
+ *
+ * Roda ao iniciar cada saída (entregaService) e por `npm run retencao:entregas`.
+ */
+async function limparTrajetosAntigos(agora = new Date()) {
+  const corte = corteDoTrajeto(agora);
+  const vencidas = { status: { in: STATUS_SAIDA_ENCERRADA }, encerradaEm: { lt: corte } };
+
+  // Posição não é auditada: apagar não gera log.
+  const { count: posicoesApagadas } = await prisma.posicaoEntrega.deleteMany({ where: { saida: vencidas } });
+
+  // Só as que ainda têm coordenada: o `updateMany` é auditado, e rodar sem
+  // nada a anular deixaria uma linha vazia no log a cada saída iniciada.
+  const comDestino = await prisma.entregaOS.findMany({
+    where:  { saida: vencidas, OR: [{ destinoLat: { not: null } }, { destinoLng: { not: null } }] },
+    select: { id: true },
+  });
+  let destinosAnulados = 0;
+  if (comDestino.length) {
+    const r = await prisma.entregaOS.updateMany({
+      where: { id: { in: comDestino.map((e) => e.id) } },
+      data:  { destinoLat: null, destinoLng: null },
+    });
+    destinosAnulados = r.count;
+  }
+
+  return { corte, posicoesApagadas, destinosAnulados };
+}
+
 /**
  * O que o cliente ainda sustenta depois de anonimizado.
  *
@@ -416,6 +523,8 @@ module.exports = {
   CAMPOS_PROCURADOS_EM_TEXTO,
   NOME_ANONIMO,
   MARCA_NO_LOG,
+  CAMPOS_DE_LOCAL_DA_ENTREGA,
+  DIAS_RETENCAO_TRAJETO,
   documentoAnonimo,
   estaAnonimizado,
   anonimizarCliente,
@@ -423,7 +532,10 @@ module.exports = {
   repararAnonimizacao,
   repararTodas,
   resumoDoVinculo,
+  corteDoTrajeto,
+  limparTrajetosAntigos,
   // expostos para teste
+  redigir,
   paresDeSubstituicao,
   substituirEmTexto,
   normalizarDescricaoGerada,

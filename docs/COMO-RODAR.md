@@ -70,6 +70,7 @@ npm run seed
 | `backup` | NF006 — gera um dump do MySQL em `./backups` (ver `docs/BACKUP.md`) |
 | `reparar:anonimizacoes` | NF008 — limpa contas e log de clientes anonimizados antes de 14/10/2026 (ver `docs/RETENCAO.md`, seção 3.4) |
 | `simular:entrega` | Módulo 6 — move o entregador da saída em rota por um trajeto de Dourados, sem GPS (ver seção 4, "Demonstração do Módulo 6") |
+| `retencao:entregas` | Módulo 6 — apaga o trajeto e o destino das saídas encerradas há mais de 30 dias. Roda sozinho a cada saída iniciada; o script é para rodar à mão (ver `docs/RETENCAO.md`, seção 3.5) |
 
 ### As oito migrations
 
@@ -230,9 +231,9 @@ A suíte de integração usa exatamente esses seis logins
 ## 6. Testes
 
 ```cmd
-npm run test:unit         :: 424 testes unitários (regras de negócio, Prisma mockado)
-npm run test:integration  :: 385 testes de integração (rota, sessão, JWT e banco)
-npm test                  :: suíte completa — 809 testes, todos passando
+npm run test:unit         :: 435 testes unitários (regras de negócio, Prisma mockado)
+npm run test:integration  :: 398 testes de integração (rota, sessão, JWT e banco)
+npm test                  :: suíte completa — 833 testes, todos passando
 ```
 
 Resultado atual na `main` consolidada:
@@ -279,11 +280,12 @@ npm run test:integration
 | `tests/integration/seguranca.test.js` | Cabeçalhos, cookie, CORS e limites de tentativas (NF007) |
 | `tests/integration/csrf.test.js` | Token CSRF, regeneração da sessão no login e Sair por POST (NF007) |
 | `tests/integration/retencao.test.js` | Anonimização LGPD e exclusão lógica (NF008) |
+| `tests/integration/retencaoEntregas.test.js` | Módulo 6: a coordenada do cliente não sobrevive à anonimização; retenção do trajeto (RN35–RN38) |
 | `tests/integration/clientes.test.js` | API de clientes (Módulo 1) |
 
 ### Situação da suíte
 
-**Os 809 testes passam**, inclusive `npm test`. Até 14/10/2026 o
+**Os 833 testes passam**, inclusive `npm test`. Até 14/10/2026 o
 `tests/integration/auth.test.js` falhava nos seus 3 casos por ter sido escrito
 contra um schema antigo (`usuario.email`); foi reescrito contra o schema real.
 

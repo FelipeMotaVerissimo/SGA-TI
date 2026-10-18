@@ -6,9 +6,11 @@ jest.mock('../../src/config/database', () => ({
   $transaction:   jest.fn(),
 }));
 jest.mock('../../src/services/geocodificacaoService', () => ({ geocodificar: jest.fn(async () => null) }));
+jest.mock('../../src/services/retencaoService', () => ({ limparTrajetosAntigos: jest.fn(async () => ({})) }));
 
-const prisma  = require('../../src/config/database');
-const entrega = require('../../src/services/entregaService');
+const prisma   = require('../../src/config/database');
+const entrega  = require('../../src/services/entregaService');
+const retencao = require('../../src/services/retencaoService');
 
 /**
  * Módulo 6 — regras da saída de entrega (RN15 a RN25), com o Prisma simulado.
@@ -79,6 +81,38 @@ describe('iniciarSaida', () => {
       { saidaId: 50, ordemId: 3, ordemParada: 1, ordemPendenteId: 3 },
       { saidaId: 50, ordemId: 1, ordemParada: 2, ordemPendenteId: 1 },
     ]);
+  });
+
+  test('RN35: iniciar a saída dispara a limpeza dos trajetos vencidos; recusada, não', async () => {
+    prisma.ordemServico.findMany.mockResolvedValue([os(1)]);
+    prisma.$transaction.mockImplementation((fn) => fn({
+      saidaEntrega: { create: jest.fn(async () => ({ id: 50 })) },
+      entregaOS:    { create: jest.fn() },
+    }));
+    prisma.saidaEntrega.findUnique.mockResolvedValue({ id: 50, entregas: [] });
+
+    await entrega.iniciarSaida([1], ENTREGADOR);
+    await entrega.aguardarGeocodificacoes();
+    expect(retencao.limparTrajetosAntigos).toHaveBeenCalledTimes(1);
+
+    await expect(entrega.iniciarSaida([], ENTREGADOR)).rejects.toThrow();
+    expect(retencao.limparTrajetosAntigos).toHaveBeenCalledTimes(1);
+  });
+
+  test('RN35: falha na limpeza não impede a saída', async () => {
+    const erroConsole = jest.spyOn(console, 'error').mockImplementation(() => {});
+    retencao.limparTrajetosAntigos.mockRejectedValueOnce(new Error('banco fora'));
+    prisma.ordemServico.findMany.mockResolvedValue([os(1)]);
+    prisma.$transaction.mockImplementation((fn) => fn({
+      saidaEntrega: { create: jest.fn(async () => ({ id: 51 })) },
+      entregaOS:    { create: jest.fn() },
+    }));
+    prisma.saidaEntrega.findUnique.mockResolvedValue({ id: 51, entregas: [] });
+
+    await expect(entrega.iniciarSaida([1], ENTREGADOR)).resolves.toMatchObject({ id: 51 });
+    await entrega.aguardarGeocodificacoes();
+    expect(erroConsole).toHaveBeenCalledWith(expect.stringMatching(/retenção/), 'banco fora');
+    erroConsole.mockRestore();
   });
 });
 

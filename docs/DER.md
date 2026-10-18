@@ -795,6 +795,22 @@ A posição do painel devolve só `saidaId`, `status`, a última posição
 as 50 saídas mais recentes, sem paginação, como a auditoria. Não há tabela
 nova: o painel lê `saidas_entrega`, `entregas_os` e `posicoes_entrega`.
 
+#### Retenção e anonimização da localização (RN35 a RN38)
+
+Em `src/services/retencaoService.js` (`limparTrajetosAntigos`, `apagarVestigios`,
+`anonimizarCliente`); detalhes e decisões em `docs/RETENCAO.md`, seção 3.5. Testes
+em `tests/unit/retencaoService.test.js` e `tests/integration/retencaoEntregas.test.js`.
+
+| ID | Regra |
+|---|---|
+| RN35 | As posições de saídas encerradas ou canceladas há mais de 30 dias `[VALIDAR]` são apagadas; saída em rota nunca. Roda a cada saída iniciada e por `npm run retencao:entregas` |
+| RN36 | No mesmo prazo, `entregas_os.destinoLat/Lng` dessas entregas é anulado |
+| RN37 | Anonimizar o cliente anula o destino das entregas dele, redige o motivo, redige a coordenada e o motivo no log delas e apaga o trajeto das saídas que levaram OS dele |
+| RN38 | Cliente com entrega pendente não é anonimizado |
+
+Sem coluna nova: a saída e a entrega continuam com início, fim, status,
+resultado, horário e motivo.
+
 ---
 
 ## 6. Relacionamentos e cardinalidades

@@ -380,7 +380,10 @@ describe('reparo de anonimizações antigas', () => {
 
     const segunda = await retencao.repararAnonimizacao(dados.cliente.id);
 
-    expect(segunda).toEqual({ contasRedigidas: 0, logClienteRedigidos: 0, logContasRedigidos: 0 });
+    expect(segunda).toEqual({
+      contasRedigidas: 0, logClienteRedigidos: 0, logContasRedigidos: 0,
+      entregasRedigidas: 0, posicoesApagadas: 0, logEntregasRedigidos: 0, // Módulo 6 (RN37)
+    });
   });
 
   test('cliente que não foi anonimizado é recusado', async () => {

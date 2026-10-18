@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 424 | 424 | 0 |
-| Integração | 385 | 385 | 0 |
-| **Total** | **809** | **809** | **0** |
+| Unitários | 435 | 435 | 0 |
+| Integração | 398 | 398 | 0 |
+| **Total** | **833** | **833** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 424 testes
-npm run test:integration  :: 385 testes
-npm test                  :: suíte completa — 809 testes
+npm run test:unit         :: 435 testes
+npm run test:integration  :: 398 testes
+npm test                  :: suíte completa — 833 testes
 ```
 
-### 1.2 Testes unitários — 424 casos
+### 1.2 Testes unitários — 435 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -47,8 +47,8 @@ banco, rodam em cerca de 3 segundos.
 | `servicoExecutadoService.test.js` | 21 | Garantia derivada, travas de registro e exclusão, técnico do serviço |
 | `auditoriaExtensao.test.js` | 15 | NF005 — gravação automática, senha omitida, contexto |
 | `backup.test.js` | 15 | NF006 — leitura da URL, nome do arquivo, argumentos |
-| `retencaoService.test.js` | 12 | NF008 — busca do dado pessoal em texto livre |
-| `entregaService.test.js` | 34 | Módulo 6 — regras da saída de entrega (RN15–RN25) e dados do painel (RN33–RN34) |
+| `retencaoService.test.js` | 21 | NF008 — busca do dado pessoal em texto livre; Módulo 6 — coordenada redigida no log, corte dos 30 dias e recusa com entrega pendente (RN35–RN38) |
+| `entregaService.test.js` | 36 | Módulo 6 — regras da saída de entrega (RN15–RN25), dados do painel (RN33–RN34) e a limpeza dos trajetos ao iniciar a saída (RN35) |
 | `geocodificacaoService.test.js` | 15 | Módulo 6 — busca no Nominatim, falhas, timeout e intervalo da fila |
 | `rastreioService.test.js` | 24 | Módulo 6 — número e mensagem do WhatsApp, 4 dígitos, token e script do mapa |
 | `entregadorScript.test.js` | 26 | Módulo 6 — mensagens do GPS, idade do envio, reação às respostas do servidor e trava contra rajada (script do celular) |
@@ -59,7 +59,7 @@ banco, rodam em cerca de 3 segundos.
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 385 casos
+### 1.3 Testes de integração — 398 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -69,6 +69,7 @@ isolado, recriado a cada suíte.
 | `api.test.js` | 33 | API REST com JWT, inclusive a criação de usuário restrita ao admin |
 | `auditoria.test.js` | 22 | NF005 — gravação automática, acesso, somente-leitura, filtros |
 | `retencao.test.js` | 34 | NF008 — anonimização no cadastro, nas contas e no log; reparo; exclusão lógica |
+| `retencaoEntregas.test.js` | 13 | Módulo 6 — a coordenada da casa do cliente não sobrevive à anonimização (entregas, log inteiro, posições); retenção do trajeto em 30 dias (RN35–RN38) |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
 | `rastreio.test.js` | 17 | Módulo 6 — consulta com entrega em rota, dígitos, limites por IP e por OS, token, posição pública, WhatsApp, consulta com usuário logado |
 | `entregas.test.js` | 46 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis, a tela do entregador e o painel do administrador |
@@ -95,7 +96,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **424 unitários e 385 de integração passando**. Isso importa porque o
+números: **435 unitários e 398 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -439,14 +440,30 @@ consulta SQL no terminal, e as mensagens do simulador se perdiam no meio. O
 simulador passou a usar um cliente próprio, sem esse log; as posições já ficam
 fora da auditoria, então nada se perde.
 
+### 3.12 Anonimização com entrega (Módulo 6)
+
+**Executada em 18/10/2026** no banco de desenvolvimento, com um cliente criado
+só para isso e o Nominatim real:
+
+| Passo | Resultado |
+|---|---|
+| Saída iniciada com endereço que o Nominatim não acha | ✅ "sem coordenada: endereço não encontrado" no log do servidor; a saída segue sem pino (caso já previsto) |
+| Com a Av. Marcelino Pires | ✅ destino geocodificado; a coordenada aparece também no log da entrega |
+| Anonimizar com a entrega pendente, pelo botão da lista de clientes | ✅ "Este cliente tem uma entrega em andamento. Conclua ou cancele a entrega antes de anonimizar."; o cliente continua ativo |
+| Parada marcada como não entregue, com o nome no motivo; saída encerrada; anonimizar | ✅ "Dados pessoais apagados." |
+| Depois | ✅ destino nulo; motivo "Cliente anonimizado não estava, vizinho avisou"; posições das duas saídas apagadas; nenhuma linha do log das entregas dele com a coordenada; nome em nenhuma linha do log |
+| Outro cliente na mesma avenida (mesma coordenada) | ✅ as linhas do log dele continuam com a coordenada — não foram tocadas |
+| Histórico do painel | ✅ as duas saídas continuam, com quantidade, resultado e status |
+| `npm run retencao:entregas` | ✅ nada vencido no banco de desenvolvimento: 0 e 0 |
+
 ---
 
 ## 4. Situação geral
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 424 passando, a cada push |
-| **Software — integração** | ✅ Executado | 385 passando em SQLite e em MySQL 8 |
+| **Software — unitários** | ✅ Executado | 435 passando, a cada push |
+| **Software — integração** | ✅ Executado | 398 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |

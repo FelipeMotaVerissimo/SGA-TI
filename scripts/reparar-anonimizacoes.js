@@ -7,6 +7,8 @@
  *   - na descrição das contas a receber geradas no faturamento
  *     ("OS 108 — Joana Silva"), e
  *   - no log de auditoria, tanto do cliente quanto dessas contas.
+ * E, até a Etapa 8 do Módulo 6 (18/10/2026), a coordenada da casa do cliente
+ * na entrega, no log dela e no trajeto do entregador (RN37).
  *
  * Este script aplica a limpeza a TODOS os clientes já anonimizados. É
  * idempotente: rodar de novo não muda nada.
@@ -27,11 +29,13 @@ const retencao = require('../src/services/retencaoService');
   } else {
     console.log(`Clientes anonimizados verificados: ${resultado.length}\n`);
     for (const r of resultado) {
-      const total = r.contasRedigidas + r.logClienteRedigidos + r.logContasRedigidos;
+      const total = r.contasRedigidas + r.logClienteRedigidos + r.logContasRedigidos +
+        r.entregasRedigidas + r.posicoesApagadas + r.logEntregasRedigidos;
       console.log(
         `  cliente #${String(r.clienteId).padEnd(6)} ` +
         `contas: ${r.contasRedigidas} | log do cliente: ${r.logClienteRedigidos} | ` +
-        `log das contas: ${r.logContasRedigidos}` +
+        `log das contas: ${r.logContasRedigidos} | entregas: ${r.entregasRedigidas} | ` +
+        `posições: ${r.posicoesApagadas} | log das entregas: ${r.logEntregasRedigidos}` +
         (total === 0 ? '   (já estava limpo)' : '')
       );
     }

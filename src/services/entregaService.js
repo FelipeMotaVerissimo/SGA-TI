@@ -1,5 +1,6 @@
 const prisma         = require('../config/database');
 const geocodificacao = require('./geocodificacaoService');
+const retencao       = require('./retencaoService');
 
 /**
  * Módulo 6 — saída de entrega.
@@ -144,7 +145,10 @@ async function painelPosicao() {
 
 // -------------------------------------------------------- geocodificação
 
-/** Buscas em andamento — os testes esperam por elas, como na auditoria. */
+/**
+ * Tarefas em segundo plano — as buscas e a limpeza dos trajetos (RN35). Os
+ * testes esperam por elas, como na auditoria.
+ */
 const geocodificacoesPendentes = new Set();
 
 function aguardarGeocodificacoes() {
@@ -235,7 +239,20 @@ async function iniciarSaida(ordemIds, usuario) {
     include: { entregas: { include: INCLUDE_ENTREGA, orderBy: { ordemParada: 'asc' } } },
   });
   geocodificarDestinos(completa.entregas);
+  limparTrajetosEmSegundoPlano();
   return completa;
+}
+
+/**
+ * RN35/RN36 — o sistema não tem agendador (e o Render gratuito não tem cron).
+ * Cada saída iniciada limpa os trajetos vencidos, sem atrasar o entregador.
+ * Falha não impede nada: fica no log do servidor e a próxima saída tenta de novo.
+ */
+function limparTrajetosEmSegundoPlano() {
+  const tarefa = retencao.limparTrajetosAntigos()
+    .catch((e) => console.error('[retenção] limpeza dos trajetos falhou:', e.message));
+  geocodificacoesPendentes.add(tarefa);
+  tarefa.finally(() => geocodificacoesPendentes.delete(tarefa));
 }
 
 // ---------------------------------------------------------------- posição

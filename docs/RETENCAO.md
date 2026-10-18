@@ -40,6 +40,7 @@ pessoa identificável.
 | **Dado operacional** | `ordens_servico`, `servicos_executados`, `itens_ordem`, `equipamentos` | Mantido integralmente |
 | **Dado fiscal** | `contas_receber`, `contas_pagar` | Mantido — mas a descrição da conta gerada no faturamento **contém o nome do cliente**, e esse trecho é apagado (RN07) |
 | **Registro de auditoria** | `logs_auditoria` | Mantido — os valores pessoais dentro dele são redigidos (RN06) |
+| **Localização da entrega** (Módulo 6) | `entregas_os.destinoLat/Lng`, `posicoes_entrega` | A coordenada do destino identifica a casa; o trajeto termina nela. Saem na anonimização (RN37) e 30 dias depois do fim da saída (RN35 e RN36) — ver 3.5 |
 | **Credencial** | `usuarios.senha` | Hash bcrypt; nunca aparece em log nem em tela (ver `docs/AUDITORIA.md`) |
 
 ---
@@ -109,6 +110,10 @@ Anonimizar o cadastro não basta: o sistema **copia** o dado para outros lugares
 | `contas_receber.descricao` | o faturamento copia o nome: `OS 108 — Joana Silva` | o nome vira `Cliente anonimizado` |
 | `logs_auditoria` do cliente | estado anterior de cada alteração | valores redigidos, campo a campo |
 | `logs_auditoria` das contas | a descrição acima, gravada no log | o nome é procurado e substituído |
+| `entregas_os.destinoLat/Lng` | a geocodificação do endereço (Módulo 6) | anulada (RN37) |
+| `logs_auditoria` das entregas | a geocodificação grava com `updateMany`, que é auditado; cada alteração seguinte (marcar, cancelar) copia o registro inteiro em `valorAnterior` | a coordenada vira a marca, campo a campo |
+| `entregas_os.motivo` e o log dela | texto livre do entregador ("Joana não estava") | o nome é procurado e substituído |
+| `posicoes_entrega` | o GPS do entregador, que termina na porta do cliente | o trajeto inteiro das saídas que levaram OS dele é apagado |
 
 As duas linhas do meio **não estavam na primeira versão** desta rotina. O
 vazamento foi encontrado numa captura de tela do manual: a lista de contas a
@@ -137,6 +142,14 @@ números que não têm nada a ver com o titular. A substituição é por texto, 
 por expressão regular, porque um telefone como `(67) 99911-2233` tem caracteres
 que uma expressão regular interpretaria.
 
+As quatro linhas de baixo vieram com o Módulo 6 (Etapa 8, 18/10/2026). O pedido
+original do módulo citava só a primeira, a coordenada na entrega. As outras
+três foram achadas **lendo o código** antes de implementar, procurando por onde
+a coordenada passa, por causa da lição acima: a geocodificação grava pela
+auditoria, e o trajeto do entregador para na porta do cliente. O teste procura
+a coordenada **no banco inteiro** (entregas, log e posições), não só onde se
+espera achá-la.
+
 ### 3.4 Reparo de anonimizações antigas
 
 Clientes anonimizados antes das regras RN06 e RN07 ficaram com o nome nas
@@ -157,6 +170,48 @@ demonstração em 14/10/2026, onde havia um caso:
 cliente #24     contas: 1 | log do cliente: 1 | log das contas: 1
 conta #18: "OS OS-2026-000108 — Joana Ribeiro Silva"  →  "OS OS-2026-000108 — Cliente anonimizado"
 ```
+
+O mesmo reparo alcança as entregas (RN37) de clientes anonimizados antes de
+18/10/2026: a saída do script passou a mostrar também `entregas`, `posições` e
+`log das entregas`.
+
+### 3.5 A localização da entrega (Módulo 6)
+
+| # | Regra | Por quê |
+|---|---|---|
+| RN35 | As posições de saídas **encerradas ou canceladas há mais de 30 dias** `[VALIDAR]` são apagadas. Saída em rota nunca é tocada | O trajeto só serve durante a entrega; depois dela nenhuma tela o mostra |
+| RN36 | No mesmo prazo, `destinoLat/Lng` dessas entregas é anulado | Minimização (art. 6º, III): a coordenada sem uso sai, mesmo de quem não pediu anonimização |
+| RN37 | Anonimizar o cliente anula o destino das entregas dele, redige o motivo, redige a coordenada e o motivo no log delas e apaga o trajeto das saídas que levaram OS dele | Ver as quatro linhas novas da tabela em 3.3 |
+| RN38 | Cliente com entrega **pendente** não é anonimizado | O entregador perderia o destino no meio da rota. A mensagem pede para concluir ou cancelar a entrega antes |
+
+Fica no histórico: a saída (início, fim, status, entregador) e cada entrega
+(OS, ordem da parada, resultado, horário, motivo). Isso basta para o painel do
+administrador e para a consulta do cliente ("Entregue em DD/MM às HH:MM").
+
+**Decisões de 18/10/2026:**
+
+- **anular, não reduzir a precisão.** Com 2 casas decimais (~1 km) ainda se sabe
+  o bairro, e o bairro já sai do cadastro anonimizado;
+- **o trajeto sai inteiro** na anonimização, inclusive o caminho até os outros
+  clientes da mesma saída. Posição é dado operacional, não histórico fiscal (é
+  o que o RN35 faria em 30 dias de qualquer jeito), e recortar por raio seria
+  mais difícil de acertar. O destino dos outros clientes fica;
+- **o RN36 vale para todos**, não só para quem pediu anonimização.
+
+**Quando roda.** O sistema não tem agendador, e o Render gratuito não tem cron.
+A limpeza roda **sozinha a cada saída iniciada**, em segundo plano, sem atrasar o
+entregador (`entregaService.iniciarSaida`); se falhar, fica no log do servidor e
+a próxima saída tenta de novo. Para rodar à mão:
+
+```cmd
+npm run retencao:entregas
+```
+
+Apagar posições não gera log (o modelo fica fora da auditoria, ver
+`AUDITORIA.md`). O destino é anulado com `updateMany`, que não guarda o estado
+anterior: a limpeza não copia de volta para o log a coordenada que está
+apagando. E só roda quando há algo a anular, para não deixar uma linha vazia no
+log a cada saída iniciada.
 
 ---
 
@@ -199,6 +254,7 @@ confirmação com o consultor e com o orientador antes de virarem política.]`
 | Contas a pagar e receber | 5 anos | Mesmo fundamento, mais exigência fiscal |
 | Dados pessoais de cliente sem OS há 5 anos | Anonimizar | Art. 16 da LGPD: não se conserva o que não é mais necessário |
 | Log de auditoria | 1 ano | Equilíbrio entre rastreabilidade e volume |
+| Trajeto do entregador e coordenada do destino (Módulo 6) | 30 dias após o fim da saída — **aplicado por rotina** (RN35 e RN36, ver 3.5) | Só servem durante a entrega |
 | Backups | Ver `docs/BACKUP.md`, seção 4 | — |
 
 ---
@@ -226,6 +282,14 @@ confirmação com o consultor e com o orientador antes de virarem política.]`
 - conta lançada à mão perde só o dado pessoal — o resto do texto fica;
 - o reparo recupera o nome pelo log, limpa conta e log, e é idempotente;
 - valores curtos demais e caracteres especiais não causam substituição errada.
+- **Módulo 6** (`tests/integration/retencaoEntregas.test.js`): depois de anonimizar,
+  a coordenada do destino e o nome escrito no motivo não aparecem **em lugar
+  nenhum** das entregas, do log inteiro e das posições; a saída e a entrega
+  continuam no histórico; a entrega de outro cliente fica com o destino; cliente
+  com entrega pendente é recusado; o reparo alcança anonimizações antigas; a
+  retenção apaga o trajeto e o destino depois de 30 dias e não antes, inclui a
+  saída cancelada, nunca toca a saída em rota, roda sozinha ao iniciar uma saída
+  e pelo `npm run retencao:entregas`, e não deixa linha vazia no log.
 
 **Os dois testes centrais foram verificados ao contrário:** com a limpeza
 desligada no código, eles falham mostrando exatamente o vazamento. Um teste que
@@ -239,7 +303,7 @@ passa com ou sem a correção não prova nada.
 
 | # | Item | Prioridade |
 |---|---|---|
-| P01 | **Não há expurgo automático.** A anonimização é sempre manual, a pedido. A política da seção 5 não é aplicada por rotina nenhuma | média |
+| P01 | **Não há expurgo automático** dos dados de cliente. A anonimização é sempre manual, a pedido, e a política da seção 5 não é aplicada por rotina — com uma exceção: o trajeto e o destino das entregas (RN35 e RN36) | média |
 | P02 | Não existe tela de consentimento nem registro da base legal de cada tratamento (art. 7º e 8º) | média |
 | P03 | ~~Os dados pessoais sobreviviam no log de auditoria~~ — **resolvido** pelas regras RN06 e RN07, ver 3.3 | — |
 | P04 | Os backups anteriores à anonimização continuam com os dados pessoais. É limitação inerente a backup, mas precisa estar escrita na política | média |
