@@ -4,6 +4,9 @@
   // saída: o administrador vê a tela, mas não manda posição (RN19).
   const ehAdmin = locals.usuario && locals.usuario.perfil === 'ADMINISTRADOR';
   const souEntregador = ativa && locals.usuario && ativa.entregadorId === locals.usuario.id;
+  // Horário de Dourados, e não o do servidor: num servidor em UTC a saída das
+  // 18:00 apareceria como 22:00, e a OS faturada às 21:00 com a data do dia seguinte.
+  const FUSO = { timeZone: 'America/Campo_Grande' };
   const endereco = (c) => [
     [c.endereco, c.numero].filter(Boolean).join(', '),
     c.bairro,
@@ -54,7 +57,7 @@
       </div>
 
       <p class="saida-resumo">
-        Em rota desde <%= new Date(ativa.iniciadaEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %> ·
+        Em rota desde <%= new Date(ativa.iniciadaEm).toLocaleTimeString('pt-BR', { ...FUSO, hour: '2-digit', minute: '2-digit' }) %> ·
         <strong><%= pendentes %></strong> de <%= ativa.entregas.length %> parada(s) pendente(s)
       </p>
 
@@ -140,7 +143,7 @@
               <div class="parada-dados">
                 <strong><%= c.nome %></strong>
                 <span class="parada-endereco"><%= endereco(c) %></span>
-                <span class="parada-os"><%= os.numero %> · faturada em <%= os.dataFechamento ? new Date(os.dataFechamento).toLocaleDateString('pt-BR') : '—' %></span>
+                <span class="parada-os"><%= os.numero %> · faturada em <%= os.dataFechamento ? new Date(os.dataFechamento).toLocaleDateString('pt-BR', FUSO) : '—' %></span>
               </div>
             </label>
             <% }) %>

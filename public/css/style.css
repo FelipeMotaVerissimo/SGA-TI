@@ -639,11 +639,16 @@ tbody tr:hover {
 }
 .mapa-status { font-size: 13px; color: #555; margin: 0; }
 .mapa-encerrado { color: #92400e; font-weight: 600; }
-.form-rastreio { display: grid; gap: 8px; }
+/* minmax(0, 1fr) e min-width: 0: com fonte de 22 px e 8 px entre letras, o
+   campo pede 290 px (20 caracteres, o tamanho padrão) e, sem isso, o grid não
+   o deixa encolher — em 375 px o campo e o botão saíam do cartão (visto nas
+   capturas do manual, 19/10/2026). */
+.form-rastreio { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .form-rastreio label { font-size: 14px; color: #333; }
 .form-rastreio input {
   font-size: 22px; letter-spacing: 8px; text-align: center;
   padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px;
+  width: 100%; min-width: 0; box-sizing: border-box;
 }
 .entrega-concluida { color: #276749; font-weight: 600; margin: 0; }
 

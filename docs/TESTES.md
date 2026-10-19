@@ -16,8 +16,8 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
 | Unitários | 435 | 435 | 0 |
-| Integração | 398 | 398 | 0 |
-| **Total** | **833** | **833** | **0** |
+| Integração | 401 | 401 | 0 |
+| **Total** | **836** | **836** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -26,8 +26,8 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 
 ```cmd
 npm run test:unit         :: 435 testes
-npm run test:integration  :: 398 testes
-npm test                  :: suíte completa — 833 testes
+npm run test:integration  :: 401 testes
+npm test                  :: suíte completa — 836 testes
 ```
 
 ### 1.2 Testes unitários — 435 casos
@@ -59,7 +59,7 @@ banco, rodam em cerca de 3 segundos.
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
 
-### 1.3 Testes de integração — 398 casos
+### 1.3 Testes de integração — 401 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -72,7 +72,7 @@ isolado, recriado a cada suíte.
 | `retencaoEntregas.test.js` | 13 | Módulo 6 — a coordenada da casa do cliente não sobrevive à anonimização (entregas, log inteiro, posições); retenção do trajeto em 30 dias (RN35–RN38) |
 | `perfis.test.js` | 28 | RF022/RF023 — controle de acesso dos 7 perfis |
 | `rastreio.test.js` | 17 | Módulo 6 — consulta com entrega em rota, dígitos, limites por IP e por OS, token, posição pública, WhatsApp, consulta com usuário logado |
-| `entregas.test.js` | 46 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis, a tela do entregador e o painel do administrador |
+| `entregas.test.js` | 49 | Módulo 6 — saída, posição, paradas, cancelamento, auditoria, perfis, a tela do entregador (inclusive o fuso de Dourados) e o painel do administrador |
 | `simulador.test.js` | 6 | Módulo 6 — simulador contra o banco: pontos em ordem, sem saída não grava, saída cancelada interrompe, fora da auditoria, painel mostra a posição, trajeto inteiro |
 | `modeloEntregas.test.js` | 20 | Módulo 6 — uma saída em rota, OS em uma só entrega pendente, chaves RESTRICT, perfil ENTREGADOR |
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
@@ -96,9 +96,15 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **435 unitários e 398 de integração passando**. Isso importa porque o
+números: **435 unitários e 401 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
+
+**Fuso horário.** Desde 19/10/2026 a suíte roda em **UTC** também na máquina de
+desenvolvimento (`tests/globalSetup.js`), como o CI e um servidor. A máquina
+está no fuso de Dourados, e um horário formatado sem fuso passava aqui e saía
+errado no servidor. Trocar o fuso dentro do arquivo de teste não funciona: o
+Jest isola o ambiente de cada arquivo.
 
 O CI também roda `prisma migrate deploy` num banco vazio e um
 `prisma migrate diff --exit-code` contra o schema: se alguém alterar o
@@ -456,6 +462,27 @@ só para isso e o Nominatim real:
 | Histórico do painel | ✅ as duas saídas continuam, com quantidade, resultado e status |
 | `npm run retencao:entregas` | ✅ nada vencido no banco de desenvolvimento: 0 e 0 |
 
+### 3.13 Defeitos achados nas capturas do manual (19/10/2026)
+
+Ao gerar as capturas do Módulo 6 para o Apêndice B, conferidas uma a uma:
+
+| # | Defeito | Medida | Correção |
+|---|---|---|---|
+| 1 | **Consulta pública em 375 px:** o campo dos 4 dígitos e o botão "Ver no mapa" saíam do cartão. O campo tem fonte de 22 px e 8 px entre letras; com o tamanho padrão de 20 caracteres, pede 290 px, e o grid não o deixava encolher. A página não rolava para o lado, por isso a verificação da Etapa 5 não pegou | Área útil do cartão de 64 a 311 px; formulário de 64 a 354 px. Depois: 64 a 311 px. Em 1280 px, sem mudança | `minmax(0, 1fr)` no grid e `min-width: 0` no campo |
+| 2 | **Tela do entregador sem fuso:** "Em rota desde" e "faturada em" usavam o fuso do servidor. Na máquina de desenvolvimento, que está no fuso de Dourados, saía certo; num servidor em UTC, a saída das 18:00 apareceria às 22:00 | Teste com o processo em UTC: sem a correção, "02:30" em vez de "22:30" e a data do dia seguinte | Fuso `America/Campo_Grande` nas duas datas, como já fazem o painel e a consulta |
+
+**Pendências que ficaram de fora desta correção:**
+
+- **Outras onze telas formatam data sem fuso** (dashboard, lista, detalhe e
+  formulário da OS, financeiro, auditoria, relatórios, estoque, histórico do
+  equipamento, clientes e a parte antiga da consulta pública). Num servidor em UTC, as
+  datas perto da meia-noite sairiam com o dia seguinte. `[VALIDAR: corrigir
+  tela a tela ou definir TZ=America/Campo_Grande no deploy, que resolve todas
+  de uma vez]`;
+- **OS de cliente anonimizado aparece para sair para entrega**, sem endereço
+  nem telefone. Visto na mesma captura. `[VALIDAR: se a OS de cliente
+  anonimizado deve ficar fora da lista do entregador]`.
+
 ---
 
 ## 4. Situação geral
@@ -463,7 +490,7 @@ só para isso e o Nominatim real:
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
 | **Software — unitários** | ✅ Executado | 435 passando, a cada push |
-| **Software — integração** | ✅ Executado | 398 passando em SQLite e em MySQL 8 |
+| **Software — integração** | ✅ Executado | 401 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |

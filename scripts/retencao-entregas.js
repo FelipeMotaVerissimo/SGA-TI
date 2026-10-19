@@ -17,7 +17,7 @@ const retencao = require('../src/services/retencaoService');
 
 (async () => {
   const r = await retencao.limparTrajetosAntigos();
-  console.log(`Saídas encerradas antes de ${r.corte.toLocaleDateString('pt-BR')} (${retencao.DIAS_RETENCAO_TRAJETO} dias):`);
+  console.log(`Saídas encerradas antes de ${r.corte.toLocaleDateString('pt-BR', { timeZone: 'America/Campo_Grande' })} (${retencao.DIAS_RETENCAO_TRAJETO} dias):`);
   console.log(`  posições apagadas: ${r.posicoesApagadas}`);
   console.log(`  destinos anulados: ${r.destinosAnulados}`);
   await prisma.$disconnect();

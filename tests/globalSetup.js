@@ -18,6 +18,13 @@ const { URL_TESTE } = require('./helpers/ambiente');
 const RAIZ = path.join(__dirname, '..');
 
 module.exports = async function () {
+  // Os testes rodam em UTC, como o CI e um servidor de verdade. A máquina de
+  // desenvolvimento está no fuso de Dourados, e assim um horário formatado sem
+  // fuso passava aqui e saía errado no servidor. Precisa ser aqui: dentro do
+  // arquivo de teste, trocar process.env.TZ não muda o fuso (o Jest isola o
+  // ambiente) — visto em 19/10/2026.
+  process.env.TZ = 'UTC';
+
   // O schema é escolhido pela URL do banco, não pela existência do arquivo.
   // Enquanto olhava só o arquivo, apontar TEST_DATABASE_URL para MySQL ainda
   // carregava o schema SQLite e o Prisma recusava: "the URL must start with

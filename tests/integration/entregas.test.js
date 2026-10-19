@@ -573,3 +573,46 @@ describe('painel do administrador (Etapa 6)', () => {
     expect(tela.text).toMatch(/badge-cinza">Cancelada</);
   });
 });
+
+// --------------------------------------------------------------------------
+describe('fuso de Dourados na tela do entregador', () => {
+  // A suíte roda em UTC (tests/globalSetup.js), como um servidor: é aí que um
+  // horário formatado sem fuso sai errado. Na máquina de desenvolvimento, no
+  // fuso de Dourados, o defeito não aparecia.
+  test('a premissa: o processo dos testes está em UTC', () => {
+    expect(new Date('2026-10-19T02:30:00Z').getHours()).toBe(2);
+  });
+
+  /** Ontem às 02:30 UTC: em Dourados (UTC−4) ainda é anteontem, 22:30. */
+  function madrugadaUtc() {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - 1);
+    d.setUTCHours(2, 30, 0, 0);
+    return d;
+  }
+  const emDourados = (d, opcoes) => d.toLocaleString('pt-BR', { timeZone: 'America/Campo_Grande', ...opcoes });
+  const emUtc      = (d, opcoes) => d.toLocaleString('pt-BR', { timeZone: 'UTC', ...opcoes });
+  const DATA = { day: '2-digit', month: '2-digit', year: 'numeric' };
+  const HORA = { hour: '2-digit', minute: '2-digit' };
+
+  test('"faturada em" usa a data de Dourados', async () => {
+    const quando = madrugadaUtc();
+    const os = await osFinalizada('OS-T-901');
+    await prisma.ordemServico.update({ where: { id: os.id }, data: { dataFechamento: quando } });
+    expect(emDourados(quando, DATA)).not.toBe(emUtc(quando, DATA)); // a premissa
+
+    const tela = await (await logar(request, app, 'entregador')).get('/entregas/saida');
+    expect(tela.text).toContain(`OS-T-901 · faturada em ${emDourados(quando, DATA)}`);
+  });
+
+  test('"em rota desde" usa a hora de Dourados', async () => {
+    const quando = madrugadaUtc();
+    const entregador = await logar(request, app, 'entregador');
+    await iniciar(entregador, [FIN().id]);
+    await prisma.saidaEntrega.update({ where: { emRota: true }, data: { iniciadaEm: quando } });
+    expect(emDourados(quando, HORA)).toBe('22:30'); // a premissa
+
+    const tela = await entregador.get('/entregas/saida');
+    expect(tela.text).toContain('Em rota desde 22:30');
+  });
+});
