@@ -1,7 +1,7 @@
 # Apêndice B — Manual do Usuário do SGA TI
 
 **Sistema de Gerenciamento de Assistência Técnica**
-Versão 1 · Outubro de 2026
+Versão 2 · Outubro de 2026 — inclui o rastreamento de entregas (Módulo 6)
 
 ---
 
@@ -14,9 +14,10 @@ Versão 1 · Outubro de 2026
 5. [Manual do Técnico](#5-manual-do-técnico)
 6. [Manual do setor de Compras](#6-manual-do-setor-de-compras)
 7. [Manual do Financeiro](#7-manual-do-financeiro)
-8. [Manual do Administrador](#8-manual-do-administrador)
-9. [Para o cliente — consulta pública](#9-para-o-cliente--consulta-pública)
-10. [Perguntas frequentes](#10-perguntas-frequentes)
+8. [Manual do Entregador](#8-manual-do-entregador)
+9. [Manual do Administrador](#9-manual-do-administrador)
+10. [Para o cliente — consulta pública](#10-para-o-cliente--consulta-pública)
+11. [Perguntas frequentes](#11-perguntas-frequentes)
 
 > **Sobre as imagens:** as capturas estão em `docs/prints/`, em PNG com o dobro
 > da resolução de tela (2560 px de largura na página inteira), adequadas para
@@ -74,7 +75,7 @@ dentro da própria caixa, sem empurrar a página.
 | **Técnico** | Executa: muda status, registra serviços e garantia |
 | **Compras** | Cadastra produtos e movimenta o estoque |
 | **Financeiro** | Contas a pagar e a receber |
-| **Entregador** | Leva as OS finalizadas até o cliente. Acessa só as telas de entrega `[VALIDAR: descrever as telas quando o Módulo 6 estiver concluído]` |
+| **Entregador** | Leva as OS finalizadas até o cliente, pelo celular: inicia a saída, envia a localização e marca cada entrega. Acessa só a tela de entregas (seção 8) |
 | **Administrador** | Tudo, mais usuários, relatórios, auditoria e o **faturamento** |
 
 ### Sair
@@ -203,7 +204,11 @@ Em **Equipamentos**, botão **🕓 Histórico**.
 Mostra tudo que já foi feito naquela máquina, em todas as OS, com a situação da
 garantia de cada serviço.
 
-![Tela de histórico do equipamento, com um serviço em garantia vigente](prints/09-historico-equipamento.png)
+![Tela de histórico do equipamento, com o técnico de cada serviço e a garantia](prints/09-historico-equipamento.png)
+
+A coluna **Técnico** mostra quem executou cada serviço. Serviços registrados
+antes de 15/10/2026 aparecem como **não registrado**: o sistema não sabia quem
+executou, e preencher depois seria inventar.
 
 > **Use isto antes de abrir OS de retorno.** Se o cliente volta com o mesmo
 > problema e o serviço ainda está na garantia, é retrabalho coberto — não se
@@ -238,9 +243,10 @@ A OS passa para `ORCAMENTO` e o atendente pode registrar a resposta do cliente.
 ### 4.2 Lançar peças na OS
 
 No detalhe da OS, bloco **📦 Produtos Utilizados**: escolha o produto, a
-quantidade e confirme.
+quantidade e confirme. Em **Usada no serviço**, opcional, indique em qual serviço
+a peça foi usada; em branco, ela fica como **uso geral da OS**.
 
-![Bloco de produtos utilizados, com uma peça lançada](prints/11-produtos-utilizados.png)
+![Bloco de produtos utilizados, com a coluna do serviço em que cada peça foi usada](prints/11-produtos-utilizados.png)
 
 O estoque **baixa automaticamente**. Se não houver saldo, o sistema **permite e
 avisa** — o saldo fica negativo e aparece na lista "a regularizar" do setor de
@@ -297,7 +303,11 @@ Você informa **quantos dias**; o sistema calcula o resto e mostra a situação:
 | ⌛ **Vencida** | O prazo acabou |
 | **Sem garantia** | Serviço registrado sem prazo |
 
-![Tabela de serviços executados, com os três estados de garantia](prints/14-servicos-garantia.png)
+![Tabela de serviços executados, com o técnico e os três estados de garantia](prints/14-servicos-garantia.png)
+
+O técnico de cada serviço é **quem estava logado ao registrá-lo** — não se escolhe
+num campo. Os serviços antigos da captura, anteriores a esse registro, aparecem
+como "não registrado".
 
 > A data-fim **não é digitada nem armazenada**: sai de `data de execução + dias`.
 > Por isso nunca fica desatualizada.
@@ -403,12 +413,75 @@ Nenhuma conta é apagada.
 
 ---
 
-## 8. Manual do Administrador
+## 8. Manual do Entregador
+
+Você leva as OS finalizadas até o cliente, com o celular na mão. Ao entrar, o
+sistema abre direto a tela **🚚 Entregas** — o caixa, os cadastros e o dashboard
+não são do seu perfil.
+
+> **Use o celular com a internet ligada e a localização permitida.** O
+> navegador só libera o GPS em endereço `https://`; o endereço do sistema em
+> produção já é assim.
+
+### 8.1 Iniciar a saída
+
+A tela lista as OS **finalizadas** (faturadas nos últimos 30 dias) que ainda não
+foram entregues. Marque as que vai levar, **na ordem em que vai passar**, e toque
+em **🚚 Iniciar saída**.
+
+![Tela do entregador no celular, com as OS para escolher](prints/34-entregador-iniciar-saida.png)
+
+- Só existe **uma saída em rota por vez**. Se outra estiver aberta, o sistema
+  avisa.
+- OS **não entregue** numa saída anterior volta para a lista e pode sair de novo.
+
+### 8.2 Durante a saída
+
+Cada parada vira um cartão, na ordem escolhida:
+
+| Botão | O que faz |
+|---|---|
+| **🧭 Navegar** | Abre o app de mapas do celular com o endereço do cliente |
+| **📲 Avisar no WhatsApp** | Abre o WhatsApp com a mensagem pronta e o link para o cliente acompanhar no mapa. Se o cliente só tem telefone fixo, o botão avisa que pode não ter WhatsApp |
+| **✅ Entregue** | Confirma a entrega daquela OS |
+| **Não entregue** | Abre o campo do **motivo** (cliente ausente, endereço errado…), que é obrigatório |
+
+![Saída em rota no celular: GPS enviado, paradas e botões](prints/35-entregador-saida-em-rota.png)
+
+A faixa no topo mostra quando a localização foi enviada pela última vez:
+
+| Faixa | Significado |
+|---|---|
+| Verde — "enviada há X s" | Tudo certo: a posição sai a cada 10 segundos (verde até 20 s) |
+| Amarela | Ainda não enviou, ou a última posição tem de 20 s a 1 minuto — confira o sinal |
+| Vermelha | Mais de 1 minuto sem enviar |
+
+Abaixo da faixa aparece a mensagem quando algo impede o envio: localização não
+permitida (libere nas configurações do celular), página sem HTTPS, sem sinal
+de GPS ou falha ao enviar (o celular tenta de novo no ciclo seguinte). Se a
+saída for encerrada ou a sessão expirar, o envio para e a mensagem explica.
+
+> **Mantenha a tela acesa.** Com a tela bloqueada, o celular para de enviar a
+> localização — e o cliente vê o entregador parado. O sistema pede para a tela
+> não apagar; quando o navegador não aceita, aparece o aviso para você mesmo
+> mantê-la acesa.
+
+### 8.3 Encerrar a saída
+
+Quando todas as paradas estiverem marcadas, toque em **🏁 Encerrar saída**. Com
+alguma parada ainda pendente, o sistema não deixa: marque-a como entregue ou não
+entregue antes.
+
+Se precisar interromper tudo, peça ao administrador: **só ele cancela** a saída.
+
+---
+
+## 9. Manual do Administrador
 
 Você vê tudo, mais **Tipos de Serviço**, **Relatórios**, **Auditoria** e
-**Usuários**.
+**Usuários**. Em **Entregas**, você acompanha a saída do entregador (seção 9.8).
 
-### 8.1 Criar usuários
+### 9.1 Criar usuários
 
 **Usuários → + Novo Usuário**: nome, login, senha e **perfil**.
 
@@ -417,7 +490,7 @@ Você vê tudo, mais **Tipos de Serviço**, **Relatórios**, **Auditoria** e
 > **Troque a senha do `admin` no primeiro acesso.** A senha padrão está escrita
 > na documentação do projeto — é pública.
 
-### 8.2 Catálogo de tipos de serviço
+### 9.2 Catálogo de tipos de serviço
 
 **Tipos de Serviço**. É o que dá consistência ao relatório: sem catálogo, "troca
 de tela", "Troca da tela" e "substituição de tela" viram três serviços
@@ -427,7 +500,7 @@ Tipo desativado some da escolha do técnico, mas **o histórico não muda**.
 
 ![Lista de tipos de serviço](prints/22-tipos-servico.png)
 
-### 8.3 Faturar e encerrar a OS
+### 9.3 Faturar e encerrar a OS
 
 No detalhe da OS, botão **Faturar e encerrar**.
 
@@ -440,7 +513,7 @@ Isso faz três coisas de uma vez, e **ou acontece tudo, ou nada**:
 ![Botão de faturar e encerrar no detalhe da OS](prints/23-faturar-encerrar.png)
 ![A conta a receber recém-gerada, no painel financeiro](prints/24-conta-gerada.png)
 
-### 8.4 Relatórios
+### 9.4 Relatórios
 
 **Relatórios**. Cinco relatórios, um período compartilhado (padrão: últimos 30
 dias):
@@ -464,7 +537,7 @@ Excel em português com acento e valores corretos.
 > existir, ou sem tipo escolhido. Aparecem de propósito — escondê-los falsearia o
 > relatório.
 
-### 8.5 Auditoria
+### 9.5 Auditoria
 
 **Auditoria**. Registra **quem alterou o quê, quando e de qual IP**, em todo o
 sistema.
@@ -484,7 +557,7 @@ Filtros de período, usuário, entidade e ação.
 > editar ou apagar um registro de auditoria — é o que dá valor ao registro.
 > Senhas nunca aparecem no log, nem o hash.
 
-### 8.6 Dados pessoais — pedido de exclusão (LGPD)
+### 9.6 Dados pessoais — pedido de exclusão (LGPD)
 
 Se um cliente exigir a exclusão dos dados dele, use **🔒 Anonimizar** na lista de
 clientes.
@@ -497,9 +570,11 @@ clientes.
 
 O que acontece: nome, CPF/CNPJ, RG, data de nascimento, endereço e contatos são
 **apagados** — do cadastro, da descrição das contas a receber geradas no
-faturamento e do registro de auditoria. As ordens de serviço, equipamentos,
-serviços e contas são **preservados** — são registro fiscal; só perdem o dado
-pessoal.
+faturamento e do registro de auditoria. Das entregas, saem a **localização da
+casa** do cliente, o nome escrito no motivo de uma não entrega e o trajeto do
+entregador nas saídas que levaram OS dele. As ordens de serviço, equipamentos,
+serviços, contas e entregas são **preservados** — são histórico; só perdem o
+dado pessoal.
 
 ![Cliente anonimizado na lista, com a marca 🔒 e a data](prints/28-cliente-anonimizado.png)
 
@@ -507,14 +582,45 @@ pessoal.
 > Cidade e estado permanecem: não identificam ninguém sozinhos e sustentam a
 > análise por região.
 
-### 8.7 Desativar equipamento
+**Cliente com entrega em andamento não é anonimizado.** O entregador perderia o
+endereço no meio da rota. Conclua a entrega — ou cancele a saída — e repita.
+
+![Mensagem de anonimização recusada por entrega em andamento](prints/40-anonimizar-com-entrega-pendente.png)
+
+### 9.7 Desativar equipamento
 
 Em **Equipamentos**, botão **Desativar**: o aparelho some da lista e não entra em
 OS nova, mas o histórico fica. **Reativar** traz de volta.
 
+### 9.8 Painel de entregas
+
+**Entregas** abre o painel. Com uma saída em rota:
+
+- o **mapa** mostra o entregador (ponto azul) e um pino numerado para cada parada,
+  na cor do status — amarelo pendente, verde entregue, vermelho não entregue;
+- a **tabela** lista as paradas, com OS, cliente, bairro, status e, quando há, o
+  horário da entrega ou o motivo. "Sem localização" quer dizer que o endereço não
+  foi encontrado no mapa: a entrega segue normalmente, só sem o pino;
+- o mapa se atualiza sozinho a cada 10 segundos, e a linha abaixo dele diz há
+  quanto tempo veio a última posição;
+- **Cancelar saída** encerra a saída na hora: as paradas pendentes ficam como não
+  entregues, com o motivo "Saída cancelada".
+
+![Painel de entregas, com o mapa, as paradas e o histórico](prints/36-painel-entregas.png)
+
+Abaixo, o **histórico** das 50 saídas mais recentes: início, entregador,
+quantidade de OS, entregues, não entregues, status e fim.
+
+> **A localização não fica guardada para sempre.** Trinta dias depois do fim da
+> saída, o sistema apaga o trajeto do entregador e a localização das casas; o
+> histórico (quem, quando, o que foi entregue) continua.
+
+O link **abrir a tela da saída**, no topo, leva à mesma tela do entregador — útil
+para marcar uma parada no lugar dele.
+
 ---
 
-## 9. Para o cliente — consulta pública
+## 10. Para o cliente — consulta pública
 
 > Esta seção pode ser impressa e entregue ao cliente junto com o comprovante.
 
@@ -547,9 +653,36 @@ Se aparecer **"Muitas consultas sem sucesso"**, foram vários números errados
 seguidos a partir da mesma conexão. Aguarde 15 minutos, confira o número no
 comprovante e tente de novo.
 
+### Quando o equipamento sai para entrega
+
+Se a assistência entrega em casa, você recebe pelo WhatsApp uma mensagem do
+entregador com o link da consulta. Na consulta aparece **🚚 Seu equipamento saiu
+para entrega**, pedindo os **4 últimos dígitos do telefone** que está no seu
+cadastro (celular ou fixo).
+
+![Consulta pedindo os 4 últimos dígitos do telefone](prints/37-consulta-saiu-para-entrega.png)
+
+Com os dígitos certos, aparece o **mapa**: o ponto azul é o entregador e o pino é
+o seu endereço. A posição se atualiza sozinha a cada 10 segundos.
+
+![Mapa com o entregador a caminho](prints/38-consulta-mapa.png)
+
+Depois que o equipamento é entregue, o mapa some e a consulta mostra o dia e a
+hora da entrega.
+
+![Consulta mostrando a data e a hora da entrega](prints/39-consulta-entregue.png)
+
+> **Por que os 4 dígitos.** O número da OS sozinho não basta para ver onde está o
+> entregador: é uma segurança a mais, para só você acompanhar. Se os dígitos não
+> conferirem, a tela avisa; depois de várias tentativas erradas, aparece
+> "Muitas tentativas de verificação" — aguarde ou fale com a loja.
+
+Sem telefone no cadastro, a consulta mostra "Para acompanhar a entrega, fale com
+a loja".
+
 ---
 
-## 10. Perguntas frequentes
+## 11. Perguntas frequentes
 
 **Não consigo ver um menu que meu colega vê.**
 Os perfis são diferentes. Fale com o administrador se precisar de acesso.
@@ -564,6 +697,20 @@ Encerrar gera o faturamento e é da gerência. Peça ao administrador.
 **O estoque ficou negativo.**
 A peça saiu pela OS antes de a entrada ser registrada. O setor de Compras
 regulariza com uma ENTRADA. O sistema avisa, não trava.
+
+**Sou entregador e a OS que preciso levar não aparece na lista.**
+Só aparecem OS **finalizadas** (faturadas pela gerência) nos últimos 30 dias e
+que ainda não estão em outra saída. Se faltar o faturamento, peça ao
+administrador.
+
+**O cliente diz que o entregador está parado no mapa.**
+A tela do celular do entregador provavelmente apagou: com ela bloqueada, a
+localização para de ser enviada. Basta acender a tela; a posição volta no ciclo
+seguinte.
+
+**O "Encerrar saída" não funciona.**
+Ainda há parada pendente. Marque cada uma como entregue ou não entregue (com o
+motivo) e tente de novo.
 
 **Cadastrei um cliente duas vezes.**
 O CPF/CNPJ é único, então o sistema recusa a duplicata. Se já aconteceu, remova

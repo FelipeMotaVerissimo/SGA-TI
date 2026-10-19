@@ -1,7 +1,7 @@
 # Matriz de rastreabilidade de requisitos
 
-**Versão:** V01 · 12/10/2026
-**Commit medido:** `923acea`
+**Versão:** V02 · 19/10/2026 (V01 de 12/10/2026, antes do Módulo 6)
+**Commit medido:** `09ad142`
 **Suíte de referência:** 435 testes unitários + 401 de integração (836 no total, todos passando)
 
 ---
@@ -17,6 +17,7 @@ Consequência prática para esta matriz:
 | Situação | Quantos | Como foi tratado |
 |---|---|---|
 | Requisito **citado no código ou nos LEIAMEs**, com enunciado conhecido | 16 RF + 5 NF | Enunciado transcrito como aparece no projeto |
+| Requisito **do Módulo 6**, com enunciado do pedido do módulo e **número proposto** | 5 RF + 1 NF | Numeração `[VALIDAR]`, continuando a sequência conhecida (RF024–RF028, NF009) |
 | Requisito cujo número é conhecido, mas **o enunciado não** | 7 RF + 3 NF | Marcado `[VALIDAR]`, com a funcionalidade correspondente **inferida** e identificada como inferência |
 
 **Nada foi inventado.** Onde o enunciado não era conhecido, está escrito que não
@@ -62,9 +63,9 @@ era conhecido. Onde não há teste, está escrito que não há.
 | ID | Enunciado (como citado no projeto) | Onde está | Teste que cobre | Status |
 |---|---|---|---|---|
 | **RF004** | Excluir cliente — **só administrador** (UC RF004) | `clienteService.excluirCliente`; rota `POST /clientes/:id/excluir` com `exigirPerfil()` | `clientes.test.js` (API) e `perfis.test.js` — administrador desativa, os cinco perfis são barrados mesmo por POST direto, e sem sessão nada muda | ✅ completo |
-| **RF006** | Controlar Produtos/Estoques — cadastro → entrada → saída na OS (UC) | `produtoService`, `itemOrdemService`, telas `/produtos` | `unit/produtoService.test.js` (34), `unit/itemOrdemService.test.js` (29), `estoque.test.js` (16) | ✅ completo |
+| **RF006** | Controlar Produtos/Estoques — cadastro → entrada → saída na OS (UC) | `produtoService`, `itemOrdemService`, telas `/produtos` | `unit/produtoService.test.js` (34), `unit/itemOrdemService.test.js` (37), `estoque.test.js` (16) | ✅ completo |
 | **RF007** | Controlar Financeiro — contas a pagar/receber com quitação e cancelamento (UC) | `financeiroService`, telas `/financeiro` | `unit/financeiroService.test.js` (30), `financeiro.test.js` (15) | ✅ completo |
-| **RF008** | Emitir Relatórios — por período, com filtros, **exibido ou exportado** (UC) | `relatorioService`, `csvService`, tela `/relatorios` | `unit/relatorioService.test.js` (18), `unit/csvService.test.js` (12), `relatorios.test.js` (17), `dashboard.test.js` (CSV) | ✅ completo |
+| **RF008** | Emitir Relatórios — por período, com filtros, **exibido ou exportado** (UC) | `relatorioService`, `csvService`, tela `/relatorios` | `unit/relatorioService.test.js` (26), `unit/csvService.test.js` (12), `relatorios.test.js` (21), `dashboard.test.js` (CSV) | ✅ completo |
 | **RF012** | Histórico de serviços por equipamento | `equipamentoService.historicoDeServicos`, tela `/equipamentos/:id/historico` | `unit/equipamentoService.test.js` (10), `historicoEquipamento.test.js` (14) | ✅ completo |
 | **RF013** | Controle de garantia | `servicoExecutadoService.calcularGarantia` | `unit/servicoExecutadoService.test.js` (21), `garantia.test.js` (13), `servicoTecnicoPeca.test.js` (11) | ✅ completo |
 | **RF014** | Cadastro de produtos utilizados nos serviços | `produtoService`, telas `/produtos` | `unit/produtoService.test.js`, `estoque.test.js`, `api.test.js` | ✅ completo |
@@ -75,8 +76,22 @@ era conhecido. Onde não há teste, está escrito que não há.
 | **RF019** | Serviços e produtos vendidos por tipo de equipamento | `relatorioService.porTipoDeEquipamento` | `tiposServico.test.js` | ✅ completo |
 | **RF020** | Registro de contas a pagar | `financeiroService` | `unit/financeiroService.test.js`, `financeiro.test.js` | ✅ completo |
 | **RF021** | Registro de contas a receber | `financeiroService`; geração automática no encerramento da OS | `unit/financeiroService.test.js`, `financeiro.test.js`, `unit/ordemServicoService.test.js` (conta gerada em transação) | ✅ completo |
-| **RF022** | Usuários com níveis de acesso | `perfilMiddleware`, model `Perfil` | `perfis.test.js` (19), `api.test.js` (32) | ✅ completo |
+| **RF022** | Usuários com níveis de acesso | `perfilMiddleware`, model `Perfil` | `perfis.test.js` (28), `api.test.js` (33) | ✅ completo |
 | **RF023** | Permissões específicas por perfil | `exigirPerfil` / `exigirPerfilApi`, rota a rota em `webRoutes.js` | `perfis.test.js`, `api.test.js`, `auditoria.test.js`, `retencao.test.js` | ✅ completo |
+
+### 2.3 Módulo 6 — rastreamento de entregas `[VALIDAR: numeração]`
+
+Enunciados tirados do pedido do módulo; os números continuam a sequência
+conhecida e precisam ser conferidos com a monografia. Detalhes em
+`LEIAME-MODULO6.md`.
+
+| ID | Enunciado | Onde está | Teste que cobre | Status |
+|---|---|---|---|---|
+| **RF024** | Registrar saída para entrega com uma ou mais OS finalizadas | `entregaService.iniciarSaida`, tela `/entregas/saida`; RN13–RN18 | `unit/entregaService.test.js` (36), `modeloEntregas.test.js` (20), `entregas.test.js` (49) | ✅ completo |
+| **RF025** | Compartilhar a localização do entregador durante a saída | `public/js/entregador.js`, `entregaService.registrarPosicao`; RN19–RN21 | `unit/entregadorScript.test.js` (26), `unit/entregaService.test.js`, `entregas.test.js`; celular real em `TESTES.md` 3.9 | ✅ completo |
+| **RF026** | Registrar a conclusão de cada entrega (entregue, não entregue, encerrar, cancelar) | `entregaService.marcarEntrega`, `encerrarSaida`, `cancelarSaida`; RN22–RN25 | `unit/entregaService.test.js`, `entregas.test.js` | ✅ completo |
+| **RF027** | O cliente acompanha a entrega no mapa pela consulta pública | `rastreioService`, `public/js/rastreio.js`, consulta pública; RN26–RN32 | `unit/rastreioService.test.js` (24), `rastreio.test.js` (17) | ✅ completo |
+| **RF028** | Painel de entregas do administrador | `/entregas`, `public/js/painel-entregas.js`; RN33–RN34 | `unit/painelEntregasScript.test.js` (8), `entregas.test.js`, `simulador.test.js` (6) | ✅ completo |
 
 ---
 
@@ -90,8 +105,9 @@ era conhecido. Onde não há teste, está escrito que não há.
 | **NF004** | Análise geográfica | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
 | **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
 | **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `scripts/conferir-restauracao.sh`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos; o **ciclo dump → restauração roda no CI a cada push**, comparando tabela a tabela | ✅ completo |
-| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login e da consulta pública; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (27), `unit/csrf.test.js` (22), `seguranca.test.js` (23), `csrf.test.js` (16) | 🔶 parcial |
-| **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `scripts/reparar-anonimizacoes.js`, `docs/RETENCAO.md` | `retencao.test.js` (34), `unit/retencaoService.test.js` (12) | 🔶 parcial |
+| **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login e da consulta pública; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (27), `unit/csrf.test.js` (23), `seguranca.test.js` (23), `csrf.test.js` (16) | 🔶 parcial |
+| **NF009** `[VALIDAR: numeração]` | Privacidade da localização: só durante a rota, segundo fator, token só como hash, resposta mínima, retenção e anonimização | `rastreioService`, `src/config/seguranca.js`, `retencaoService.limparTrajetosAntigos`; RN26–RN30, RN33–RN38; `SEGURANCA.md` 4.4, `RETENCAO.md` 3.5 | `rastreio.test.js` (17), `retencaoEntregas.test.js` (13), `unit/rastreioService.test.js`, `unit/retencaoService.test.js` | ✅ completo — prazo de 30 dias `[VALIDAR]` |
+| **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `scripts/reparar-anonimizacoes.js`, `docs/RETENCAO.md` | `retencao.test.js` (34), `unit/retencaoService.test.js` (21) | 🔶 parcial |
 
 ### Por que NF006, NF007 e NF008 são parciais
 
@@ -99,7 +115,7 @@ era conhecido. Onde não há teste, está escrito que não há.
 |---|---|---|
 | ~~NF006~~ | ~~O ciclo nunca foi executado~~ — **resolvido**: roda no CI, que tem `mysqldump` e MySQL | `docs/BACKUP.md`, seção 5 |
 | NF007 | `'unsafe-inline'` em `style-src` (o de `script-src` **saiu** em 15/10/2026) e o comportamento sob HTTPS real nunca foi exercitado. O limite de tentativas de login e o token CSRF **foram implementados** — ver `docs/SEGURANCA.md`, seções 4.1 e 4.2 | `docs/SEGURANCA.md`, seção 7 |
-| NF008 | O **descarte** está completo: a anonimização alcança o cadastro, a descrição das contas geradas no faturamento e o log de auditoria, e há reparo para anonimizações antigas. O que falta é a **retenção**: os prazos da seção 5 do `RETENCAO.md` são proposta, e nenhuma rotina os aplica automaticamente. Também não há registro de consentimento | `docs/RETENCAO.md`, seções 3.3 e 7 |
+| NF008 | O **descarte** está completo: a anonimização alcança o cadastro, a descrição das contas geradas no faturamento e o log de auditoria, e há reparo para anonimizações antigas. O que falta é a **retenção** dos dados de cliente: os prazos da seção 5 do `RETENCAO.md` são proposta, e nenhuma rotina os aplica automaticamente — a exceção, desde 18/10/2026, é o trajeto e o destino das entregas (RN35 e RN36). Também não há registro de consentimento | `docs/RETENCAO.md`, seções 3.3 e 7 |
 
 ---
 
@@ -129,11 +145,11 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 
 | Status | Quantidade |
 |---|---|
-| ✅ Completo | 16 |
+| ✅ Completo | 21 (16 + RF024–RF028 do Módulo 6) |
 | ⚠️ Implementado sem teste direto | 0 |
 | ❓ A validar com a monografia | 7 |
 | ❌ Não implementado | 0 |
-| **Total** | **23** |
+| **Total** | **28** |
 
 **Nenhum requisito funcional conhecido ficou sem implementação, e nenhum ficou sem teste.**
 
@@ -141,11 +157,11 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 
 | Status | Quantidade |
 |---|---|
-| ✅ Completo | 3 (NF004, NF005, NF006) |
+| ✅ Completo | 4 (NF004, NF005, NF006, NF009) |
 | 🔶 Parcial | 2 (NF007, NF008) |
 | ❌ Não implementado | 0 |
 | ❓ A validar | 3 (NF001–NF003) |
-| **Total** | **8** |
+| **Total** | **9** |
 
 ### Cobertura por módulo
 
@@ -158,6 +174,7 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 | 5 — Relatórios | RF008, RF016–RF019, NF004 | `relatorioService`, `csvService`, `relatorios`, `tiposServico`, `dashboard` |
 | NF005 — Auditoria | NF005 | `auditoriaExtensao`, `auditoria` |
 | NF006–NF008 | NF006, NF007, NF008 | `backup`, `seguranca` (×2), `retencao` |
+| 6 — Rastreamento de entregas | RF024–RF028, NF009 | `entregaService`, `geocodificacaoService`, `rastreioService`, `entregadorScript`, `painelEntregasScript`, `simuladorEntrega`, `modeloEntregas`, `entregas`, `rastreio`, `simulador`, `retencaoEntregas` |
 
 ---
 

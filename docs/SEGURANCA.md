@@ -279,7 +279,7 @@ ataque caro, não impossível.
 
 ## 4.4 Rastreamento da entrega pelo cliente (Módulo 6)
 
-Implementado em 17/10/2026. O cliente acompanha num mapa o equipamento sendo
+Implementado em 16/10/2026. O cliente acompanha num mapa o equipamento sendo
 levado até ele, a partir da consulta pública. O que protege a localização do
 entregador:
 
@@ -313,6 +313,14 @@ consulta eram feitos sem login. Há teste com usuário logado agora.
 API: nenhum dado do cliente sai do sistema para um serviço de mensagens; quem
 envia é o próprio entregador, pelo celular dele.
 
+**Dentro do sistema.** O perfil `ENTREGADOR` só alcança a tela de entregas: vai
+direto do login para ela, não vê o dashboard (que mostrava OS recentes com nome
+de cliente) nem os cadastros. A posição só é aceita da saída em rota e do
+entregador dela (RN19). O painel `/entregas` e a posição que ele consulta são só
+do administrador (RN33); o mapa do painel não leva nome nem endereço, que ficam
+na tabela da página (RN34). Retenção e anonimização da localização estão em
+`RETENCAO.md`, seção 3.5.
+
 ---
 
 ## 5. Variáveis de ambiente
@@ -331,7 +339,7 @@ envia é o próprio entregador, pelo celular dele.
 | Suíte | Arquivo | Casos |
 |---|---|---|
 | Unitários | `tests/unit/seguranca.test.js` | 27 |
-| Unitários | `tests/unit/csrf.test.js` | 22 |
+| Unitários | `tests/unit/csrf.test.js` | 23 |
 | Integração | `tests/integration/seguranca.test.js` | 23 |
 | Integração | `tests/integration/csrf.test.js` | 16 |
 

@@ -238,3 +238,11 @@ incompleto independentemente do que o texto diga.
    citados em nenhum comentário do código, ao contrário dos demais. São
    provavelmente os Módulos 1 e 2 (login, cadastros e OS), implementados antes de
    a convenção de marcar o RF no comentário existir. A Fase 8 confirma.
+5. `[VALIDAR na monografia: NF003]` — se o NF003 disser que o sistema é **somente
+   para desktop**, o texto ficou desatualizado em dois pontos: o layout passou a
+   funcionar em celular (14/10/2026, `TESTES.md` 3.7) e o Módulo 6 tem uma tela
+   pensada primeiro para o celular do entregador. Sem a monografia não dá para
+   confirmar o enunciado.
+6. `[VALIDAR: requisitos do Módulo 6]` — os números RF024 a RF028 e NF009
+   continuam a sequência conhecida (`MATRIZ-REQUISITOS.md`); se a monografia já
+   os numerar de outro jeito, valem os dela.
