@@ -1,8 +1,9 @@
-const authService      = require('../services/authService');
-const prisma           = require('../config/database');
+const authService       = require('../services/authService');
+const prisma            = require('../config/database');
 const financeiroService = require('../services/financeiroService');  // Módulo 5
 const relatorioService  = require('../services/relatorioService');   // Módulo 5
 const { temPermissao }  = require('../middlewares/perfilMiddleware');
+const bcrypt            = require('bcrypt');
 
 function exibirLogin(req, res) {
   if (req.session.usuario) return res.redirect('/dashboard');
@@ -102,4 +103,43 @@ async function dashboard(req, res) {
   }
 }
 
-module.exports = { exibirLogin, realizarLogin, logout, dashboard };
+/** Validação de senha do usuário logado para autorização de edições */
+async function validarSenhaUsuarioLogado(req, res) {
+  try {
+    const { senha } = req.body;
+    const usuarioId = req.session?.usuario?.id;
+
+    if (!usuarioId) {
+      return res.status(401).json({ sucesso: false, mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    if (!senha) {
+      return res.status(400).json({ sucesso: false, mensagem: 'A senha é obrigatória.' });
+    }
+
+    // Busca o usuário atual no banco
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: usuarioId }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado.' });
+    }
+
+    // Compara a senha informada com a senha criptografada do banco
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+
+    if (!senhaValida) {
+      return res.status(403).json({ sucesso: false, mensagem: 'Senha incorreta.' });
+    }
+
+    req.session.osDesbloqueada = true;
+
+    return res.json({ sucesso: true, mensagem: 'Senha confirmada com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao validar senha:', error);
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro interno ao validar senha.' });
+  }
+}
+
+module.exports = { exibirLogin, realizarLogin, logout, dashboard, validarSenhaUsuarioLogado };

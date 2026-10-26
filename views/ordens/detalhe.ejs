@@ -13,6 +13,9 @@
   // Liberação de faturamento é da Gerência/ADM (entrevista, item 8).
   const podeFaturar        = pode();
 
+  // Verifica se a OS está finalizada/concluída
+  const estaConcluida = (ordem.status === 'FINALIZADO');
+
   // A coluna "Ações" só aparece quando o status permite E o perfil pode.
   const mostrarAcoesServico = podeExcluirServico && podeMexerServico;
   const mostrarAcoesItem    = podeRemoverItem    && podeMexerItem;
@@ -39,26 +42,39 @@
 
       <%- include('../partials/alertas') %>
 
+      <%# Banner de bloqueio se a OS estiver concluída %>
+      <% if (estaConcluida) { %>
+      <div id="banner-bloqueio-os" style="margin-bottom:16px; padding:14px 18px; border-left:5px solid #28a745; background:#eafaf1; border-radius:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px">
+        <div>
+          <strong style="color:#1e7e34">✅ Ordem de Serviço Concluída.</strong>
+          <span style="color:#555; font-size:13px; margin-left:6px">Esta OS foi faturada e está bloqueada para alterações acidentais.</span>
+        </div>
+          <button type="button" class="btn btn-warning btn-sm" id="btn-abrir-desbloqueio">
+            🔒 Desbloquear com Senha
+          </button>
+      </div>
+      <% } %>
+
       <!-- Status e ações -->
       <div class="form-box" style="margin-bottom:16px">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px">
           <div>
             <span style="font-size:13px; color:#888">Status atual:</span><br>
-            <span class="badge badge-azul" style="font-size:14px; padding:6px 14px">
-              <%= ordem.status.replace('_',' ') %>
+            <span class="badge <%= estaConcluida ? 'badge-verde' : 'badge-azul' %>" style="font-size:14px; padding:6px 14px">
+              <%= ordem.status === 'FINALIZADO' ? 'CONCLUÍDO' : ordem.status.replace('_',' ') %>
             </span>
           </div>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
             <% if (podeMexerStatus) { %>
             <form action="/ordens/<%= ordem.id %>/status" method="POST" style="display:flex; gap:8px; align-items:center">
               <%- include('../partials/csrf') %>
-              <select name="status" class="form-group" style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px">
+              <select name="status" id="select-status-os" class="form-group" <%= estaConcluida ? 'disabled' : '' %> style="padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:14px">
                 <%# FINALIZADO fica de fora: encerrar é faturar, e depende de liberação da gerência %>
                 <% ['INICIAL','ORCAMENTO','AUTORIZADO','EM_ANDAMENTO','CANCELADO'].forEach(s => { %>
                 <option value="<%= s %>" <%= ordem.status === s ? 'selected' : '' %>><%= s.replace('_',' ') %></option>
                 <% }) %>
               </select>
-              <button type="submit" class="btn btn-primary btn-sm">Atualizar Status</button>
+              <button type="submit" class="btn btn-primary btn-sm botao-bloqueavel" <%= estaConcluida ? 'disabled' : '' %>>Atualizar Status</button>
             </form>
             <% } %>
 
@@ -128,368 +144,389 @@
         <% } %>
       </div>
 
-<!-- Orçamento -->
-<div class="form-box" style="margin-bottom:16px">
-  <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">💰 Orçamento</h2>
+      <!-- INÍCIO DA ÁREA BLOQUEÁVEL DA OS -->
+      <fieldset id="grupo-campos-os" <%= estaConcluida ? 'disabled' : '' %> style="border:none; padding:0; margin:0">
 
-  <% if (podeEditarOrcamento && podeMexerOrcamento) { %>
-  <form action="/ordens/<%= ordem.id %>/orcamento" method="POST">
-    <%- include('../partials/csrf') %>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Valor do Orçamento (R$) *</label>
-        <input type="number" step="0.01" min="0.01" name="valorOrcamento" placeholder="0,00" required
-          value="<%= ordem.valorOrcamento || '' %>">
-      </div>
-      <div class="form-group">
-        <label>Previsão de Entrega</label>
-        <input type="date" name="previsaoEntrega"
-          value="<%= ordem.previsaoEntrega ? formatarDataInput(ordem.previsaoEntrega) : '' %>">
-      </div>
-    </div>
-    <button type="submit" class="btn btn-primary btn-sm">💾 Salvar Orçamento</button>
-  </form>
-  <% } else if (!ordem.valorOrcamento) { %>
-  <p style="font-size:13px; color:#888">
-    Nenhum orçamento registrado.
-    <% if (podeEditarOrcamento) { %>
-      O lançamento do orçamento é atribuição do VENDEDOR.
-    <% } else { %>
-      O orçamento só pode ser lançado enquanto a OS estiver
-      <strong>INICIAL</strong> ou <strong>ORCAMENTO</strong>.
-    <% } %>
-  </p>
-  <% } else if (ordem.status !== 'AUTORIZADO') { %>
-  <p style="font-size:13px; color:#555">
-    Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
-    <% if (ordem.previsaoEntrega) { %>
-      — Previsão de entrega: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
-    <% } %>
-    <% if (ordem.dataAprovacao) { %>
-      — Aprovado em: <strong><%= new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') %></strong>
-    <% } %>
-  </p>
-  <% } %>
+        <!-- Orçamento -->
+        <div class="form-box" style="margin-bottom:16px">
+          <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">💰 Orçamento</h2>
 
-  <% if (ordem.valorOrcamento && ordem.status === 'ORCAMENTO' && podeAprovar) { %>
-  <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee">
-    <%
-      // O valor já aparece acima — no formulário, para quem lança o orçamento,
-      // ou no resumo, para quem só acompanha. Repetir aqui duplicava a linha.
-    %>
-    <div style="display:flex; gap:12px">
-      <form action="/ordens/<%= ordem.id %>/aprovar" method="POST" data-confirmar="Confirmar aprovação do orçamento?">
-        <%- include('../partials/csrf') %>
-        <button type="submit" class="btn btn-success btn-sm">
-          ✅ Aprovar Orçamento
-        </button>
-      </form>
-      <form action="/ordens/<%= ordem.id %>/rejeitar" method="POST" data-confirmar="Confirmar rejeição do orçamento?">
-        <%- include('../partials/csrf') %>
-        <button type="submit" class="btn btn-danger btn-sm">
-          ❌ Rejeitar Orçamento
-        </button>
-      </form>
-    </div>
-  </div>
-  <% } %>
-
-  <% if (ordem.status === 'AUTORIZADO') { %>
-  <div style="margin-top:16px; padding:12px; background:#f0fff4; border-radius:6px; border:1px solid #9ae6b4">
-    <p style="color:#276749; font-size:13px">
-      ✅ Orçamento aprovado em <strong><%= ordem.dataAprovacao ? new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') : '—' %></strong>
-      — Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
-      <% if (ordem.previsaoEntrega) { %>
-        — Previsão de entrega: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
-      <% } %>
-    </p>
-  </div>
-  <% } %>
-
-  <% if (ordem.status === 'CANCELADO') { %>
-  <div style="margin-top:16px; padding:12px; background:#fff5f5; border-radius:6px; border:1px solid #feb2b2">
-    <p style="color:#c53030; font-size:13px">
-      ❌ Orçamento rejeitado — OS cancelada.
-    </p>
-  </div>
-  <% } %>
-
-</div>
-
-      <!-- ============================================================ -->
-      <!-- Módulo 3 (parte 2) — Serviços Executados e Garantia          -->
-      <!-- ============================================================ -->
-      <div class="form-box" style="margin-bottom:16px">
-        <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">🔧 Registrar Serviço Executado</h2>
-
-        <% if (podeRegistrarServico && podeMexerServico) { %>
-        <form action="/ordens/<%= ordem.id %>/servicos" method="POST">
-          <%- include('../partials/csrf') %>
-          <div class="form-row full">
-            <div class="form-group">
-              <label>Descrição do Serviço *</label>
-              <textarea name="descricao" rows="3" required minlength="5"
-                placeholder="Ex: Troca da placa-mãe e reaplicação de pasta térmica"></textarea>
+          <% if (podeEditarOrcamento && podeMexerOrcamento) { %>
+          <form action="/ordens/<%= ordem.id %>/orcamento" method="POST">
+            <%- include('../partials/csrf') %>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Valor do Orçamento (R$) *</label>
+                <input type="number" step="0.01" min="0.01" name="valorOrcamento" placeholder="0,00" required
+                  value="<%= ordem.valorOrcamento || '' %>">
+              </div>
+              <div class="form-group">
+                <label>Previsão de Entrega</label>
+                <input type="date" name="previsaoEntrega"
+                  value="<%= ordem.previsaoEntrega ? formatarDataInput(ordem.previsaoEntrega) : '' %>">
+              </div>
             </div>
-          </div>
-          <div class="form-row full">
-            <div class="form-group">
-              <label>Observações</label>
-              <textarea name="observacoes" rows="2"
-                placeholder="Informações complementares (opcional)"></textarea>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Tipo de Serviço</label>
-              <select name="tipoServicoId">
-                <option value="">Não classificado</option>
-                <% (locals.tiposServico || []).forEach(t => { %>
-                <option value="<%= t.id %>"><%= t.nome %></option>
-                <% }) %>
-              </select>
-              <small style="color:#888; font-size:12px">
-                É o que permite contar os serviços mais executados no relatório.
-              </small>
-            </div>
-            <div class="form-group">
-              <label>Garantia (dias)</label>
-              <input type="number" name="garantiaDias" min="0" max="3650" step="1" placeholder="Ex: 90">
-              <small style="color:#888; font-size:12px">Deixe em branco ou 0 para serviço sem garantia.</small>
-            </div>
-            <div class="form-group" style="display:flex; align-items:flex-end">
-              <button type="submit" class="btn btn-success btn-sm">➕ Registrar Serviço</button>
-            </div>
-          </div>
-        </form>
-        <% } else if (!podeMexerServico) { %>
-        <div style="padding:12px; background:#f7f9fc; border-radius:6px; border:1px solid #e2e8f0">
-          <p style="color:#666; font-size:13px">
-            O registro de serviços executados é atribuição do <strong>TÉCNICO</strong>.
+            <button type="submit" class="btn btn-primary btn-sm">💾 Salvar Orçamento</button>
+          </form>
+          <% } else if (!ordem.valorOrcamento) { %>
+          <p style="font-size:13px; color:#888">
+            Nenhum orçamento registrado.
+            <% if (podeEditarOrcamento) { %>
+              O lançamento do orçamento é atribuição do VENDEDOR.
+            <% } else { %>
+              O orçamento só pode ser lançado enquanto a OS estiver
+              <strong>INICIAL</strong> ou <strong>ORCAMENTO</strong>.
+            <% } %>
           </p>
+          <% } else if (ordem.status !== 'AUTORIZADO') { %>
+          <p style="font-size:13px; color:#555">
+            Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
+            <% if (ordem.previsaoEntrega) { %>
+              — Previsão de entrega: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
+            <% } %>
+            <% if (ordem.dataAprovacao) { %>
+              — Aprovado em: <strong><%= new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') %></strong>
+            <% } %>
+          </p>
+          <% } %>
+
+          <% if (ordem.valorOrcamento && ordem.status === 'ORCAMENTO' && podeAprovar) { %>
+          <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee">
+            <div style="display:flex; gap:12px">
+              <form action="/ordens/<%= ordem.id %>/aprovar" method="POST" data-confirmar="Confirmar aprovação do orçamento?">
+                <%- include('../partials/csrf') %>
+                <button type="submit" class="btn btn-success btn-sm">
+                  ✅ Aprovar Orçamento
+                </button>
+              </form>
+              <form action="/ordens/<%= ordem.id %>/rejeitar" method="POST" data-confirmar="Confirmar rejeição do orçamento?">
+                <%- include('../partials/csrf') %>
+                <button type="submit" class="btn btn-danger btn-sm">
+                  ❌ Rejeitar Orçamento
+                </button>
+              </form>
+            </div>
+          </div>
+          <% } %>
+
+          <% if (ordem.status === 'AUTORIZADO') { %>
+          <div style="margin-top:16px; padding:12px; background:#f0fff4; border-radius:6px; border:1px solid #9ae6b4">
+            <p style="color:#276749; font-size:13px">
+              ✅ Orçamento aprovado em <strong><%= ordem.dataAprovacao ? new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') : '—' %></strong>
+              — Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
+              <% if (ordem.previsaoEntrega) { %>
+                — Previsão de entrega: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
+              <% } %>
+            </p>
+          </div>
+          <% } %>
+
+          <% if (ordem.status === 'CANCELADO') { %>
+          <div style="margin-top:16px; padding:12px; background:#fff5f5; border-radius:6px; border:1px solid #feb2b2">
+            <p style="color:#c53030; font-size:13px">
+              ❌ Orçamento rejeitado — OS cancelada.
+            </p>
+          </div>
+          <% } %>
         </div>
-        <% } else { %>
-        <div style="padding:12px; background:#fffaf0; border-radius:6px; border:1px solid #fbd38d">
-          <p style="color:#975a16; font-size:13px">
-            ⚠️ Serviços só podem ser registrados quando a OS estiver com status
-            <strong>AUTORIZADO</strong> ou <strong>EM ANDAMENTO</strong>.
-            Status atual: <strong><%= ordem.status.replace('_',' ') %></strong>.
-          </p>
+
+        <!-- Serviços Executados e Garantia -->
+        <div class="form-box" style="margin-bottom:16px">
+          <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">🔧 Registrar Serviço Executado</h2>
+
+          <% if (podeRegistrarServico && podeMexerServico) { %>
+          <form action="/ordens/<%= ordem.id %>/servicos" method="POST">
+            <%- include('../partials/csrf') %>
+            <div class="form-row full">
+              <div class="form-group">
+                <label>Descrição do Serviço *</label>
+                <textarea name="descricao" rows="3" required minlength="5"
+                  placeholder="Ex: Troca da placa-mãe e reaplicação de pasta térmica"></textarea>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea name="observacoes" rows="2"
+                  placeholder="Informações complementares (opcional)"></textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo de Serviço</label>
+                <select name="tipoServicoId">
+                  <option value="">Não classificado</option>
+                  <% (locals.tiposServico || []).forEach(t => { %>
+                  <option value="<%= t.id %>"><%= t.nome %></option>
+                  <% }) %>
+                </select>
+                <small style="color:#888; font-size:12px">
+                  É o que permite contar os serviços mais executados no relatório.
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Garantia (dias)</label>
+                <input type="number" name="garantiaDias" min="0" max="3650" step="1" placeholder="Ex: 90">
+                <small style="color:#888; font-size:12px">Deixe em branco ou 0 para serviço sem garantia.</small>
+              </div>
+              <div class="form-group" style="display:flex; align-items:flex-end">
+                <button type="submit" class="btn btn-success btn-sm">➕ Registrar Serviço</button>
+              </div>
+            </div>
+          </form>
+          <% } else if (!podeMexerServico) { %>
+          <div style="padding:12px; background:#f7f9fc; border-radius:6px; border:1px solid #e2e8f0">
+            <p style="color:#666; font-size:13px">
+              O registro de serviços executados é atribuição do <strong>TÉCNICO</strong>.
+            </p>
+          </div>
+          <% } else { %>
+          <div style="padding:12px; background:#fffaf0; border-radius:6px; border:1px solid #fbd38d">
+            <p style="color:#975a16; font-size:13px">
+              ⚠️ Serviços só podem ser registrados quando a OS estiver com status
+              <strong>AUTORIZADO</strong> ou <strong>EM ANDAMENTO</strong>.
+              Status atual: <strong><%= ordem.status === 'FINALIZADO' ? 'CONCLUÍDO' : ordem.status.replace('_',' ') %></strong>.
+            </p>
+          </div>
+          <% } %>
+        </div>
+
+        <div class="tabela-box" style="margin-bottom:16px">
+          <div class="tabela-header">
+            <h2>🛠️ Serviços Executados</h2>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Observações</th>
+                <th>Executado em</th>
+                <th>Técnico</th>
+                <th>Garantia</th>
+                <th>Situação</th>
+                <% if (mostrarAcoesServico) { %><th>Ações</th><% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!servicos || servicos.length === 0) { %>
+              <tr>
+                <td colspan="<%= mostrarAcoesServico ? 8 : 7 %>" style="text-align:center; color:#aaa; padding:24px">
+                  Nenhum serviço executado registrado ainda.
+                </td>
+              </tr>
+              <% } else { %>
+              <% servicos.forEach(s => { %>
+              <tr>
+                <td>
+                  <% if (s.tipoServico) { %>
+                    <span class="badge badge-azul"><%= s.tipoServico.nome %></span>
+                  <% } else { %>
+                    <span style="color:#aaa; font-size:12px">não classificado</span>
+                  <% } %>
+                </td>
+                <td>
+                  <%= s.descricao %>
+                  <% if (s.itens && s.itens.length > 0) { %>
+                  <br><span style="font-size:12px; color:#888">
+                    Peças: <%= s.itens.map(i => `${i.produto.nome} ×${i.quantidade}`).join(', ') %>
+                  </span>
+                  <% } %>
+                </td>
+                <td style="color:#666"><%= s.observacoes || '—' %></td>
+                <td><%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %></td>
+                <td>
+                  <% if (s.usuario) { %>
+                    <%= s.usuario.nome %>
+                  <% } else { %>
+                    <span style="color:#aaa; font-size:12px">não registrado</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (s.garantia.possuiGarantia) { %>
+                    <%= s.garantiaDias %> dia(s)<br>
+                    <span style="font-size:12px; color:#888">
+                      até <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
+                    </span>
+                  <% } else { %>
+                    <span style="color:#aaa">—</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (s.garantia.situacao === 'EM_GARANTIA') { %>
+                    <span class="badge" style="background:#f0fff4; color:#276749; border:1px solid #9ae6b4">
+                      ✅ <%= s.garantia.diasRestantes %> dia(s)
+                    </span>
+                  <% } else if (s.garantia.situacao === 'VENCIDA') { %>
+                    <span class="badge" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2">
+                      ⌛ Vencida
+                    </span>
+                  <% } else { %>
+                    <span class="badge" style="background:#f7f7f7; color:#777; border:1px solid #ddd">
+                      Sem garantia
+                    </span>
+                  <% } %>
+                </td>
+                <% if (mostrarAcoesServico) { %>
+                <td>
+                  <form action="/ordens/<%= ordem.id %>/servicos/<%= s.id %>/excluir" method="POST" data-confirmar="Excluir este serviço executado?">
+                    <%- include('../partials/csrf') %>
+                    <button type="submit" class="btn btn-danger btn-sm botao-bloqueavel" <%= estaConcluida ? 'disabled' : '' %>>
+                      🗑️ Excluir
+                    </button>
+                  </form>
+                </td>
+                <% } %>
+              </tr>
+              <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Produtos utilizados -->
+        <% if (podeLancarItem && podeMexerItem) { %>
+        <div class="form-box" style="margin-bottom:16px">
+          <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">📦 Lançar Produto na OS</h2>
+          <form action="/ordens/<%= ordem.id %>/itens" method="POST">
+            <%- include('../partials/csrf') %>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Produto *</label>
+                <select name="produtoId" required>
+                  <option value="">Selecione o produto</option>
+                  <% produtos.forEach(p => { %>
+                  <option value="<%= p.id %>" data-preco="<%= Number(p.preco).toFixed(2) %>">
+                    <%= p.nome %> — R$ <%= Number(p.preco).toFixed(2) %> (<%= p.estoque %> em estoque)
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantidade *</label>
+                <input type="number" name="quantidade" min="1" step="1" value="1" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Valor Unitário (R$)</label>
+                <input type="text" name="valorUnit" placeholder="Em branco = preço de tabela">
+                <span style="font-size:12px; color:#888">
+                  Preencha apenas se houver desconto ou preço negociado.
+                </span>
+              </div>
+              <% if (servicos && servicos.length > 0) { %>
+              <div class="form-group">
+                <label>Usada no serviço</label>
+                <select name="servicoId">
+                  <option value="">Uso geral da OS</option>
+                  <% servicos.forEach(s => { %>
+                  <option value="<%= s.id %>">
+                    <%= s.tipoServico ? s.tipoServico.nome : s.descricao.slice(0, 40) %>
+                    — <%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %>
+                  </option>
+                  <% }) %>
+                </select>
+              </div>
+              <% } %>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">➕ Lançar Produto</button>
+          </form>
+        </div>
+        <% } else if (podeMexerItem) { %>
+        <div class="alert alert-aviso" style="margin-bottom:16px">
+          ⚠ Produtos só podem ser lançados quando a OS estiver <strong>AUTORIZADO</strong>
+          ou <strong>EM ANDAMENTO</strong>. Status atual: <strong><%= ordem.status === 'FINALIZADO' ? 'CONCLUÍDO' : ordem.status.replace('_',' ') %></strong>.
         </div>
         <% } %>
-      </div>
 
-      <div class="tabela-box" style="margin-bottom:16px">
-        <div class="tabela-header">
-          <h2>🛠️ Serviços Executados</h2>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Tipo</th>
-              <th>Descrição</th>
-              <th>Observações</th>
-              <th>Executado em</th>
-              <th>Técnico</th>
-              <th>Garantia</th>
-              <th>Situação</th>
-              <% if (mostrarAcoesServico) { %><th>Ações</th><% } %>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (!servicos || servicos.length === 0) { %>
-            <tr>
-              <td colspan="<%= mostrarAcoesServico ? 8 : 7 %>" style="text-align:center; color:#aaa; padding:24px">
-                Nenhum serviço executado registrado ainda.
-              </td>
-            </tr>
-            <% } else { %>
-            <% servicos.forEach(s => { %>
-            <tr>
-              <td>
-                <% if (s.tipoServico) { %>
-                  <span class="badge badge-azul"><%= s.tipoServico.nome %></span>
-                <% } else { %>
-                  <span style="color:#aaa; font-size:12px">não classificado</span>
-                <% } %>
-              </td>
-              <td>
-                <%= s.descricao %>
-                <%# RN10: peças lançadas com vínculo a este serviço. %>
-                <% if (s.itens && s.itens.length > 0) { %>
-                <br><span style="font-size:12px; color:#888">
-                  Peças: <%= s.itens.map(i => `${i.produto.nome} ×${i.quantidade}`).join(', ') %>
-                </span>
-                <% } %>
-              </td>
-              <td style="color:#666"><%= s.observacoes || '—' %></td>
-              <td><%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %></td>
-              <td>
-                <%# RN09: serviços anteriores ao registro do técnico não têm o dado. %>
-                <% if (s.usuario) { %>
-                  <%= s.usuario.nome %>
-                <% } else { %>
-                  <span style="color:#aaa; font-size:12px">não registrado</span>
-                <% } %>
-              </td>
-              <td>
-                <% if (s.garantia.possuiGarantia) { %>
-                  <%= s.garantiaDias %> dia(s)<br>
-                  <span style="font-size:12px; color:#888">
-                    até <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
-                  </span>
-                <% } else { %>
-                  <span style="color:#aaa">—</span>
-                <% } %>
-              </td>
-              <td>
-                <% if (s.garantia.situacao === 'EM_GARANTIA') { %>
-                  <span class="badge" style="background:#f0fff4; color:#276749; border:1px solid #9ae6b4">
-                    ✅ <%= s.garantia.diasRestantes %> dia(s)
-                  </span>
-                <% } else if (s.garantia.situacao === 'VENCIDA') { %>
-                  <span class="badge" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2">
-                    ⌛ Vencida
-                  </span>
-                <% } else { %>
-                  <span class="badge" style="background:#f7f7f7; color:#777; border:1px solid #ddd">
-                    Sem garantia
-                  </span>
-                <% } %>
-              </td>
-              <% if (mostrarAcoesServico) { %>
-              <td>
-                <form action="/ordens/<%= ordem.id %>/servicos/<%= s.id %>/excluir" method="POST" data-confirmar="Excluir este serviço executado?">
-                  <%- include('../partials/csrf') %>
-                  <button type="submit" class="btn btn-danger btn-sm">
-                    🗑️ Excluir
-                  </button>
-                </form>
-              </td>
-              <% } %>
-            </tr>
-            <% }) %>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-      <!-- ============ fim Módulo 3 (parte 2) ============ -->
-
-      <!-- ============ Módulo 4 (parte 1): produtos utilizados ============ -->
-      <!-- Produtos utilizados -->
-      <% if (podeLancarItem && podeMexerItem) { %>
-      <div class="form-box" style="margin-bottom:16px">
-        <h2 style="font-size:15px; font-weight:600; margin-bottom:16px; color:#185FA5">📦 Lançar Produto na OS</h2>
-        <form action="/ordens/<%= ordem.id %>/itens" method="POST">
-          <%- include('../partials/csrf') %>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Produto *</label>
-              <select name="produtoId" required>
-                <option value="">Selecione o produto</option>
-                <% produtos.forEach(p => { %>
-                <option value="<%= p.id %>" data-preco="<%= Number(p.preco).toFixed(2) %>">
-                  <%= p.nome %> — R$ <%= Number(p.preco).toFixed(2) %> (<%= p.estoque %> em estoque)
-                </option>
-                <% }) %>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Quantidade *</label>
-              <input type="number" name="quantidade" min="1" step="1" value="1" required>
-            </div>
+        <div class="tabela-box">
+          <div class="tabela-header">
+            <h2>📦 Produtos Utilizados</h2>
+            <span style="font-size:13px; color:#555">
+              Total em peças: <strong>R$ <%= totalItens.toFixed(2) %></strong>
+            </span>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Valor Unitário (R$)</label>
-              <input type="text" name="valorUnit" placeholder="Em branco = preço de tabela">
-              <span style="font-size:12px; color:#888">
-                Preencha apenas se houver desconto ou preço negociado.
-              </span>
-            </div>
-            <%# RN10/RN11: só os serviços desta OS; sem serviço registrado, o campo não aparece. %>
-            <% if (servicos && servicos.length > 0) { %>
-            <div class="form-group">
-              <label>Usada no serviço</label>
-              <select name="servicoId">
-                <option value="">Uso geral da OS</option>
-                <% servicos.forEach(s => { %>
-                <option value="<%= s.id %>">
-                  <%= s.tipoServico ? s.tipoServico.nome : s.descricao.slice(0, 40) %>
-                  — <%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %>
-                </option>
-                <% }) %>
-              </select>
-            </div>
-            <% } %>
-          </div>
-          <button type="submit" class="btn btn-primary btn-sm">➕ Lançar Produto</button>
-        </form>
-      </div>
-      <% } else if (podeMexerItem) { %>
-      <div class="alert alert-aviso" style="margin-bottom:16px">
-        ⚠ Produtos só podem ser lançados quando a OS estiver <strong>AUTORIZADO</strong>
-        ou <strong>EM ANDAMENTO</strong>. Status atual: <strong><%= ordem.status.replace('_',' ') %></strong>.
-      </div>
-      <% } %>
-
-      <div class="tabela-box">
-        <div class="tabela-header">
-          <h2>📦 Produtos Utilizados</h2>
-          <span style="font-size:13px; color:#555">
-            Total em peças: <strong>R$ <%= totalItens.toFixed(2) %></strong>
-          </span>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Serviço</th>
-              <th>Quantidade</th>
-              <th>Valor Unit.</th>
-              <th>Subtotal</th>
-              <% if (mostrarAcoesItem) { %><th>Ações</th><% } %>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (ordem.itens.length === 0) { %>
-            <tr>
-              <td colspan="<%= mostrarAcoesItem ? 6 : 5 %>" style="text-align:center; color:#aaa; padding:24px">
-                Nenhum produto utilizado ainda.
-              </td>
-            </tr>
-            <% } else { %>
-            <% ordem.itens.forEach(i => { %>
-            <tr>
-              <td><%= i.produto.nome %></td>
-              <td>
-                <% if (i.servico) { %>
-                  <%= i.servico.tipoServico ? i.servico.tipoServico.nome : i.servico.descricao.slice(0, 40) %>
-                <% } else { %>
-                  <span style="color:#aaa; font-size:12px">uso geral da OS</span>
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Serviço</th>
+                <th>Quantidade</th>
+                <th>Valor Unit.</th>
+                <th>Subtotal</th>
+                <% if (mostrarAcoesItem) { %><th>Ações</th><% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (ordem.itens.length === 0) { %>
+              <tr>
+                <td colspan="<%= mostrarAcoesItem ? 6 : 5 %>" style="text-align:center; color:#aaa; padding:24px">
+                  Nenhum produto utilizado ainda.
+                </td>
+              </tr>
+              <% } else { %>
+              <% ordem.itens.forEach(i => { %>
+              <tr>
+                <td><%= i.produto.nome %></td>
+                <td>
+                  <% if (i.servico) { %>
+                    <%= i.servico.tipoServico ? i.servico.tipoServico.nome : i.servico.descricao.slice(0, 40) %>
+                  <% } else { %>
+                    <span style="color:#aaa; font-size:12px">uso geral da OS</span>
+                  <% } %>
+                </td>
+                <td><%= i.quantidade %></td>
+                <td>R$ <%= Number(i.valorUnit).toFixed(2) %></td>
+                <td>R$ <%= (Number(i.valorUnit) * i.quantidade).toFixed(2) %></td>
+                <% if (mostrarAcoesItem) { %>
+                <td>
+                  <form action="/ordens/<%= ordem.id %>/itens/<%= i.id %>/remover" method="POST" style="display:inline"
+                    data-confirmar="Remover este produto da OS? A quantidade volta para o estoque.">
+                    <%- include('../partials/csrf') %>
+                    <button type="submit" class="btn btn-danger btn-sm botao-bloqueavel" <%= estaConcluida ? 'disabled' : '' %>>Remover</button>
+                  </form>
+                </td>
                 <% } %>
-              </td>
-              <td><%= i.quantidade %></td>
-              <td>R$ <%= Number(i.valorUnit).toFixed(2) %></td>
-              <td>R$ <%= (Number(i.valorUnit) * i.quantidade).toFixed(2) %></td>
-              <% if (mostrarAcoesItem) { %>
-              <td>
-                <form action="/ordens/<%= ordem.id %>/itens/<%= i.id %>/remover" method="POST" style="display:inline"
-                  data-confirmar="Remover este produto da OS? A quantidade volta para o estoque.">
-                  <%- include('../partials/csrf') %>
-                  <button type="submit" class="btn btn-danger btn-sm">Remover</button>
-                </form>
-              </td>
+              </tr>
+              <% }) %>
               <% } %>
-            </tr>
-            <% }) %>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-      <!-- ============ fim Módulo 4 (parte 1) ============ -->
+            </tbody>
+          </table>
+        </div>
+
+      </fieldset>
+      <!-- FIM DA ÁREA BLOQUEÁVEL DA OS -->
 
     </div>
   </div>
+
+  <!-- Modal de Confirmação de Senha do Usuário Logado -->
+<!-- Modal de Confirmação de Senha do Utilizador Logado -->
+  <div id="modal-autorizacao-senha" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); overflow:auto;">
+    <div style="background-color:#ffffff; margin:10% auto; padding:24px; border-radius:8px; width:90%; max-width:400px; box-shadow:0 4px 20px rgba(0,0,0,0.3); text-align:center; position:relative;">
+
+      <h3 style="margin-top:0; font-size:18px; color:#2d3748;">🔒 Autorização de Edição</h3>
+      <p style="font-size:13px; color:#718096; margin-bottom:16px;">
+        Esta OS está <strong>concluída</strong>. Para autorizar alterações, introduza a <strong>sua senha de login</strong>:
+      </p>
+
+      <div id="erro-modal-senha" style="display:none; color:#c53030; background:#fff5f5; border:1px solid #feb2b2; padding:8px; border-radius:4px; font-size:13px; margin-bottom:12px; text-align:left;"></div>
+
+      <input type="password" id="input-senha-confirmacao" placeholder="Introduza a sua senha" 
+             style="width:100%; padding:10px 12px; margin-bottom:16px; border:1px solid #cbd5e0; border-radius:6px; box-sizing:border-box; font-size:14px;">
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-cancelar-desbloqueio">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-confirmar-desbloqueio">Confirmar Senha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carregamento do ficheiro JS externo conforme a diretiva CSP 'self' -->
+  <script src="/js/os-desbloqueio.js"></script>
+</body>
+</html>
+
 </body>
 </html>

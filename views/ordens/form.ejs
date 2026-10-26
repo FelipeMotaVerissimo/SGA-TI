@@ -26,7 +26,12 @@
 
           <div class="form-row full">
             <div class="form-group">
-              <label>Cliente *</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="margin-bottom: 0;">Cliente *</label>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-abrir-modal-cliente" style="font-size: 11px; padding: 3px 10px;">
+                  ➕ Novo Cliente
+                </button>
+              </div>
               <select name="clienteId" id="clienteId" required>
                 <option value="">Selecione o cliente</option>
                 <% clientes.forEach(c => { %>
@@ -38,7 +43,12 @@
 
           <div class="form-row full">
             <div class="form-group">
-              <label>Equipamento *</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="margin-bottom: 0;">Equipamento *</label>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-abrir-modal-equipamento" style="font-size: 11px; padding: 3px 10px;">
+                  ➕ Novo Equipamento
+                </button>
+              </div>
               <select name="equipamentoId" id="equipamentoId" required>
                 <option value="">Selecione um cliente primeiro</option>
               </select>
@@ -80,6 +90,152 @@
     </div>
   </div>
 
+  <!-- MODAL: Cadastro Completo de Cliente -->
+  <div id="modal-novo-cliente" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.55); overflow:auto;">
+    <div style="background-color:#ffffff; margin:3% auto; padding:24px; border-radius:8px; width:92%; max-width:680px; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+      <h3 style="margin-top:0; font-size:18px; color:#185FA5; border-bottom:1px solid #eee; padding-bottom:10px;">👤 Novo Cliente</h3>
+      
+      <div id="erro-modal-cliente" style="display:none; color:#c53030; background:#fff5f5; border:1px solid #feb2b2; padding:8px; border-radius:4px; font-size:13px; margin:12px 0;"></div>
+
+      <form id="form-modal-cliente">
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Nome Completo *</label>
+          <input type="text" name="nome" id="modal-cliente-nome" required placeholder="Nome completo do cliente" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">CPF/CNPJ *</label>
+            <input type="text" name="cpfCnpj" required placeholder="000.000.000-00" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">RG</label>
+            <input type="text" name="rg" placeholder="RG do cliente" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Telefone</label>
+            <input type="text" name="telefone" placeholder="(00) 0000-0000" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Celular</label>
+            <input type="text" name="celular" placeholder="(00) 00000-0000" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">E-mail</label>
+          <input type="email" name="email" placeholder="cliente@email.com" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:2;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Endereço</label>
+            <input type="text" name="endereco" placeholder="Rua, Avenida, etc." style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Número</label>
+            <input type="text" name="numero" placeholder="123" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Bairro</label>
+            <input type="text" name="bairro" placeholder="Nome do bairro" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Cidade</label>
+            <input type="text" name="cidade" placeholder="Nome da cidade" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="width:110px;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Estado</label>
+            <select name="estado" style="width:100%; padding:8px 6px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+              <option value="">Selecione</option>
+              <% ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].forEach(uf => { %>
+                <option value="<%= uf %>"><%= uf %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">CEP</label>
+            <input type="text" name="cep" placeholder="00000-000" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Data de Nascimento</label>
+            <input type="date" name="dataNascimento" style="width:100%; padding:7px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; border-top:1px solid #eee; padding-top:12px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancelar-modal-cliente">✕ Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-salvar-modal-cliente">💾 Salvar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Cadastro de Equipamento -->
+  <div id="modal-novo-equipamento" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.55); overflow:auto;">
+    <div style="background-color:#ffffff; margin:5% auto; padding:24px; border-radius:8px; width:90%; max-width:550px; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+      <h3 style="margin-top:0; font-size:18px; color:#185FA5; border-bottom:1px solid #eee; padding-bottom:10px;">💻 Novo Equipamento</h3>
+      
+      <div id="erro-modal-equipamento" style="display:none; color:#c53030; background:#fff5f5; border:1px solid #feb2b2; padding:8px; border-radius:4px; font-size:13px; margin:12px 0;"></div>
+
+      <form id="form-modal-equipamento">
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Tipo de Equipamento *</label>
+            <select name="tipo" required style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+              <option value="NOTEBOOK">Notebook</option>
+              <option value="DESKTOP">Desktop / Computador</option>
+              <option value="SERVIDORES">Servidor</option>
+              <option value="IMPRESSORA">Impressora</option>
+              <option value="MONITOR">Monitor</option>
+              <option value="OUTRO">Outro</option>
+            </select>
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Marca *</label>
+            <input type="text" name="marca" id="modal-equip-marca" required placeholder="Ex: Dell, HP, Lenovo" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Modelo *</label>
+            <input type="text" name="modelo" required placeholder="Ex: Inspiron 15" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Número de Série</label>
+            <input type="text" name="numeroSerie" placeholder="Opcional" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Condições de Entrada (Estado Físico)</label>
+          <input type="text" name="condicoesEntrada" placeholder="Ex: Riscos na tampa, sem carregador" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; margin-bottom:4px; font-weight:600;">Acessórios Deixados</label>
+          <input type="text" name="acessorios" placeholder="Ex: Fonte de alimentação, mouse" style="width:100%; padding:8px 10px; border:1px solid #cbd5e0; border-radius:4px; box-sizing:border-box;">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; border-top:1px solid #eee; padding-top:12px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancelar-modal-equipamento">✕ Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-salvar-modal-equip">💾 Salvar Equipamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/js/ordem-form.js" defer></script>
+  <script src="/js/os-cadastro-rapido.js" defer></script>
 </body>
 </html>

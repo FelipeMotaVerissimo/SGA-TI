@@ -1,5 +1,6 @@
 const clienteService = require('../services/clienteService');
 const retencaoService = require('../services/retencaoService'); // NF008
+const prisma = require('../config/database');
 
 async function listar(req, res) {
   try {
@@ -83,4 +84,49 @@ async function anonimizar(req, res) {
   res.redirect('/clientes?inativos=1');
 }
 
-module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, excluir, anonimizar };
+async function criarRapido(req, res) {
+  try {
+    const {
+      nome, cpfCnpj, telefone, celular, email,
+      endereco, numero, bairro, cidade, estado, cep
+    } = req.body;
+
+    if (!nome || !cpfCnpj) {
+      return res.status(400).json({ sucesso: false, mensagem: 'Nome e CPF/CNPJ são obrigatórios.' });
+    }
+
+    // Compõe a morada completa num único campo de texto suportado pelo modelo
+    let enderecoCompleto = endereco ? endereco.trim() : '';
+    if (numero) enderecoCompleto += `, ${numero.trim()}`;
+    if (bairro) enderecoCompleto += ` - ${bairro.trim()}`;
+    if (cep) enderecoCompleto += ` (CEP: ${cep.trim()})`;
+
+    // Prioriza o telemóvel ou telefone fornecido
+    const telefoneFinal = (celular && celular.trim()) ? celular.trim() : (telefone ? telefone.trim() : null);
+
+    const novoCliente = await prisma.cliente.create({
+      data: {
+        nome: nome.trim(),
+        cpfCnpj: cpfCnpj.trim(),
+        telefone: telefoneFinal,
+        email: email && email.trim() ? email.trim() : null,
+        endereco: enderecoCompleto || null,
+        cidade: cidade && cidade.trim() ? cidade.trim() : null,
+        estado: estado && estado.trim() ? estado.trim() : null,
+      }
+    });
+
+    return res.status(201).json({ sucesso: true, cliente: novoCliente });
+  } catch (err) {
+    console.error('Erro em criarRapido (cliente):', err);
+    let msg = 'Erro ao registar cliente.';
+    if (err.message && err.message.includes('Unique constraint')) {
+      msg = 'Já existe um cliente registado com este CPF/CNPJ.';
+    } else if (err.message) {
+      msg = err.message;
+    }
+    return res.status(400).json({ sucesso: false, mensagem: msg });
+  }
+}
+
+module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, excluir, anonimizar, criarRapido };

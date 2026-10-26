@@ -16,6 +16,7 @@ const rastreioWeb      = require('../controllers/rastreioWebController');       
 const { sessaoMiddleware } = require('../middlewares/sessaoMiddleware');
 const { exigirPerfil }     = require('../middlewares/perfilMiddleware');          // Módulo 4
 const { limitadorLogin, limitadorConsulta, limitadorRastreioIp, limitadorRastreioOs } = require('../config/seguranca'); // NF007
+const { validarSenhaUsuarioLogado } = require('../controllers/authWebController');
 
 /**
  * Módulo 4 — perfis por rota (RF023).
@@ -58,6 +59,8 @@ router.post('/clientes/:id/anonimizar', sessaoMiddleware, exigirPerfil(),       
 router.get('/equipamentos',              sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.listar);
 router.get('/equipamentos/novo',         sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.exibirForm);
 router.post('/equipamentos',             sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.criar);
+// Registo rápido de equipamento via modal (posicionado antes das rotas com :id)
+router.post('/equipamentos/rapido',      sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.criarRapido);
 router.get('/equipamentos/:id/editar',   sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.exibirEditar);
 router.post('/equipamentos/:id',         sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), equipamentoWeb.atualizar);
 // RF012 — histórico de serviços por equipamento. O TECNICO entra aqui vindo da
@@ -151,5 +154,11 @@ router.get('/usuarios/novo',       sessaoMiddleware, exigirPerfil(), usuarioWeb.
 router.post('/usuarios',           sessaoMiddleware, exigirPerfil(), usuarioWeb.criar);
 router.get('/usuarios/:id/editar', sessaoMiddleware, exigirPerfil(), usuarioWeb.exibirEditar);
 router.post('/usuarios/:id',       sessaoMiddleware, exigirPerfil(), usuarioWeb.atualizar);
+
+// Desbloqueio de OS Concluída com Senha
+router.post('/auth/validar-senha-atual', sessaoMiddleware, validarSenhaUsuarioLogado);
+
+// Cadastros Rápidos via Modal (Retornam JSON)
+router.post('/clientes/rapido', sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), clienteWeb.criarRapido);
 
 module.exports = router;

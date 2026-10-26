@@ -1,6 +1,7 @@
 const equipamentoService = require('../services/equipamentoService');
 const clienteService     = require('../services/clienteService');
 const { temPermissao }   = require('../middlewares/perfilMiddleware');
+const prisma             = require('../config/database');
 
 async function listar(req, res) {
   try {
@@ -30,9 +31,6 @@ async function criar(req, res) {
     req.flash('sucesso', 'Equipamento cadastrado com sucesso!');
     res.redirect('/equipamentos');
   } catch (err) {
-    // O erro vai direto para a view: um req.flash() aqui só apareceria na
-    // requisição seguinte, porque res.locals.erro já foi resolvido no início
-    // desta. O usuário via o formulário voltar sem explicação nenhuma.
     const clientes = await clienteService.listarClientes();
     res.render('equipamentos/form', {
       titulo: 'Novo Equipamento',
@@ -68,11 +66,6 @@ async function atualizar(req, res) {
 
 /**
  * RF012 — histórico de serviços do equipamento.
- *
- * O TECNICO alcança esta tela pelo detalhe da OS, mas não tem acesso à lista
- * de equipamentos (que é do ATENDENTE). Mandá-lo para /equipamentos num erro
- * só trocaria a mensagem por um "acesso negado" — daí o destino depender do
- * perfil.
  */
 async function exibirHistorico(req, res) {
   try {
@@ -109,4 +102,67 @@ async function reativar(req, res) {
   res.redirect('/equipamentos?inativos=1');
 }
 
-module.exports = { listar, exibirForm, criar, exibirEditar, atualizar, exibirHistorico, excluir, reativar };
+/** Registo rápido de equipamento via Modal (retorna JSON para a view de criação de OS) */
+async function criarRapido(req, res) {
+  try {
+    const { clienteId, tipo, marca, modelo, numeroSerie, condicoesEntrada, acessorios } = req.body;
+
+    if (!clienteId) {
+      return res.status(400).json({ sucesso: false, mensagem: 'Selecione um cliente primeiro.' });
+    }
+
+    if (!marca || !modelo) {
+      return res.status(400).json({ sucesso: false, mensagem: 'Marca e modelo são obrigatórios.' });
+    }
+
+    // Gera um código único identificador para o equipamento (ex: EQ-3421AB)
+    const codigo = 'EQ-' + Date.now().toString().slice(-4) + Math.random().toString(36).substring(2, 4).toUpperCase();
+
+    // Normaliza o tipo para o formato aceito pelo Enum do Prisma (ex: "Impressora" -> "IMPRESSORA")
+    const tipoEnum = tipo ? tipo.trim().toUpperCase() : 'OUTRO';
+
+    // O campo defeito é obrigatório no modelo Equipamento do Prisma
+    const defeitoRelatado = condicoesEntrada && condicoesEntrada.trim() 
+      ? condicoesEntrada.trim() 
+      : 'Defeito a diagnosticar na OS';
+
+    const novoEquipamento = await prisma.equipamento.create({
+      data: {
+        clienteId: parseInt(clienteId, 10),
+        codigo: codigo,
+        tipo: tipoEnum,
+        marca: marca.trim(),
+        modelo: modelo.trim(),
+        numeroSerie: (numeroSerie && numeroSerie.trim()) ? numeroSerie.trim() : null,
+        defeito: defeitoRelatado
+      }
+    });
+
+    return res.status(201).json({ 
+      sucesso: true, 
+      equipamento: novoEquipamento,
+      detalhesExtras: {
+        condicoesEntrada: condicoesEntrada ? condicoesEntrada.trim() : '',
+        acessorios: acessorios ? acessorios.trim() : ''
+      }
+    });
+  } catch (err) {
+    console.error('Erro em criarRapido (equipamento):', err);
+    return res.status(400).json({ 
+      sucesso: false, 
+      mensagem: err.message || 'Erro ao cadastrar equipamento.' 
+    });
+  }
+}
+
+module.exports = {
+  listar,
+  exibirForm,
+  criar,
+  exibirEditar,
+  atualizar,
+  exibirHistorico,
+  excluir,
+  reativar,
+  criarRapido
+};
