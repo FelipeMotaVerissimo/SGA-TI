@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const btnSalvar = document.getElementById('btn-salvar-modal-cliente');
       if (btnSalvar) {
         btnSalvar.disabled = true;
-        btnSalvar.innerText = 'A guardar...';
+        btnSalvar.textContent = 'A guardar...';
       }
 
       const formData = new FormData(formCliente);
@@ -83,20 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
           if (modalCliente) modalCliente.style.display = 'none';
         } else {
           if (erroCliente) {
-            erroCliente.innerText = data.mensagem || 'Erro ao registar cliente.';
+            erroCliente.textContent = data.mensagem || 'Erro ao registar cliente.';
             erroCliente.style.display = 'block';
           }
         }
       } catch (err) {
         console.error('Falha na requisição (Cliente):', err);
         if (erroCliente) {
-          erroCliente.innerText = 'Erro ao contactar o servidor: ' + err.message;
+          erroCliente.textContent = 'Erro ao contactar o servidor: ' + err.message;
           erroCliente.style.display = 'block';
         }
       } finally {
         if (btnSalvar) {
           btnSalvar.disabled = false;
-          btnSalvar.innerText = 'Salvar Cliente';
+          btnSalvar.textContent = 'Salvar Cliente';
         }
       }
     });
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const clienteId = selectCliente ? selectCliente.value : '';
       if (!clienteId) {
         if (erroEquip) {
-          erroEquip.innerText = 'Selecione um cliente no formulário da OS primeiro.';
+          erroEquip.textContent = 'Selecione um cliente no formulário da OS primeiro.';
           erroEquip.style.display = 'block';
         }
         return;
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const btnSalvar = document.getElementById('btn-salvar-modal-equip');
       if (btnSalvar) {
         btnSalvar.disabled = true;
-        btnSalvar.innerText = 'A guardar...';
+        btnSalvar.textContent = 'A guardar...';
       }
 
       const formData = new FormData(formEquip);
@@ -179,8 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
           opt.textContent = `${data.equipamento.marca} ${data.equipamento.modelo} (${data.equipamento.codigo})`;
           opt.selected = true;
 
+          // Limpa opções antigas sem usar innerHTML
           if (selectEquip.options.length <= 1) {
-            selectEquip.innerHTML = '';
+            selectEquip.textContent = '';
           }
           selectEquip.appendChild(opt);
           selectEquip.disabled = false;
@@ -198,20 +199,20 @@ document.addEventListener('DOMContentLoaded', () => {
           if (modalEquip) modalEquip.style.display = 'none';
         } else {
           if (erroEquip) {
-            erroEquip.innerText = data.mensagem || 'Erro ao registar equipamento.';
+            erroEquip.textContent = data.mensagem || 'Erro ao registar equipamento.';
             erroEquip.style.display = 'block';
           }
         }
       } catch (err) {
         console.error('Erro ao guardar equipamento:', err);
         if (erroEquip) {
-          erroEquip.innerText = 'Erro ao contactar o servidor: ' + err.message;
+          erroEquip.textContent = 'Erro ao contactar o servidor: ' + err.message;
           erroEquip.style.display = 'block';
         }
       } finally {
         if (btnSalvar) {
           btnSalvar.disabled = false;
-          btnSalvar.innerText = 'Salvar Equipamento';
+          btnSalvar.textContent = 'Salvar Equipamento';
         }
       }
     });
