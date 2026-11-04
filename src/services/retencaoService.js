@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const { aguardarGravacoes } = require('./auditoriaExtensao');
+const { dataBR } = require('../config/formatacaoData');
 
 /**
  * NF008 — retenção e descarte de dados pessoais.
@@ -363,7 +364,7 @@ async function anonimizarCliente(id) {
   if (estaAnonimizado(cliente)) {
     throw erro(
       'Este cliente já foi anonimizado em ' +
-      new Date(cliente.anonimizadoEm).toLocaleDateString('pt-BR') + '.'
+      dataBR(cliente.anonimizadoEm) + '.'
     );
   }
 

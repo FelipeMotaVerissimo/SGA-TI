@@ -105,7 +105,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Data de Abertura</label>
-            <input type="text" value="<%= new Date(ordem.dataAbertura).toLocaleDateString('pt-BR') %>" disabled>
+            <input type="text" value="<%= dataBR(ordem.dataAbertura) %>" disabled>
           </div>
           <div class="form-group">
             <label>Responsável</label>
@@ -163,10 +163,10 @@
   <p style="font-size:13px; color:#555">
     Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
     <% if (ordem.previsaoEntrega) { %>
-      — Previsão de entrega: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
+      — Previsão de entrega: <strong><%= dataBR(ordem.previsaoEntrega) %></strong>
     <% } %>
     <% if (ordem.dataAprovacao) { %>
-      — Aprovado em: <strong><%= new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') %></strong>
+      — Aprovado em: <strong><%= dataBR(ordem.dataAprovacao) %></strong>
     <% } %>
   </p>
   <% } %>
@@ -197,10 +197,10 @@
   <% if (ordem.status === 'AUTORIZADO') { %>
   <div style="margin-top:16px; padding:12px; background:#f0fff4; border-radius:6px; border:1px solid #9ae6b4">
     <p style="color:#276749; font-size:13px">
-      ✅ Orçamento aprovado em <strong><%= ordem.dataAprovacao ? new Date(ordem.dataAprovacao).toLocaleDateString('pt-BR') : '—' %></strong>
+      ✅ Orçamento aprovado em <strong><%= ordem.dataAprovacao ? dataBR(ordem.dataAprovacao) : '—' %></strong>
       — Valor: <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
       <% if (ordem.previsaoEntrega) { %>
-        — Previsão de entrega: <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
+        — Previsão de entrega: <strong><%= dataBR(ordem.previsaoEntrega) %></strong>
       <% } %>
     </p>
   </div>
@@ -323,7 +323,7 @@
                 <% } %>
               </td>
               <td style="color:#666"><%= s.observacoes || '—' %></td>
-              <td><%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %></td>
+              <td><%= dataBR(s.executadoEm) %></td>
               <td>
                 <%# RN09: serviços anteriores ao registro do técnico não têm o dado. %>
                 <% if (s.usuario) { %>
@@ -336,7 +336,7 @@
                 <% if (s.garantia.possuiGarantia) { %>
                   <%= s.garantiaDias %> dia(s)<br>
                   <span style="font-size:12px; color:#888">
-                    até <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
+                    até <%= dataBR(s.garantia.dataFim) %>
                   </span>
                 <% } else { %>
                   <span style="color:#aaa">—</span>
@@ -416,7 +416,7 @@
                 <% servicos.forEach(s => { %>
                 <option value="<%= s.id %>">
                   <%= s.tipoServico ? s.tipoServico.nome : s.descricao.slice(0, 40) %>
-                  — <%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %>
+                  — <%= dataBR(s.executadoEm) %>
                 </option>
                 <% }) %>
               </select>

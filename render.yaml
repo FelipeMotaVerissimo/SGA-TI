@@ -30,8 +30,15 @@ services:
       - key: NODE_ENV
         value: production        # liga HSTS, HTTPS, cookie secure e trust proxy (NF007)
 
+      # Fuso da loja. O servidor do Render roda em UTC, 4 horas à frente de
+      # Dourados; sem isto, "fim do dia" e "meia-noite" das regras (garantia,
+      # vencimento, relatórios) caem no horário errado. O server.js assume o
+      # mesmo valor se a variável faltar.
+      - key: TZ
+        value: America/Campo_Grande
+
       - key: PORT
-        value: 10000             # porta que o Render espera no plano free
+        value: 10000            # porta que o Render espera no plano free
 
       # Informada no painel do Render: é a string de conexão do Aiven, com
       # usuário, senha e o parâmetro de TLS.

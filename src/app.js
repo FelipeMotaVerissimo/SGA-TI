@@ -19,6 +19,7 @@ const { temPermissao }   = require('./middlewares/perfilMiddleware');
 const { contextoMiddleware } = require('./middlewares/contextoMiddleware'); // NF005
 const { csrfMiddleware }     = require('./middlewares/csrfMiddleware');     // NF007
 const seguranca          = require('./config/seguranca');                    // NF007
+const { dataBR, horaBR, dataHoraBR, diaDoCalendarioBR } = require('./config/formatacaoData');
 
 const app = express();
 
@@ -87,6 +88,11 @@ app.use((req, res, next) => {
   res.locals.erro      = req.flash('erro');
   res.locals.aviso     = req.flash('aviso');   // Módulo 4: estoque negativo etc.
   res.locals.temPermissao = temPermissao;      // Módulo 4: usado pela sidebar
+  // Datas sempre no fuso da loja, qualquer que seja o fuso do servidor.
+  res.locals.dataBR       = dataBR;
+  res.locals.horaBR       = horaBR;
+  res.locals.dataHoraBR   = dataHoraBR;
+  res.locals.diaDoCalendarioBR = diaDoCalendarioBR;
   next();
 });
 

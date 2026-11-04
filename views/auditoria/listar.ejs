@@ -19,8 +19,6 @@
       <%- include('../partials/alertas') %>
 
       <%
-        const dataHoraBR = (d) => new Date(d).toLocaleString('pt-BR');
-        const dataBR     = (d) => new Date(d).toLocaleDateString('pt-BR');
 
         const corDaAcao = {
           INCLUSAO:  'badge-verde',
@@ -90,11 +88,11 @@
           <div class="card-label">Entidades auditadas</div>
         </div>
         <div class="card">
-          <div class="card-valor" style="font-size:20px"><%= dataBR(periodo.de) %></div>
+          <div class="card-valor" style="font-size:20px"><%= diaDoCalendarioBR(formulario.de) %></div>
           <div class="card-label">Início do período</div>
         </div>
         <div class="card">
-          <div class="card-valor" style="font-size:20px"><%= dataBR(periodo.ate) %></div>
+          <div class="card-valor" style="font-size:20px"><%= diaDoCalendarioBR(formulario.ate) %></div>
           <div class="card-label">Fim do período</div>
         </div>
       </div>

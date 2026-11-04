@@ -66,7 +66,7 @@
                     🔒 Anonimizado
                   </span><br>
                   <span style="font-size:11px; color:#888">
-                    <%= new Date(c.anonimizadoEm).toLocaleDateString('pt-BR') %>
+                    <%= dataBR(c.anonimizadoEm) %>
                   </span>
                 <% } else if (!c.ativo) { %>
                   <span class="badge badge-vermelho">Inativo</span>

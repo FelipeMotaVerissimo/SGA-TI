@@ -39,15 +39,14 @@
       </div>
 
       <%
-        const dataBR = (d) => new Date(d).toLocaleDateString('pt-BR');
         const real   = (v) => 'R$ ' + Number(v).toFixed(2);
       %>
 
       <% const qs = `?de=${filtro.de}&ate=${filtro.ate}`; %>
 
       <p style="font-size:13px; color:#888; margin-bottom:16px">
-        Período analisado: <strong><%= dataBR(periodo.de) %></strong>
-        até <strong><%= dataBR(periodo.ate) %></strong>
+        Período analisado: <strong><%= diaDoCalendarioBR(filtro.de) %></strong>
+        até <strong><%= diaDoCalendarioBR(filtro.ate) %></strong>
       </p>
 
       <!-- RF016 -->

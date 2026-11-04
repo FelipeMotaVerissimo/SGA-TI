@@ -2,7 +2,7 @@
 
 **Versão:** V02 · 19/10/2026 (V01 de 12/10/2026, antes do Módulo 6)
 **Commit medido:** `09ad142`
-**Suíte de referência:** 435 testes unitários + 401 de integração (836 no total, todos passando)
+**Suíte de referência:** 443 testes unitários + 413 de integração (856 no total, todos passando)
 
 ---
 

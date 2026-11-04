@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 435 | 435 | 0 |
-| Integração | 401 | 401 | 0 |
-| **Total** | **836** | **836** | **0** |
+| Unitários | 443 | 443 | 0 |
+| Integração | 413 | 413 | 0 |
+| **Total** | **856** | **856** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 435 testes
-npm run test:integration  :: 401 testes
-npm test                  :: suíte completa — 836 testes
+npm run test:unit         :: 443 testes
+npm run test:integration  :: 413 testes
+npm test                  :: suíte completa — 856 testes
 ```
 
-### 1.2 Testes unitários — 435 casos
+### 1.2 Testes unitários — 443 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -58,8 +58,9 @@ banco, rodam em cerca de 3 segundos.
 | `equipamentoService.test.js` | 10 | RF012 — histórico por equipamento, tipo |
 | `clienteService.test.js` | 5 | Validações do cadastro |
 | `authService.test.js` | 3 | Login e geração de token |
+| `formatacaoData.test.js` | 8 | Datas e horas das telas no fuso de Dourados, com o processo em UTC; vazio e inválido viram traço |
 
-### 1.3 Testes de integração — 401 casos
+### 1.3 Testes de integração — 413 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -78,6 +79,7 @@ isolado, recriado a cada suíte.
 | `tiposServico.test.js` | 18 | RF017/RF019 — catálogo e classificação |
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
 | `dashboard.test.js` | 16 | Blocos por perfil e exportação CSV |
+| `fusoTelas.test.js` | 12 | Fuso de Dourados nas telas antigas (OS, dashboard, consulta pública, histórico, financeiro, estoque, clientes, auditoria e período dos filtros), com o processo em UTC |
 | `estoque.test.js` | 16 | RF014/RF015 — movimentações, saldo × razão |
 | `financeiro.test.js` | 15 | RF020/RF021 — contas e a gerada no encerramento |
 | `historicoEquipamento.test.js` | 14 | RF012 — histórico por equipamento |
@@ -96,7 +98,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **435 unitários e 401 de integração passando**. Isso importa porque o
+números: **443 unitários e 413 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -473,12 +475,19 @@ Ao gerar as capturas do Módulo 6 para o Apêndice B, conferidas uma a uma:
 
 **Pendências que ficaram de fora desta correção:**
 
-- **Outras onze telas formatam data sem fuso** (dashboard, lista, detalhe e
-  formulário da OS, financeiro, auditoria, relatórios, estoque, histórico do
-  equipamento, clientes e a parte antiga da consulta pública). Num servidor em UTC, as
-  datas perto da meia-noite sairiam com o dia seguinte. `[VALIDAR: corrigir
-  tela a tela ou definir TZ=America/Campo_Grande no deploy, que resolve todas
-  de uma vez]`;
+- ~~**Outras onze telas formatam data sem fuso**~~ — **resolvida em
+  04/11/2026** (`fix/fuso-telas-antigas`, decisão do Endrik: corrigir tela a
+  tela). Dashboard, lista, detalhe e formulário da OS, financeiro, auditoria,
+  relatórios, estoque, histórico do equipamento, clientes, a parte antiga da
+  consulta pública e o aviso de anonimização passaram a usar
+  `src/config/formatacaoData.js`, que fixa `America/Campo_Grande`. Medida: com
+  o processo em UTC, 10 dos 12 testes de `fusoTelas.test.js` falham sem a
+  correção (os outros dois são a premissa e a guarda do período dos filtros,
+  que protege a mudança em si). Além disso, `TZ=America/Campo_Grande` entrou no `render.yaml` e
+  `server.js` o assume se a variável faltar: as regras de "meia-noite" e "fim
+  do dia" (garantia, vencimento, períodos) seguem o fuso do processo, e os
+  testes em UTC não as alcançam. Os períodos dos filtros (relatórios e
+  auditoria) mostram o dia do calendário, sem fuso;
 - **OS de cliente anonimizado aparece para sair para entrega**, sem endereço
   nem telefone. Visto na mesma captura. `[VALIDAR: se a OS de cliente
   anonimizado deve ficar fora da lista do entregador]`.
@@ -489,8 +498,8 @@ Ao gerar as capturas do Módulo 6 para o Apêndice B, conferidas uma a uma:
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 435 passando, a cada push |
-| **Software — integração** | ✅ Executado | 401 passando em SQLite e em MySQL 8 |
+| **Software — unitários** | ✅ Executado | 443 passando, a cada push |
+| **Software — integração** | ✅ Executado | 413 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |

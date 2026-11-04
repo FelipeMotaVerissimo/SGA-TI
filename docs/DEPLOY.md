@@ -19,8 +19,8 @@
 | `prisma migrate deploy` | Aplica as 8 migrations num MySQL 8 vazio |
 | `prisma migrate diff --exit-code` | **Falha o build** se o banco criado pelas migrations divergir do `schema.prisma` |
 | `npm run seed` | Prova que o seed roda num banco recém-migrado |
-| `npm run test:unit` | 435 testes |
-| `npm run test:integration` | 401 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
+| `npm run test:unit` | 443 testes |
+| `npm run test:integration` | 413 testes, contra o MySQL do CI — a suíte completa, sem exclusão |
 | `npm run backup` + `conferir-restauracao.sh` | NF006: gera o dump, restaura num banco novo e compara as 17 tabelas |
 
 ### O ganho que isso traz
@@ -138,6 +138,7 @@ Isso cria os 7 perfis e o usuário `admin` / `admin123`.
 |---|---|---|
 | `NODE_ENV=production` | `render.yaml` | Liga HSTS, redirecionamento HTTPS, cookie `secure` e `trust proxy` (NF007) |
 | `PORT=10000` | `render.yaml` | Porta esperada pelo Render no plano free |
+| `TZ=America/Campo_Grande` | `render.yaml` | Fuso da loja. O servidor roda em UTC (4 h à frente de Dourados); sem isso, as regras de "meia-noite" e "fim do dia" (garantia, vencimento, relatórios) cairiam no horário errado. As telas formatam datas com esse fuso de qualquer jeito (`src/config/formatacaoData.js`) |
 | `DATABASE_URL` | painel do Render | A URI do Aiven, com TLS |
 | `SESSION_SECRET` | gerada pelo Render | — |
 | `JWT_SECRET` | gerada pelo Render | — |

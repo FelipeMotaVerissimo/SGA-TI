@@ -146,7 +146,7 @@
             <% } else { %>
             <% movimentos.forEach(m => { %>
             <tr>
-              <td><%= new Date(m.criadoEm).toLocaleString('pt-BR') %></td>
+              <td><%= dataHoraBR(m.criadoEm) %></td>
               <td>
                 <% if (m.tipo === 'ENTRADA') { %>
                   <span class="badge badge-verde">▲ ENTRADA</span>

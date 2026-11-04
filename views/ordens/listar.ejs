@@ -79,7 +79,7 @@
                   <%= o.status.replace('_',' ') %>
                 </span>
               </td>
-              <td><%= new Date(o.dataAbertura).toLocaleDateString('pt-BR') %></td>
+              <td><%= dataBR(o.dataAbertura) %></td>
               <td>
                 <a href="/ordens/<%= o.id %>" class="btn btn-secondary btn-sm">Ver</a>
               </td>

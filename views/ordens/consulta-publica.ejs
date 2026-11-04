@@ -61,7 +61,7 @@
           <% if (ordem.previsaoEntrega) { %>
           <div>
             <span style="font-size:12px; color:#888; display:block">Previsão de Entrega</span>
-            <strong><%= new Date(ordem.previsaoEntrega).toLocaleDateString('pt-BR') %></strong>
+            <strong><%= dataBR(ordem.previsaoEntrega) %></strong>
           </div>
           <% } %>
           <% if (ordem.valorOrcamento) { %>
@@ -73,7 +73,7 @@
           <% if (ordem.dataAbertura) { %>
           <div>
             <span style="font-size:12px; color:#888; display:block">Data de Abertura</span>
-            <span><%= new Date(ordem.dataAbertura).toLocaleDateString('pt-BR') %></span>
+            <span><%= dataBR(ordem.dataAbertura) %></span>
           </div>
           <% } %>
         </div>
@@ -123,18 +123,18 @@
               <strong style="font-size:14px; display:block; margin-bottom:6px"><%= s.descricao %></strong>
 
               <span style="font-size:12px; color:#888; display:block">
-                Executado em <%= new Date(s.executadoEm).toLocaleDateString('pt-BR') %>
+                Executado em <%= dataBR(s.executadoEm) %>
               </span>
 
               <div style="margin-top:8px">
                 <% if (s.garantia.situacao === 'EM_GARANTIA') { %>
                   <span class="badge" style="background:#f0fff4; color:#276749; border:1px solid #9ae6b4; font-size:12px">
-                    ✅ Em garantia até <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
+                    ✅ Em garantia até <%= dataBR(s.garantia.dataFim) %>
                     (<%= s.garantia.diasRestantes %> dia(s))
                   </span>
                 <% } else if (s.garantia.situacao === 'VENCIDA') { %>
                   <span class="badge" style="background:#fff5f5; color:#c53030; border:1px solid #feb2b2; font-size:12px">
-                    ⌛ Garantia vencida em <%= s.garantia.dataFim.toLocaleDateString('pt-BR') %>
+                    ⌛ Garantia vencida em <%= dataBR(s.garantia.dataFim) %>
                   </span>
                 <% } else { %>
                   <span class="badge" style="background:#f7f7f7; color:#777; border:1px solid #ddd; font-size:12px">
