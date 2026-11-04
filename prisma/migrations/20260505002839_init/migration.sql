@@ -2,21 +2,13 @@
 CREATE TABLE `usuarios` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(150) NOT NULL,
-    `login` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(150) NOT NULL,
     `senha` VARCHAR(255) NOT NULL,
+    `perfil` ENUM('ADMINISTRADOR', 'ATENDENTE', 'TECNICO', 'VENDEDOR', 'FINANCEIRO', 'COMPRAS') NOT NULL DEFAULT 'ATENDENTE',
     `ativo` BOOLEAN NOT NULL DEFAULT true,
-    `perfilId` INTEGER NOT NULL,
     `criadoEm` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `usuarios_login_key`(`login`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `perfis` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nomePerfil` VARCHAR(50) NOT NULL,
-
+    UNIQUE INDEX `usuarios_email_key`(`email`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -125,9 +117,6 @@ CREATE TABLE `movimentos_estoque` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `usuarios` ADD CONSTRAINT `usuarios_perfilId_fkey` FOREIGN KEY (`perfilId`) REFERENCES `perfis`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `equipamentos` ADD CONSTRAINT `equipamentos_clienteId_fkey` FOREIGN KEY (`clienteId`) REFERENCES `clientes`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -147,4 +136,3 @@ ALTER TABLE `itens_ordem` ADD CONSTRAINT `itens_ordem_produtoId_fkey` FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE `movimentos_estoque` ADD CONSTRAINT `movimentos_estoque_produtoId_fkey` FOREIGN KEY (`produtoId`) REFERENCES `produtos`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
