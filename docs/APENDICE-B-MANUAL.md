@@ -22,8 +22,7 @@ Versão 2 · Outubro de 2026 — inclui o rastreamento de entregas (Módulo 6)
 > **Sobre as imagens:** as capturas estão em `docs/prints/`, em PNG com o dobro
 > da resolução de tela (2560 px de largura na página inteira), adequadas para
 > impressão. Foram feitas com a massa de demonstração, cada uma com o perfil a
-> que a seção se refere. Uma única captura depende de programa externo e ficou
-> marcada como `[PRINT: ...]`: o CSV aberto no Excel.
+> que a seção se refere.
 
 ---
 
@@ -530,8 +529,6 @@ dias):
 
 Botão **⭳ CSV** em cada um, respeitando o período da tela. O arquivo abre no
 Excel em português com acento e valores corretos.
-
-`[PRINT: CSV exportado, aberto no Excel — capturar manualmente, depende do Excel instalado]`
 
 > **"Não classificado"** nos serviços são os registros feitos antes do catálogo
 > existir, ou sem tipo escolhido. Aparecem de propósito — escondê-los falsearia o
