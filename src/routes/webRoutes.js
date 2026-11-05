@@ -50,7 +50,7 @@ router.get('/clientes/novo',         sessaoMiddleware, exigirPerfil(...PERFIS_CA
 router.post('/clientes/novo',        sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), clienteWeb.criar);
 router.get('/clientes/:id/editar',   sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), clienteWeb.exibirEditar);
 router.post('/clientes/:id/editar',  sessaoMiddleware, exigirPerfil(...PERFIS_CADASTRO), clienteWeb.atualizar);
-router.post('/clientes/:id/excluir', sessaoMiddleware, exigirPerfil(),                   clienteWeb.excluir); // UC RF004: só administrador
+router.post('/clientes/:id/excluir', sessaoMiddleware, exigirPerfil(),                   clienteWeb.excluir); // UC009: só administrador
 // NF008 — anonimização (art. 18 da LGPD). Irreversível, por isso só o
 // administrador, mesma trava da exclusão.
 router.post('/clientes/:id/anonimizar', sessaoMiddleware, exigirPerfil(),              clienteWeb.anonimizar);

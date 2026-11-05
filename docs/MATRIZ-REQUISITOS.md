@@ -1,27 +1,42 @@
 # Matriz de rastreabilidade de requisitos
 
-**Versão:** V02 · 19/10/2026 (V01 de 12/10/2026, antes do Módulo 6)
-**Commit medido:** `09ad142`
+**Versão:** V03 · 04/11/2026 (V02 de 19/10/2026; V01 de 12/10/2026, antes do Módulo 6)
+**Base de enunciados:** monografia, versão 0.0.8 (PDF de 25/08/2026), capítulo 2
 **Suíte de referência:** 443 testes unitários + 413 de integração (856 no total, todos passando)
 
 ---
 
-## 0. Limitação deste documento
+## 0. De onde vêm os enunciados
 
-> **A monografia não estava disponível.** O arquivo `sandbox/tcc.html`, apontado
-> como "o documento", é um painel de acompanhamento de 04/08/2026 e não contém a
-> lista numerada de requisitos (ver `docs/DIVERGENCIAS-DOC.md`, seção 0).
+Até a V02 a monografia não estava disponível, e os enunciados de RF001–RF011 e
+NF001–NF003 foram **inferidos** do que o sistema faz. Em 04/11/2026 ela foi
+localizada e lida. A V03 troca a inferência pelo texto do documento:
 
-Consequência prática para esta matriz:
+- **RF001–RF023 e NF001–NF004** agora usam o enunciado e o número **da
+  monografia** (seção 2.2).
+- **RF024–RF028 e NF009** (Módulo 6) e **NF005–NF008** (auditoria, backup,
+  transporte, retenção) **não existem na monografia 0.0.8**: foram criados pela
+  dupla depois dela e entram na versão seguinte do texto. A numeração é a que
+  este projeto vem usando e segue como proposta da dupla.
+- A V02 acertou RF012–RF023, mas **errou RF001–RF011**: a inferência trocou
+  quase todos de lugar (a monografia só trata login e usuários em RF022/RF023 e
+  NF002, e a consulta pública em UC005).
 
-| Situação | Quantos | Como foi tratado |
-|---|---|---|
-| Requisito **citado no código ou nos LEIAMEs**, com enunciado conhecido | 16 RF + 5 NF | Enunciado transcrito como aparece no projeto |
-| Requisito **do Módulo 6**, com enunciado do pedido do módulo e **número proposto** | 5 RF + 1 NF | Numeração `[VALIDAR]`, continuando a sequência conhecida (RF024–RF028, NF009) |
-| Requisito cujo número é conhecido, mas **o enunciado não** | 7 RF + 3 NF | Marcado `[VALIDAR]`, com a funcionalidade correspondente **inferida** e identificada como inferência |
+> **Duas séries com o mesmo prefixo.** A monografia usa "RF" para os
+> **requisitos** (seção 2.2, RF001–RF023) e também para os **casos de uso
+> gerais** (seção 2.3.1, "RF001 — Controlar clientes" até "RF008 — Emitir
+> relatórios"). Os números se repetem com sentidos diferentes. Neste projeto,
+> os casos de uso gerais aparecem como **UC RF00x** (como já estavam nos
+> comentários do código e nos LEIAMEs) e os específicos como **UC001–UC009**
+> (seção 2.4 da monografia). `[VALIDAR com o orientador: renumerar os casos de
+> uso gerais para não colidirem com os requisitos]`
 
-**Nada foi inventado.** Onde o enunciado não era conhecido, está escrito que não
-era conhecido. Onde não há teste, está escrito que não há.
+Também ficou claro que um comentário antigo do código estava errado: "UC RF004
+— só administrador" para excluir cliente. Na monografia, **excluir cliente é o
+UC009**; o UC RF004 é "Controlar orçamentos". Os comentários e o teste foram
+corrigidos nesta versão.
+
+**Nada foi inventado.** Onde não há teste, está escrito que não há.
 
 ---
 
@@ -33,56 +48,75 @@ era conhecido. Onde não há teste, está escrito que não há.
 | ⚠️ **Sem teste** | Implementado, mas sem teste automatizado que o cubra diretamente |
 | 🔶 **Parcial** | Implementado em parte, com lacuna registrada |
 | ❌ **Não implementado** | Previsto e ausente |
-| ❓ **A validar** | Enunciado desconhecido — depende da monografia |
+| ❓ **A validar** | Depende de decisão ou confirmação (marcado `[VALIDAR]` no texto) |
 
 ---
 
 ## 2. Requisitos funcionais
 
-### 2.1 Módulos 1 e 2 — enunciados não disponíveis
+### 2.1 RF001 a RF011 — Módulos 1 a 3 (enunciados da monografia, seção 2.2)
 
-> `[VALIDAR: RF001, RF002, RF003, RF005, RF009, RF010 e RF011 não aparecem
-> citados em nenhum comentário do código nem nos LEIAMEs, ao contrário dos
-> demais.]` São, muito provavelmente, os Módulos 1 e 2 — implementados pelo
-> Felipe antes de a convenção de marcar o RF no comentário existir. A coluna
-> "funcionalidade correspondente" abaixo é **inferência a partir do que o sistema
-> faz**, não transcrição do documento.
-
-| ID | Funcionalidade correspondente (inferida) | Onde está | Teste que cobre | Status |
+| ID | Enunciado (monografia) | Onde está | Teste que cobre | Status |
 |---|---|---|---|---|
-| RF001 | ❓ Autenticação de usuário (login com sessão) | `authWebController.realizarLogin`, `sessaoMiddleware` | `perfis.test.js` (login em todos os cenários), `seguranca.test.js` (cookie da sessão) | ❓ a validar |
-| RF002 | ❓ Cadastro de clientes | `clienteService`, telas `/clientes` | `unit/clienteService.test.js` (5), `clientes.test.js` (7, via API) | ❓ a validar |
-| RF003 | ❓ Cadastro de equipamentos | `equipamentoService`, telas `/equipamentos` | `unit/equipamentoService.test.js` (validação de tipo) | ❓ a validar |
-| RF005 | ❓ Cadastro de usuários | `usuarioWebController`, `authService.criarUsuario` | `api.test.js` — criação restrita ao administrador | ❓ a validar |
-| RF009 | ❓ Abertura de ordem de serviço | `ordemServicoService.abrirOrdem` | `unit/ordemServicoService.test.js` — OS nasce `INICIAL` | ❓ a validar |
-| RF010 | ❓ Atualização de status da OS | `ordemServicoService.atualizarStatus` | `unit/ordemServicoService.test.js`, `garantia.test.js` | ❓ a validar |
-| RF011 | ❓ Consulta pública de OS pelo número | `ordemServicoWeb.consultaPublica`, `/consulta` | `garantia.test.js` — consulta com número válido e inexistente | ❓ a validar |
+| **RF001** | Cadastro de clientes: nome, CPF/CNPJ, RG, data de nascimento, endereço, número, cidade, estado, CEP, telefone, celular e e-mail | model `Cliente` (tem todos os campos, mais `bairro`), `clienteService.criarCliente`, telas `/clientes` | `unit/clienteService.test.js` (cria; recusa CPF duplicado), `clientes.test.js` (POST com sucesso e CPF duplicado). Cada campo não é verificado um a um | ✅ completo |
+| **RF002** | Consulta, edição e atualização dos dados dos clientes | `clienteService`, telas `/clientes` e `/clientes/:id` | `clientes.test.js` (lista, busca por id, PUT), `unit/clienteService.test.js` (id inexistente) | ✅ completo |
+| **RF003** | Cadastro de equipamentos: código, marca, modelo, número de série e defeito informado | model `Equipamento` (tem os cinco campos, mais `tipo`), `equipamentoService.criarEquipamento`, telas `/equipamentos` | `tiposServico.test.js` (criação pela tela), `unit/equipamentoService.test.js` (validação do tipo). Não há teste que confira o número de série | ✅ completo |
+| **RF004** | Vincular um equipamento a um cliente já cadastrado | `Equipamento.clienteId` (obrigatório, chave estrangeira `RESTRICT`); o formulário escolhe o cliente | `tiposServico.test.js`, `historicoEquipamento.test.js`, `fixture.js` | ✅ completo |
+| **RF005** | Abertura de OS vinculada ao cliente e ao equipamento | `ordemServicoService.abrirOrdem`; a OS aponta para o equipamento e, por ele, para o cliente | `unit/ordemServicoService.test.js` (OS nasce `INICIAL`), `fixture.js` | ✅ completo |
+| **RF006** | Registrar o defeito informado pelo cliente na abertura da OS | `OrdemServico.defeitoRelatado` (coluna obrigatória) | `unit/ordemServicoService.test.js` abre OS com defeito. **Não há teste que tente abrir sem defeito** | ⚠️ sem teste direto |
+| **RF007** | Controlar o andamento por seis status: inicial, orçamento, autorizado, em andamento, cancelado, finalizado | `enum StatusOS`, `ordemServicoService.atualizarStatus` e as travas de transição | `unit/ordemServicoService.test.js`, `garantia.test.js`, `servicoExecutadoService.test.js` | ✅ completo |
+| **RF008** | Registrar o valor do orçamento | `ordemServicoService.registrarOrcamento`, `validarValorOrcamento` | `unit/ordemServicoService.test.js` (valor com ponto ou vírgula, exige status `ORCAMENTO`, não altera OS já autorizada) | ✅ completo |
+| **RF009** | Registrar a data de aprovação do orçamento | `ordemServicoService.aprovarOrcamento` | `unit/ordemServicoService.test.js` (aprova e grava a data; não a apaga quando o formulário não a envia) | ✅ completo |
+| **RF010** | Registrar a previsão de entrega | `OrdemServico.previsaoEntrega`, `parseDataLocal` | `unit/ordemServicoService.test.js` (data `AAAA-MM-DD` sem perder um dia) | ✅ completo |
+| **RF011** | O técnico registra os serviços executados | `servicoExecutadoService.registrarServico`, bloco "Serviços" em `/ordens/:id` | `unit/servicoExecutadoService.test.js` (21), `garantia.test.js` (13), `servicoTecnicoPeca.test.js` (11) | ✅ completo |
 
-### 2.2 Requisitos com enunciado conhecido
+### 2.2 RF012 a RF023 — Módulos 3 a 5
 
-| ID | Enunciado (como citado no projeto) | Onde está | Teste que cobre | Status |
+| ID | Enunciado (monografia) | Onde está | Teste que cobre | Status |
 |---|---|---|---|---|
-| **RF004** | Excluir cliente — **só administrador** (UC RF004) | `clienteService.excluirCliente`; rota `POST /clientes/:id/excluir` com `exigirPerfil()` | `clientes.test.js` (API) e `perfis.test.js` — administrador desativa, os cinco perfis são barrados mesmo por POST direto, e sem sessão nada muda | ✅ completo |
-| **RF006** | Controlar Produtos/Estoques — cadastro → entrada → saída na OS (UC) | `produtoService`, `itemOrdemService`, telas `/produtos` | `unit/produtoService.test.js` (34), `unit/itemOrdemService.test.js` (37), `estoque.test.js` (16) | ✅ completo |
-| **RF007** | Controlar Financeiro — contas a pagar/receber com quitação e cancelamento (UC) | `financeiroService`, telas `/financeiro` | `unit/financeiroService.test.js` (30), `financeiro.test.js` (15) | ✅ completo |
-| **RF008** | Emitir Relatórios — por período, com filtros, **exibido ou exportado** (UC) | `relatorioService`, `csvService`, tela `/relatorios` | `unit/relatorioService.test.js` (26), `unit/csvService.test.js` (12), `relatorios.test.js` (21), `dashboard.test.js` (CSV) | ✅ completo |
-| **RF012** | Histórico de serviços por equipamento | `equipamentoService.historicoDeServicos`, tela `/equipamentos/:id/historico` | `unit/equipamentoService.test.js` (10), `historicoEquipamento.test.js` (14) | ✅ completo |
-| **RF013** | Controle de garantia | `servicoExecutadoService.calcularGarantia` | `unit/servicoExecutadoService.test.js` (21), `garantia.test.js` (13), `servicoTecnicoPeca.test.js` (11) | ✅ completo |
+| **RF012** | Manter histórico de serviços por equipamento | `equipamentoService.historicoDeServicos`, tela `/equipamentos/:id/historico` | `unit/equipamentoService.test.js` (10), `historicoEquipamento.test.js` (14) | ✅ completo |
+| **RF013** | Controle de garantia dos serviços | `servicoExecutadoService.calcularGarantia` | `unit/servicoExecutadoService.test.js` (21), `garantia.test.js` (13), `servicoTecnicoPeca.test.js` (11) | ✅ completo |
 | **RF014** | Cadastro de produtos utilizados nos serviços | `produtoService`, telas `/produtos` | `unit/produtoService.test.js`, `estoque.test.js`, `api.test.js` | ✅ completo |
-| **RF015** | Entrada de produtos no estoque **pelo setor de Compras** | `produtoService.movimentarEstoque`, tela `/produtos/:id/estoque` | `estoque.test.js`, `perfis.test.js` — VENDEDOR não movimenta por POST direto | ✅ completo |
-| **RF016** | Maiores clientes por período | `relatorioService.maioresClientes` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |
-| **RF017** | Serviços mais executados por período | `relatorioService.servicosMaisExecutados`, `tipoServicoService` | `tiposServico.test.js` (18) | ✅ completo |
-| **RF018** | Produtos mais vendidos | `relatorioService.produtosMaisVendidos` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |
-| **RF019** | Serviços e produtos vendidos por tipo de equipamento | `relatorioService.porTipoDeEquipamento` | `tiposServico.test.js` | ✅ completo |
+| **RF015** | Entrada de produtos no estoque pelo setor de Compras | `produtoService.movimentarEstoque`, tela `/produtos/:id/estoque` | `estoque.test.js`, `perfis.test.js` — VENDEDOR não movimenta por POST direto | ✅ completo |
+| **RF016** | Relatório de maiores clientes por período | `relatorioService.maioresClientes` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |
+| **RF017** | Relatório de serviços mais executados por período | `relatorioService.servicosMaisExecutados`, `tipoServicoService` | `tiposServico.test.js` (18) | ✅ completo |
+| **RF018** | Relatório de produtos mais vendidos | `relatorioService.produtosMaisVendidos` | `unit/relatorioService.test.js`, `relatorios.test.js` | ✅ completo |
+| **RF019** | Relatório de serviços e produtos vendidos por tipo de equipamento | `relatorioService.porTipoDeEquipamento` | `tiposServico.test.js` | ✅ completo |
 | **RF020** | Registro de contas a pagar | `financeiroService` | `unit/financeiroService.test.js`, `financeiro.test.js` | ✅ completo |
 | **RF021** | Registro de contas a receber | `financeiroService`; geração automática no encerramento da OS | `unit/financeiroService.test.js`, `financeiro.test.js`, `unit/ordemServicoService.test.js` (conta gerada em transação) | ✅ completo |
-| **RF022** | Usuários com níveis de acesso | `perfilMiddleware`, model `Perfil` | `perfis.test.js` (28), `api.test.js` (33) | ✅ completo |
-| **RF023** | Permissões específicas por perfil | `exigirPerfil` / `exigirPerfilApi`, rota a rota em `webRoutes.js` | `perfis.test.js`, `api.test.js`, `auditoria.test.js`, `retencao.test.js` | ✅ completo |
+| **RF022** | Cadastro de usuários com diferentes níveis de acesso | `usuarioWebController`, `authService.criarUsuario`, model `Perfil` | `perfis.test.js` (28), `api.test.js` (33) — criação restrita ao administrador | ✅ completo |
+| **RF023** | Permissões específicas para cada tipo de usuário | `exigirPerfil` / `exigirPerfilApi`, rota a rota em `webRoutes.js` | `perfis.test.js`, `api.test.js`, `auditoria.test.js`, `retencao.test.js` | ✅ completo |
 
-### 2.3 Módulo 6 — rastreamento de entregas `[VALIDAR: numeração]`
+### 2.2.1 Casos de uso (monografia, seções 2.3.1 e 2.4)
 
-Enunciados tirados do pedido do módulo; os números continuam a sequência
-conhecida e precisam ser conferidos com a monografia. Detalhes em
+Os casos de uso gerais (série "RF" da seção 2.3.1) aparecem como **UC RF00x**; os
+específicos, como **UC001–UC009**.
+
+| Caso de uso | Onde está | Teste que cobre | Observação |
+|---|---|---|---|
+| UC RF001 — Controlar clientes | `clienteService`, `/clientes` | ver RF001, RF002 | — |
+| UC RF002 — Controlar equipamentos | `equipamentoService`, `/equipamentos` | ver RF003, RF004 | — |
+| UC RF003 — Controlar ordens de serviço | `ordemServicoService`, `/ordens` | ver RF005 a RF007 | — |
+| UC RF004 — Controlar orçamentos | `registrarOrcamento`, `aprovarOrcamento` | ver RF008 a RF010 | — |
+| UC RF005 — Controlar execução de serviços | `servicoExecutadoService` | ver RF011, RF013 | — |
+| UC RF006 — Controlar produtos e estoque | `produtoService`, `itemOrdemService`, `/produtos` | `unit/produtoService.test.js` (34), `unit/itemOrdemService.test.js` (37), `estoque.test.js` (16) | ✅ completo |
+| UC RF007 — Controlar financeiro | `financeiroService`, `/financeiro` | `unit/financeiroService.test.js` (30), `financeiro.test.js` (15) | ✅ completo |
+| UC RF008 — Emitir relatórios (período e filtros; exibido **ou exportado**) | `relatorioService`, `csvService`, `/relatorios` | `unit/relatorioService.test.js` (26), `unit/csvService.test.js` (12), `relatorios.test.js` (21), `dashboard.test.js` (CSV) | ✅ completo |
+| UC001 — Abrir OS | `abrirOrdem`, `/ordens/nova` | ver RF005 | O número da OS é gerado pelo sistema, como diz o caso de uso |
+| UC002 — Consultar OS | `/ordens`, `/ordens/:id` | `perfis.test.js`, `fusoTelas.test.js` | — |
+| UC003 — Atualizar status | `atualizarStatus` | ver RF007 | — |
+| UC004 — Encerrar OS | `faturarEEncerrar` | `unit/ordemServicoService.test.js` | **Diverge do texto:** a monografia diz "técnico ou administrador"; no sistema, encerrar é faturar e é **só do administrador** (decisão registrada, por causa da conta a receber gerada junto) |
+| UC005 — Cliente consulta o status | `/consulta` (sem login) | `garantia.test.js`, `rastreio.test.js` | Hoje também mostra a entrega em mapa (Módulo 6) |
+| UC006 — Cadastrar cliente | `clienteService.criarCliente` | ver RF001 | — |
+| UC007 — Consultar cliente | `/clientes` | ver RF002 | — |
+| UC008 — Editar cliente | `/clientes/:id` | ver RF002 | — |
+| UC009 — Excluir cliente (só administrador) | `clienteService.excluirCliente`, `POST /clientes/:id/excluir` | `clientes.test.js`, `perfis.test.js` (administrador desativa; os cinco outros perfis são barrados mesmo por POST direto; sem sessão nada muda) | **Diverge do texto:** a exclusão é **lógica** (o cliente é desativado), porque o histórico fiscal não pode sumir. Era o que a V02 chamava, por engano, de "RF004" |
+
+### 2.3 Módulo 6 — rastreamento de entregas (numeração proposta pela dupla)
+
+Requisitos criados depois da monografia 0.0.8 (que termina em RF023): os
+enunciados vêm do pedido do módulo e a numeração **continua a sequência** da
+monografia. Entram no texto na versão seguinte. Detalhes em
 `LEIAME-MODULO6.md`.
 
 | ID | Enunciado | Onde está | Teste que cobre | Status |
@@ -99,10 +133,10 @@ conhecida e precisam ser conferidos com a monografia. Detalhes em
 
 | ID | Enunciado | Onde está | Teste que cobre | Status |
 |---|---|---|---|---|
-| **NF001** | `[VALIDAR: não citado no plano nem no código]` | — | — | ❓ a validar |
-| **NF002** | `[VALIDAR: idem]` | — | — | ❓ a validar |
-| **NF003** | `[VALIDAR: idem]` | — | — | ❓ a validar |
-| **NF004** | Análise geográfica | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
+| **NF001** | Usabilidade: interface simples e intuitiva para os funcionários | Layout das telas, responsivo; `docs/APENDICE-A-USABILIDADE.md` | Não é testável por máquina. A avaliação foi aplicada com o consultor; `[VALIDAR: registrar os resultados no Apêndice A]` | 🔶 parcial |
+| **NF002** | Segurança: autenticação de usuários para acesso seguro às informações | `authService`, `sessaoMiddleware`, `perfilMiddleware`, bcrypt, trava de tentativas de login | `perfis.test.js`, `seguranca.test.js`, `unit/authService.test.js`, `csrf.test.js` | ✅ completo |
+| **NF003** | Portabilidade: acessível por navegadores web **em computadores desktop** | Aplicação web renderizada no servidor | Chromium (desktop e celular) medido, ver `TESTES.md` 1.6. **Firefox e Safari ainda não foram testados.** O texto fala só em desktop, mas o Módulo 6 roda no celular do entregador: `[VALIDAR: reescrever o enunciado para "desktop e celular"]` | 🔶 parcial |
+| **NF004** | Expansibilidade: permitir futuras expansões para integração com análise geográfica dos clientes (hoje implementada) | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
 | **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
 | **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `scripts/conferir-restauracao.sh`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos; o **ciclo dump → restauração roda no CI a cada push**, comparando tabela a tabela | ✅ completo |
 | **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login e da consulta pública; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (27), `unit/csrf.test.js` (23), `seguranca.test.js` (23), `csrf.test.js` (16) | 🔶 parcial |
@@ -126,11 +160,12 @@ conhecida e precisam ser conferidos com a monografia. Detalhes em
 
 | ID | O que não tem teste | Gravidade | Comentário |
 |---|---|---|---|
-| ~~RF004~~ | ~~A rota web e sua trava de administrador~~ | — | **Resolvido**: 7 casos novos em `perfis.test.js` cobrem o administrador desativando, os cinco perfis barrados por POST direto e o acesso sem sessão |
+| ~~UC009~~ | ~~A rota web e sua trava de administrador (chamado antes de "RF004")~~ | — | **Resolvido**: 7 casos novos em `perfis.test.js` cobrem o administrador desativando, os cinco perfis barrados por POST direto e o acesso sem sessão |
 | ~~NF004~~ | ~~Não há teste porque não há implementação~~ | — | **Resolvido**: implementado e coberto por 12 casos |
 | ~~NF006~~ | ~~O ciclo real de backup e restauração~~ | — | **Resolvido**: `scripts/conferir-restauracao.sh` roda no CI a cada push |
 | **NF007** | Comportamento sob TLS de verdade | Média | A lógica está testada e o limite de tentativas de login **passou a ter cobertura** (3 casos). O que falta é o tráfego cifrado real |
-| RF001–RF011 | Os sete requisitos de enunciado desconhecido têm testes que **provavelmente** os cobrem, mas a correspondência não pode ser afirmada sem o documento | — | Resolve-se com a monografia em mãos |
+| **RF006** | Que a abertura de OS **sem** defeito é recusada. O defeito é coluna obrigatória no banco, mas nenhum teste tenta abrir sem ele | Baixa | Um caso em `ordemServicoService.test.js` ou na tela fecha a lacuna |
+| ~~RF001–RF011~~ | ~~Enunciado desconhecido~~ | — | **Resolvido em 04/11/2026**: a monografia foi localizada e os enunciados entraram na seção 2.1 |
 
 ### Lacunas de teste que não são de requisito
 
@@ -145,33 +180,34 @@ real, carga e concorrência, e compatibilidade entre navegadores.
 
 | Status | Quantidade |
 |---|---|
-| ✅ Completo | 21 (16 + RF024–RF028 do Módulo 6) |
-| ⚠️ Implementado sem teste direto | 0 |
-| ❓ A validar com a monografia | 7 |
+| ✅ Completo | 27 (RF001–RF005, RF007–RF023 e RF024–RF028) |
+| ⚠️ Implementado sem teste direto | 1 (RF006) |
 | ❌ Não implementado | 0 |
 | **Total** | **28** |
 
-**Nenhum requisito funcional conhecido ficou sem implementação, e nenhum ficou sem teste.**
+**Nenhum requisito funcional ficou sem implementação.** O único sem teste que o
+exercite diretamente é o RF006 (recusar OS sem defeito).
 
 ### Requisitos não funcionais
 
 | Status | Quantidade |
 |---|---|
-| ✅ Completo | 4 (NF004, NF005, NF006, NF009) |
-| 🔶 Parcial | 2 (NF007, NF008) |
+| ✅ Completo | 5 (NF002, NF004, NF005, NF006, NF009) |
+| 🔶 Parcial | 4 (NF001, NF003, NF007, NF008) |
 | ❌ Não implementado | 0 |
-| ❓ A validar | 3 (NF001–NF003) |
 | **Total** | **9** |
+
+NF001–NF004 são da monografia; NF005–NF009 foram criados pela dupla depois dela.
 
 ### Cobertura por módulo
 
 | Módulo | Requisitos | Testes dedicados |
 |---|---|---|
-| 1 — Base | RF001–RF005 (inferido) | `clienteService`, `clientes`, `equipamentoService`, `perfis` |
-| 2 — Ordens de serviço | RF009–RF011 (inferido) | `ordemServicoService`, `garantia` (consulta pública) |
-| 3 — Orçamento, serviços e garantia | RF012, RF013 | `servicoExecutadoService`, `garantia`, `historicoEquipamento` |
-| 4 — Produtos, estoque, financeiro, perfis | RF006, RF007, RF014, RF015, RF020–RF023 | `produtoService`, `itemOrdemService`, `financeiroService`, `estoque`, `financeiro`, `perfis`, `api` |
-| 5 — Relatórios | RF008, RF016–RF019, NF004 | `relatorioService`, `csvService`, `relatorios`, `tiposServico`, `dashboard` |
+| 1 — Base | RF001–RF004, RF022, RF023, NF002 | `clienteService`, `clientes`, `equipamentoService`, `perfis` |
+| 2 — Ordens de serviço | RF005–RF007, UC005 | `ordemServicoService`, `garantia` (consulta pública) |
+| 3 — Orçamento, serviços e garantia | RF008–RF013 | `servicoExecutadoService`, `garantia`, `historicoEquipamento` |
+| 4 — Produtos, estoque, financeiro, perfis | UC RF006, UC RF007, RF014, RF015, RF020–RF023 | `produtoService`, `itemOrdemService`, `financeiroService`, `estoque`, `financeiro`, `perfis`, `api` |
+| 5 — Relatórios | UC RF008, RF016–RF019, NF004 | `relatorioService`, `csvService`, `relatorios`, `tiposServico`, `dashboard` |
 | NF005 — Auditoria | NF005 | `auditoriaExtensao`, `auditoria` |
 | NF006–NF008 | NF006, NF007, NF008 | `backup`, `seguranca` (×2), `retencao` |
 | 6 — Rastreamento de entregas | RF024–RF028, NF009 | `entregaService`, `geocodificacaoService`, `rastreioService`, `entregadorScript`, `painelEntregasScript`, `simuladorEntrega`, `modeloEntregas`, `entregas`, `rastreio`, `simulador`, `retencaoEntregas` |

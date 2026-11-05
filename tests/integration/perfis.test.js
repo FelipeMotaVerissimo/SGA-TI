@@ -149,13 +149,13 @@ describe('bloqueio vale para o POST, não só para a tela', () => {
 });
 
 /**
- * RF004 — excluir cliente é ato exclusivo do administrador.
+ * UC009 — excluir cliente é ato exclusivo do administrador.
  *
  * Esta rota não tinha teste: o caminho equivalente pela API é coberto em
  * `clientes.test.js`, mas a trava de perfil da rota web não era verificada por
  * ninguém (ver docs/MATRIZ-REQUISITOS.md, seção 4).
  */
-describe('exclusão de cliente pela web (RF004)', () => {
+describe('exclusão de cliente pela web (UC009)', () => {
   /**
    * Cliente próprio: esta suíte semeia uma vez só, então não dá para mexer na
    * massa compartilhada.
@@ -169,8 +169,8 @@ describe('exclusão de cliente pela web (RF004)', () => {
     contador += 1;
     return prisma.cliente.create({
       data: {
-        nome:    `Cliente RF004 ${sufixo}`,
-        cpfCnpj: `RF004-${String(contador).padStart(3, '0')}`, // 9 caracteres
+        nome:    `Cliente UC009 ${sufixo}`,
+        cpfCnpj: `UC009-${String(contador).padStart(3, '0')}`, // 9 caracteres
       },
     });
   };

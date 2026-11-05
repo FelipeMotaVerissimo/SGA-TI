@@ -844,7 +844,7 @@ explicar na defesa:
 
 - **`RESTRICT`** nas relações obrigatórias. O banco **impede** apagar um cliente
   que tem equipamento, um equipamento que tem OS, um produto que foi vendido. É o
-  que protege o histórico — e é por isso que a exclusão de cliente (RF004, só
+  que protege o histórico — e é por isso que a exclusão de cliente (UC009, só
   administrador) é lógica, via `ativo = false`, e não física.
 - **`SET NULL`** nas relações opcionais de autoria e classificação. Desativar um
   tipo de serviço ou remover um usuário não pode apagar o histórico financeiro

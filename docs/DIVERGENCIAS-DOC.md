@@ -7,6 +7,10 @@
 
 ## 0. Escopo e limitação deste levantamento
 
+> **Atualização de 04/11/2026:** a monografia (versão 0.0.8, PDF de 25/08/2026)
+> foi localizada e lida. O confronto está na **seção 7**. O texto abaixo
+> descreve o levantamento original, feito sem ela.
+
 > **Leia isto antes de usar a tabela.** A monografia não estava disponível no
 > repositório nem no ambiente local quando este levantamento foi feito.
 >
@@ -226,19 +230,19 @@ incompleto independentemente do que o texto diga.
 
 ## 6. Pendências de validação
 
-1. `[VALIDAR: localizar a monografia]` — este levantamento precisa ser refeito
+1. ~~`[VALIDAR: localizar a monografia]`~~ — **feito em 04/11/2026**, ver seção 7. Texto original: — este levantamento precisa ser refeito
    contra o documento real. Sem ele, a seção 1 cobre apenas as três divergências
    já conhecidas, e a lista não pode ser declarada completa.
-2. `[VALIDAR: NF001, NF002 e NF003]` — não citados no plano, não encontrados no
+2. ~~`[VALIDAR: NF001, NF002 e NF003]`~~ — **resolvido**, ver 7.2. Texto original: — não citados no plano, não encontrados no
    código.
 3. `[VALIDAR: Figura 4 — o DER]` — a comparação é a Fase 3 e será feita a partir
    do `prisma/schema.prisma`, mas a figura atual do documento não estava
    disponível para o confronto lado a lado.
-4. `[VALIDAR: RF001, RF002, RF003, RF005, RF009, RF010, RF011]` — não aparecem
+4. ~~`[VALIDAR: RF001, RF002, RF003, RF005, RF009, RF010, RF011]`~~ — **resolvido**: a inferência estava errada, ver 7.1. Texto original: — não aparecem
    citados em nenhum comentário do código, ao contrário dos demais. São
    provavelmente os Módulos 1 e 2 (login, cadastros e OS), implementados antes de
    a convenção de marcar o RF no comentário existir. A Fase 8 confirma.
-5. `[VALIDAR na monografia: NF003]` — se o NF003 disser que o sistema é **somente
+5. ~~`[VALIDAR na monografia: NF003]`~~ — **confirmado**: o NF003 diz "somente desktop", ver 7.2. Texto original: — se o NF003 disser que o sistema é **somente
    para desktop**, o texto ficou desatualizado em dois pontos: o layout passou a
    funcionar em celular (14/10/2026, `TESTES.md` 3.7) e o Módulo 6 tem uma tela
    pensada primeiro para o celular do entregador. Sem a monografia não dá para
@@ -246,3 +250,57 @@ incompleto independentemente do que o texto diga.
 6. `[VALIDAR: requisitos do Módulo 6]` — os números RF024 a RF028 e NF009
    continuam a sequência conhecida (`MATRIZ-REQUISITOS.md`); se a monografia já
    os numerar de outro jeito, valem os dela.
+
+---
+
+## 7. Confronto com a monografia (04/11/2026)
+
+Base: *SGA TI — Sistema de Gestão para Assistência Técnica*, versão 0.0.8,
+PDF de 25/08/2026 (as cópias de 18/08 e 20/08 têm o mesmo texto). Capítulos 1 a 3
+escritos; **Conclusão e Apêndices A e B em branco**; só os Módulos 1 a 5.
+
+### 7.1 Requisitos funcionais
+
+| # | O que o texto diz | O que o sistema tem | Ação |
+|---|---|---|---|
+| R1 | RF001–RF011 são cadastro de clientes, consulta/edição, equipamentos, vínculo, abertura de OS, defeito, status, orçamento, aprovação, previsão e serviços executados | Tudo existe. A matriz V02 tinha **inferido errado** (login, usuários, consulta pública) | Matriz V03 corrigida |
+| R2 | A série "RF" é usada **duas vezes**: requisitos (2.2) e casos de uso gerais (2.3.1) | — | `[VALIDAR com o orientador: renumerar os casos de uso gerais]` |
+| R3 | UC009 — excluir cliente "removido do sistema" | Exclusão **lógica** (desativa), só administrador | Explicar no texto; comentários do código corrigidos (diziam "RF004") |
+| R4 | UC004 — encerrar OS por "técnico ou administrador" | Encerrar é faturar e é **só do administrador** | Ajustar o texto |
+| R5 | RF024–RF028 (entregas) não existem | Módulo 6 completo | Acrescentar ao texto |
+
+### 7.2 Requisitos não funcionais
+
+| # | O que o texto diz | O que o sistema tem | Ação |
+|---|---|---|---|
+| N1 | NF001 usabilidade, NF002 segurança (autenticação) | Existem | — |
+| N2 | **NF003: acessível "em computadores desktop"** | Funciona em celular; o Módulo 6 foi feito para o celular do entregador | Reescrever para "desktop e celular" |
+| N3 | NF004 expansibilidade para análise geográfica | Relatório por região e mapas de entrega | — |
+| N4 | NF005–NF008 não existem no texto | Auditoria, backup, transporte seguro, retenção e LGPD | Acrescentar |
+
+### 7.3 Tecnologia e ambiente (capítulo 3)
+
+| # | O que o texto diz | O que o sistema usa | Ação |
+|---|---|---|---|
+| T1 | Tailwind CSS via CDN ou PostCSS | CSS próprio (`public/css/style.css`), sem Tailwind | Corrigir o texto |
+| T2 | Axios ou Fetch API | `fetch` nativo | Escolher "Fetch API" |
+| T3 | Sequelize ou Prisma | Prisma 5.22 | Escolher "Prisma" |
+| T4 | JWT para autenticação | Sessão no navegador; JWT só na API `/api/*` | Dizer as duas coisas |
+| T5 | "Front-end e back-end com Node.js, EJS ou Handlebars" | Express 5 + EJS no servidor | Escolher "EJS" |
+| T6 | MySQL local (XAMPP, WAMP ou Docker) e nuvem gratuita | SQLite no desenvolvimento, MySQL 8 no CI, Render + Aiven na produção | Descrever o real |
+| T7 | Render, Railway ou Fly.io, com deploy via GitHub Actions | CI no GitHub Actions; deploy ainda não feito (Render + Aiven configurados) | Dizer a escolha e que o deploy está pendente |
+| T8 | "Testes manuais" a cada sprint | 856 testes automatizados, CI com MySQL, ciclo de backup | Atualizar |
+| T9 | Seis papéis + Cliente (sete atores) | Sete perfis (acrescentou-se o Entregador) + Cliente | Atualizar atores |
+| T10 | Cronograma de cinco módulos | Seis módulos | Acrescentar o Módulo 6 |
+
+### 7.4 Texto e documento
+
+| # | Ponto | Ação |
+|---|---|---|
+| D1 | Escrito no futuro ("será realizado", "ser� utilizado") | Passar para o passado |
+| D2 | Conclusão e Apêndices A e B vazios | Preencher com `CONCLUSAO.md`, `APENDICE-A-USABILIDADE.md`, `APENDICE-B-MANUAL.md` |
+| D3 | Figuras 5 a 10 são mockups | Trocar pelas telas reais (capturas do manual) |
+| D4 | Figura 4 (DER) mostra o modelo antigo | Trocar pelo DER atual (`docs/der.png`, 17 tabelas) |
+| D5 | Seção 1.7 traz telefone e e-mail do consultor | Tirar da cópia pública |
+| D6 | Tabela 1 termina na versão 0.0.8 | Acrescentar as versões seguintes |
+| D7 | Lista de siglas e sumário desalinhados no PDF (colunas trocadas) | Corrigir no `.docx` |
