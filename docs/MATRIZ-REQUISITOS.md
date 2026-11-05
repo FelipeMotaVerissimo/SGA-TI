@@ -28,8 +28,8 @@ localizada e lida. A V03 troca a inferência pelo texto do documento:
 > relatórios"). Os números se repetem com sentidos diferentes. Neste projeto,
 > os casos de uso gerais aparecem como **UC RF00x** (como já estavam nos
 > comentários do código e nos LEIAMEs) e os específicos como **UC001–UC009**
-> (seção 2.4 da monografia). `[VALIDAR com o orientador: renumerar os casos de
-> uso gerais para não colidirem com os requisitos]`
+> (seção 2.4 da monografia). Decisão de 04/11/2026: a numeração da monografia
+> foi **mantida**; os casos de uso gerais seguem como UC RF00x.
 
 Também ficou claro que um comentário antigo do código estava errado: "UC RF004
 — só administrador" para excluir cliente. Na monografia, **excluir cliente é o
@@ -135,12 +135,12 @@ monografia. Entram no texto na versão seguinte. Detalhes em
 |---|---|---|---|---|
 | **NF001** | Usabilidade: interface simples e intuitiva para os funcionários | Layout das telas, responsivo; `docs/APENDICE-A-USABILIDADE.md` | Não é testável por máquina. A avaliação foi aplicada com o consultor; `[VALIDAR: registrar os resultados no Apêndice A]` | 🔶 parcial |
 | **NF002** | Segurança: autenticação de usuários para acesso seguro às informações | `authService`, `sessaoMiddleware`, `perfilMiddleware`, bcrypt, trava de tentativas de login | `perfis.test.js`, `seguranca.test.js`, `unit/authService.test.js`, `csrf.test.js` | ✅ completo |
-| **NF003** | Portabilidade: acessível por navegadores web **em computadores desktop** | Aplicação web renderizada no servidor | Chromium (desktop e celular) medido, ver `TESTES.md` 1.6. **Firefox e Safari ainda não foram testados.** O texto fala só em desktop, mas o Módulo 6 roda no celular do entregador: `[VALIDAR: reescrever o enunciado para "desktop e celular"]` | 🔶 parcial |
+| **NF003** | Portabilidade: acessível por navegadores web **em computadores desktop** | Aplicação web renderizada no servidor | Chromium (desktop e celular) medido, ver `TESTES.md` 1.6. **Firefox e Safari ainda não foram testados.** O texto fala só em desktop, mas o Módulo 6 roda no celular do entregador: Enunciado reescrito na monografia 0.0.9 para "desktop e celulares". | 🔶 parcial |
 | **NF004** | Expansibilidade: permitir futuras expansões para integração com análise geográfica dos clientes (hoje implementada) | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |
 | **NF005** | Rastreabilidade (log de auditoria) | `auditoriaExtensao`, `contextoRequisicao`, tela `/auditoria`, tabela `logs_auditoria` | `unit/auditoriaExtensao.test.js` (15), `auditoria.test.js` (22) | ✅ completo |
 | **NF006** | Backup | `scripts/backup.js`, `npm run backup`, `scripts/conferir-restauracao.sh`, `docs/BACKUP.md` | `unit/backup.test.js` (15) cobre URL, nome e argumentos; o **ciclo dump → restauração roda no CI a cada push**, comparando tabela a tabela | ✅ completo |
 | **NF007** | Segurança na comunicação | `src/config/seguranca.js` — CSP, HSTS, HTTPS, cookie, CORS, limite de login e da consulta pública; `src/middlewares/csrfMiddleware.js` — token CSRF | `unit/seguranca.test.js` (27), `unit/csrf.test.js` (23), `seguranca.test.js` (23), `csrf.test.js` (16) | 🔶 parcial |
-| **NF009** `[VALIDAR: numeração]` | Privacidade da localização: só durante a rota, segundo fator, token só como hash, resposta mínima, retenção e anonimização | `rastreioService`, `src/config/seguranca.js`, `retencaoService.limparTrajetosAntigos`; RN26–RN30, RN33–RN38; `SEGURANCA.md` 4.4, `RETENCAO.md` 3.5 | `rastreio.test.js` (17), `retencaoEntregas.test.js` (13), `unit/rastreioService.test.js`, `unit/retencaoService.test.js` | ✅ completo — prazo de 30 dias `[VALIDAR]` |
+| **NF009** | Privacidade da localização: só durante a rota, segundo fator, token só como hash, resposta mínima, retenção e anonimização | `rastreioService`, `src/config/seguranca.js`, `retencaoService.limparTrajetosAntigos`; RN26–RN30, RN33–RN38; `SEGURANCA.md` 4.4, `RETENCAO.md` 3.5 | `rastreio.test.js` (17), `retencaoEntregas.test.js` (13), `unit/rastreioService.test.js`, `unit/retencaoService.test.js` | ✅ completo — prazo de 30 dias `[VALIDAR]` |
 | **NF008** | Retenção e descarte (LGPD) | `retencaoService`, `clientes.anonimizadoEm`, `equipamentos.ativo`, `scripts/reparar-anonimizacoes.js`, `docs/RETENCAO.md` | `retencao.test.js` (34), `unit/retencaoService.test.js` (21) | 🔶 parcial |
 
 ### Por que NF006, NF007 e NF008 são parciais

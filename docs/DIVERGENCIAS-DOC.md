@@ -264,7 +264,7 @@ escritos; **Conclusão e Apêndices A e B em branco**; só os Módulos 1 a 5.
 | # | O que o texto diz | O que o sistema tem | Ação |
 |---|---|---|---|
 | R1 | RF001–RF011 são cadastro de clientes, consulta/edição, equipamentos, vínculo, abertura de OS, defeito, status, orçamento, aprovação, previsão e serviços executados | Tudo existe. A matriz V02 tinha **inferido errado** (login, usuários, consulta pública) | Matriz V03 corrigida |
-| R2 | A série "RF" é usada **duas vezes**: requisitos (2.2) e casos de uso gerais (2.3.1) | — | `[VALIDAR com o orientador: renumerar os casos de uso gerais]` |
+| R2 | A série "RF" é usada **duas vezes**: requisitos (2.2) e casos de uso gerais (2.3.1) | — | Decisão de 04/11/2026: **mantida** a numeração da monografia; os casos de uso gerais seguem como "UC RF00x" neste projeto, e o texto da monografia não foi renumerado |
 | R3 | UC009 — excluir cliente "removido do sistema" | Exclusão **lógica** (desativa), só administrador | Explicar no texto; comentários do código corrigidos (diziam "RF004") |
 | R4 | UC004 — encerrar OS por "técnico ou administrador" | Encerrar é faturar e é **só do administrador** | Ajustar o texto |
 | R5 | RF024–RF028 (entregas) não existem | Módulo 6 completo | Acrescentar ao texto |
@@ -274,7 +274,7 @@ escritos; **Conclusão e Apêndices A e B em branco**; só os Módulos 1 a 5.
 | # | O que o texto diz | O que o sistema tem | Ação |
 |---|---|---|---|
 | N1 | NF001 usabilidade, NF002 segurança (autenticação) | Existem | — |
-| N2 | **NF003: acessível "em computadores desktop"** | Funciona em celular; o Módulo 6 foi feito para o celular do entregador | Reescrever para "desktop e celular" |
+| N2 | **NF003: acessível "em computadores desktop"** | Funciona em celular; o Módulo 6 foi feito para o celular do entregador | **Feito** na monografia 0.0.9: enunciado reescrito para "desktop e celulares" |
 | N3 | NF004 expansibilidade para análise geográfica | Relatório por região e mapas de entrega | — |
 | N4 | NF005–NF008 não existem no texto | Auditoria, backup, transporte seguro, retenção e LGPD | Acrescentar |
 
