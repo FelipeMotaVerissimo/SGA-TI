@@ -297,7 +297,7 @@ escritos; **Conclusão e Apêndices A e B em branco**; só os Módulos 1 a 5.
 
 | # | Ponto | Ação |
 |---|---|---|
-| D1 | Escrito no futuro ("será realizado", "ser� utilizado") | Passar para o passado |
+| D1 | Escrito no futuro ("será realizado", "será utilizado") | Passar para o passado |
 | D2 | Conclusão e Apêndices A e B vazios | Preencher com `CONCLUSAO.md`, `APENDICE-A-USABILIDADE.md`, `APENDICE-B-MANUAL.md` |
 | D3 | Figuras 5 a 10 são mockups | Trocar pelas telas reais (capturas do manual) |
 | D4 | Figura 4 (DER) mostra o modelo antigo | Trocar pelo DER atual (`docs/der.png`, 17 tabelas) |
