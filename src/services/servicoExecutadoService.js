@@ -103,8 +103,19 @@ function validarDados(dados) {
     if (garantiaDias === 0) garantiaDias = null; // 0 dia = sem garantia
   }
 
-  // Módulo 5: o tipo é o que permite agrupar no RF017. Opcional — o técnico
-  // pode registrar um serviço que ainda não está no catálogo.
+  // Validação do campo valor do serviço executado
+  let valor = null;
+  if (dados.valor !== undefined && dados.valor !== null && String(dados.valor).trim() !== '') {
+    valor = Number(String(dados.valor).replace(',', '.'));
+    if (!Number.isFinite(valor) || valor < 0) {
+      throw erro('O valor do serviço deve ser um número maior ou igual a zero.');
+    }
+    if (valor > 9999999.99) {
+      throw erro('O valor do serviço excede o limite permitido.');
+    }
+    valor = Number(valor.toFixed(2));
+  }
+
   let tipoServicoId = null;
   if (dados.tipoServicoId !== undefined && String(dados.tipoServicoId).trim() !== '') {
     tipoServicoId = Number(dados.tipoServicoId);
@@ -113,7 +124,7 @@ function validarDados(dados) {
     }
   }
 
-  return { descricao, observacoes, garantiaDias, tipoServicoId };
+  return { descricao, observacoes, garantiaDias, tipoServicoId, valor };
 }
 
 async function buscarOrdem(ordemId) {
@@ -158,11 +169,19 @@ async function registrarServico(ordemId, dados, usuario = {}) {
     );
   }
 
-  const { descricao, observacoes, garantiaDias, tipoServicoId } = validarDados(dados);
+  const { descricao, observacoes, garantiaDias, tipoServicoId, valor } = validarDados(dados);
 
   return prisma.$transaction(async (tx) => {
     const servico = await tx.servicoExecutado.create({
-      data: { descricao, observacoes, garantiaDias, tipoServicoId, ordemId: ordem.id, usuarioId },
+      data: {
+        descricao,
+        observacoes,
+        garantiaDias,
+        tipoServicoId,
+        valor, // <-- CAMPO ADICIONADO AQUI
+        ordemId: ordem.id,
+        usuarioId,
+      },
     });
 
     if (ordem.status === 'AUTORIZADO') {

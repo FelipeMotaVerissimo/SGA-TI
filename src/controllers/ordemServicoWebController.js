@@ -47,6 +47,9 @@ async function exibirDetalhe(req, res) {
     const podeLancarItem = itemOrdemService.podeLancarItem(ordem.status);
     const podeRemoverItem = itemOrdemService.podeRemoverItem(ordem.status);
 
+    // Soma total dos serviços executados
+    const totalServicos = (ordem.servicos || []).reduce((acc, s) => acc + Number(s.valor || 0), 0);
+
     res.render('ordens/detalhe', {
       titulo: `OS ${ordem.numero}`,
       ordem,
@@ -57,6 +60,7 @@ async function exibirDetalhe(req, res) {
       produtos,
       tiposServico,
       totalItens,
+      totalServicos, // <-- ADICIONADO AQUI
       podeLancarItem,
       podeRemoverItem,
       formatarDataInput,

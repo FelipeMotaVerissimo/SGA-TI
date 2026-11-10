@@ -175,25 +175,17 @@ model OrdemServico {
 
 model ServicoExecutado {
   id            Int          @id @default(autoincrement())
-  // `descricao` continua sendo o relato do técnico, em texto livre.
-  // `tipoServicoId` é o que permite AGRUPAR (RF017): sem ele, "Troca de tela",
-  // "troca da tela" e "Substituição da tela" viram três serviços distintos.
-  // Opcional porque os serviços registrados antes do catálogo não têm tipo —
-  // eles aparecem como "Não classificado" no relatório.
   descricao     String       @db.Text
   observacoes   String?      @db.Text
+  valor         Decimal?     @db.Decimal(10, 2)
   garantiaDias  Int?
   executadoEm   DateTime     @default(now())
   ordemId       Int
   ordem         OrdemServico @relation(fields: [ordemId], references: [id])
   tipoServicoId Int?
   tipoServico   TipoServico? @relation(fields: [tipoServicoId], references: [id])
-  // Quem executou: o usuário logado que registrou o serviço (RN09). Opcional
-  // porque os serviços anteriores a esta coluna não têm o dado — atribuir um
-  // técnico a eles seria inventar.
   usuarioId     Int?
   usuario       Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
-  // Peças usadas neste serviço (RN10).
   itens         ItemOrdem[]
 
   @@index([usuarioId])
