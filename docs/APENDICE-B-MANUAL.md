@@ -1,736 +1,428 @@
 # Apêndice B — Manual do Usuário do SGA TI
 
-**Sistema de Gerenciamento de Assistência Técnica**
-Versão 2 · Outubro de 2026 — inclui o rastreamento de entregas (Módulo 6)
+**Sistema de Gestão para Assistência Técnica em Tecnologia da Informação**
+Versão 3 · Novembro de 2026 — no modelo de manual da 6ª Etapa do TCC
 
 ---
 
-## Sumário
+## 1. INTRODUÇÃO
 
-1. [Antes de começar](#1-antes-de-começar)
-2. [O fluxo completo de um atendimento](#2-o-fluxo-completo-de-um-atendimento)
-3. [Manual do Atendente](#3-manual-do-atendente)
-4. [Manual do Vendedor](#4-manual-do-vendedor)
-5. [Manual do Técnico](#5-manual-do-técnico)
-6. [Manual do setor de Compras](#6-manual-do-setor-de-compras)
-7. [Manual do Financeiro](#7-manual-do-financeiro)
-8. [Manual do Entregador](#8-manual-do-entregador)
-9. [Manual do Administrador](#9-manual-do-administrador)
-10. [Para o cliente — consulta pública](#10-para-o-cliente--consulta-pública)
-11. [Perguntas frequentes](#11-perguntas-frequentes)
+As assistências técnicas de informática de pequeno e médio porte costumam
+controlar o atendimento em papel e planilhas: o cadastro do cliente, o
+equipamento deixado na loja, o orçamento, as peças usadas, a garantia de cada
+serviço e o valor a receber ficam espalhados. Com isso, a garantia se perde, o
+estoque fica sem controle e não é raro um conserto ser encerrado sem que o valor
+seja lançado no caixa. O cliente, por sua vez, só sabe do andamento do conserto
+se ligar para a loja.
 
-> **Sobre as imagens:** as capturas estão em `docs/prints/`, em PNG com o dobro
-> da resolução de tela (2560 px de largura na página inteira), adequadas para
-> impressão. Foram feitas com a massa de demonstração, cada uma com o perfil a
-> que a seção se refere.
+O SGA TI foi desenvolvido a partir do processo real da Lelo Informática, em
+Dourados (MS), para reunir esse ciclo num único sistema web: do cadastro do
+cliente à entrega do equipamento, com acesso separado por perfil de usuário e
+acompanhamento pelo próprio cliente, pela internet.
 
----
+O presente manual tem como finalidade orientar os usuários na utilização das
+funcionalidades do software SGA TI, facilitando assim o acesso e o entendimento
+do sistema. Este descreve os procedimentos necessários para a utilização,
+detalhando cada atividade e seus respectivos passos.
 
-## 1. Antes de começar
+## 2. FUNCIONALIDADES
 
-### Entrando no sistema
+- Cadastrar clientes, equipamentos e usuários
+- Abrir ordens de serviço, com cadastro rápido de cliente e equipamento na própria tela
+- Acompanhar a ordem de serviço por seis status, do recebimento ao encerramento
+- Lançar o orçamento e registrar a aprovação ou a recusa do cliente
+- Registrar os serviços executados, com o técnico responsável e a garantia de cada um
+- Lançar as peças usadas na ordem de serviço, com baixa automática do estoque
+- Consultar o histórico de serviços de cada equipamento
+- Cadastrar produtos e registrar entradas e saídas de estoque
+- Faturar e encerrar a ordem de serviço, gerando a conta a receber
+- Desbloquear com senha uma ordem de serviço já concluída
+- Controlar contas a pagar e a receber
+- Gerar relatórios gerenciais e exportá-los em CSV
+- Consultar o registro de auditoria das alterações
+- Anonimizar os dados pessoais de um cliente, a pedido dele (LGPD)
+- Registrar a saída para entrega e compartilhar a localização do entregador
+- Acompanhar a entrega no mapa, pelo administrador e pelo cliente
+- Consultar o andamento do conserto pela internet, sem login (cliente)
 
-Acesse o endereço do sistema e informe **login** e **senha**. Não há cadastro
-público: quem cria usuários é o administrador.
+## 3. BENEFÍCIOS ESPERADOS
+
+- Fim do encerramento de conserto sem o lançamento do valor a receber: encerrar
+  a ordem de serviço gera a conta automaticamente
+- Controle da garantia de cada serviço, calculada pelo sistema
+- Estoque atualizado a cada peça lançada na ordem de serviço
+- Menos ligações para a loja: o cliente acompanha o conserto e a entrega pela
+  internet
+- Cada funcionário vê apenas o que é da sua função
+- Relatórios para decidir com base em dados: maiores clientes, serviços mais
+  executados, produtos mais vendidos, tipos de equipamento e regiões atendidas
+- Registro de quem alterou o quê e quando, e atendimento à LGPD
+
+## 4. COMO ACESSAR O SISTEMA?
+
+O SGA TI é acessado pelo navegador (Chrome, Edge, Firefox), no computador ou no
+celular, digitando o endereço do sistema informado pela assistência. Não é
+preciso instalar nada.
+
+Não há cadastro público de usuários. Cada funcionário recebe do **administrador**
+um **login** e uma **senha**, ligados a um dos sete perfis do sistema:
+
+| Perfil | O que faz |
+|---|---|
+| **Atendente** | Recebe o cliente: cadastros, abertura de OS e resposta do cliente ao orçamento |
+| **Vendedor** | Lança o orçamento e as peças na OS |
+| **Técnico** | Executa o conserto: muda o status e registra os serviços e a garantia |
+| **Compras** | Cadastra produtos e movimenta o estoque |
+| **Financeiro** | Contas a pagar e a receber |
+| **Entregador** | Leva as OS finalizadas até o cliente, pelo celular |
+| **Administrador** | Tudo, mais usuários, relatórios, auditoria e o faturamento |
+
+O administrador recebe a conta especial criada na implantação do sistema e, a
+partir dela, cria os demais usuários.
+
+Para entrar, abra o endereço do sistema, informe o **login** e a **senha** e
+clique em **Entrar**.
 
 ![Tela de login](prints/01-login.png)
 
-Se errar, a mensagem aparece acima do formulário. Senha esquecida se resolve com
-o administrador — não há recuperação automática.
+Caso o sistema não reconheça o login, ou a senha não confira, ele informa que as
+**"Credenciais inválidas."**, sem dizer qual dos dois está errado — assim ninguém
+descobre quais logins existem por tentativa.
 
-### A tela inicial
+![Login recusado com a mensagem de credenciais inválidas](prints/41-login-erro.png)
 
-Depois de entrar, você cai no **Dashboard**. Ele mostra blocos diferentes
-conforme o seu perfil: o técnico vê garantias, o financeiro vê o caixa, o setor
-de compras vê o estoque. Não é falha — **cada um vê o que lhe diz respeito**.
+Depois de 10 tentativas erradas em 15 minutos, a partir da mesma conexão, o
+sistema bloqueia novas tentativas e mostra **"Muitas tentativas de login. Aguarde
+15 minutos e tente novamente."**.
 
-![Dashboard do administrador, com todos os blocos](prints/02-dashboard-administrador.png)
+A senha de login é definida pelo administrador ao criar o usuário. O sistema
+exige apenas que ela seja informada; não há regra obrigatória de letras, números,
+símbolos ou quantidade de caracteres. Recomenda-se uma senha de pelo menos 8
+caracteres, misturando letras e números. A senha é guardada criptografada e
+ninguém a vê, nem o administrador; se for esquecida, o administrador define uma
+nova, porque não há recuperação automática.
 
-### O menu lateral
+## 5. APÓS REALIZAR O LOGIN (USUÁRIO)
 
-O menu à esquerda mostra **apenas o que o seu perfil pode acessar**. Se um colega
-tem um item que você não tem, é porque o perfil dele é outro.
+O usuário que realizar o login dentro do sistema terá a visualização de um
+**menu lateral**, à esquerda, e do **Dashboard**, a tela inicial. O menu mostra
+**apenas o que o perfil do usuário pode acessar**; no rodapé dele ficam o nome, o
+perfil e o botão **Sair**. O entregador é a exceção: ao entrar, vai direto para a
+tela de entregas.
 
 ![Menu do atendente](prints/03a-menu-atendente.png)
 
 ![Menu do administrador](prints/03b-menu-administrador.png)
 
-### No celular
+A seguir, cada funcionalidade, com o perfil que a utiliza e a tela correspondente.
 
-Em telas pequenas o menu lateral vira uma barra no topo, recolhida. Toque em
-**☰** para abrir e de novo para fechar. As tabelas largas rolam para o lado
-dentro da própria caixa, sem empurrar a página.
+### 5.1 Dashboard
 
-![Dashboard no celular, menu recolhido](prints/31-celular-menu-fechado.png)
+*Todos os perfis, exceto o entregador.*
 
-![Dashboard no celular, menu aberto](prints/32-celular-menu-aberto.png)
+O Dashboard mostra blocos diferentes conforme o perfil: o técnico vê as
+garantias, o financeiro vê o caixa, o setor de compras vê o estoque, e o
+administrador vê todos, além das últimas ordens de serviço.
 
-### Os sete perfis
+![Dashboard do administrador, com todos os blocos](prints/02-dashboard-administrador.png)
 
-| Perfil | O que faz |
-|---|---|
-| **Atendente** | Recebe o cliente: cadastros, abertura de OS, resposta do cliente ao orçamento |
-| **Vendedor** | Lança o orçamento e as peças na OS |
-| **Técnico** | Executa: muda status, registra serviços e garantia |
-| **Compras** | Cadastra produtos e movimenta o estoque |
-| **Financeiro** | Contas a pagar e a receber |
-| **Entregador** | Leva as OS finalizadas até o cliente, pelo celular: inicia a saída, envia a localização e marca cada entrega. Acessa só a tela de entregas (seção 8) |
-| **Administrador** | Tudo, mais usuários, relatórios, auditoria e o **faturamento** |
+### 5.2 Cadastro de clientes
 
-### Sair
+*Atendente e administrador.* Menu **Clientes → + Novo Cliente**.
 
-Use **↩ Sair** no rodapé do menu. A sessão expira sozinha após 8 horas.
-
-Se aparecer a tela **Formulário expirado**, a ação não foi executada: a página
-estava aberta desde antes de a sessão ser renovada. Volte, recarregue a página
-e repita a operação.
-
----
-
-## 2. O fluxo completo de um atendimento
-
-Esta seção segue **um conserto do início ao fim**, mostrando quem faz o quê. Se
-você vai ler só uma parte deste manual, leia esta.
-
-```
-  Cliente chega
-        ↓
-  [ATENDENTE]  cadastra cliente e equipamento, abre a OS      → status INICIAL
-        ↓
-  [VENDEDOR]   lança o orçamento                              → status ORCAMENTO
-        ↓
-  Cliente responde
-        ↓
-  [ATENDENTE]  registra a aprovação                           → status AUTORIZADO
-   ou          registra a recusa                              → status CANCELADO
-        ↓
-  [TECNICO]    registra o primeiro serviço                    → status EM_ANDAMENTO
-  [VENDEDOR]   lança as peças usadas                          (baixa o estoque)
-        ↓
-  [ADMIN]      fatura e encerra                               → status FINALIZADO
-                                                               (gera conta a receber)
-        ↓
-  [FINANCEIRO] dá baixa quando o cliente paga
-        ↓
-  [ADMIN]      acompanha pelos relatórios
-```
-
-### Os seis status da OS
-
-| Status | O que significa | Quem move para o próximo |
-|---|---|---|
-| `INICIAL` | Equipamento recebido, ainda sem orçamento | Vendedor |
-| `ORCAMENTO` | Orçamento lançado, aguardando o cliente | Atendente ou Vendedor |
-| `AUTORIZADO` | Cliente aprovou, pode começar | Técnico |
-| `EM_ANDAMENTO` | Já tem serviço registrado | Administrador |
-| `FINALIZADO` | Serviço concluído e faturado | — |
-| `CANCELADO` | Cliente recusou ou desistiu | — |
-
-> **Por que encerrar é coisa da gerência.** Encerrar a OS **gera a conta a
-> receber** — ou seja, encerrar é faturar. O técnico consegue mudar o status da
-> OS, mas não para `FINALIZADO`: se tentar, o sistema avisa que o encerramento
-> depende da liberação da gerência.
-
----
-
-## 3. Manual do Atendente
-
-Você é a porta de entrada. Seu menu tem **Clientes**, **Equipamentos** e
-**Ordens de Serviço**.
-
-### 3.1 Cadastrar um cliente
-
-**Clientes → + Novo Cliente**
-
-Obrigatórios: **nome** e **CPF/CNPJ**. O resto ajuda depois — telefone e celular
-são como você avisa que o conserto ficou pronto.
+Informe o nome e o CPF/CNPJ, que são obrigatórios, e os demais dados: RG, data
+de nascimento, endereço, cidade, estado, CEP, telefone, celular e e-mail. O
+telefone é o que permite avisar o cliente e acompanhar a entrega. O CPF/CNPJ não
+se repete: se o sistema recusar, o cliente provavelmente já está cadastrado.
 
 ![Formulário de cadastro de cliente](prints/04-cadastro-cliente.png)
 
-> O CPF/CNPJ **não se repete**. Se o sistema recusar, o cliente provavelmente já
-> está cadastrado: procure antes de criar outro.
+Na lista de clientes é possível editar e, para o administrador, desativar um
+cliente. Nada é apagado de verdade: o cliente desativado some da
+lista, mas o histórico continua, e **Mostrar inativos** o traz de volta.
 
-### 3.2 Cadastrar o equipamento
+### 5.3 Cadastro de equipamentos
 
-**Equipamentos → + Novo Equipamento**
+*Atendente e administrador.* Menu **Equipamentos → + Novo Equipamento**.
 
-| Campo | Observação |
-|---|---|
-| Cliente | De quem é a máquina |
-| Tipo | Notebook, desktop, impressora, servidor, celular ou outro |
-| Marca e modelo | Como está na etiqueta |
-| Número de série | Opcional, mas é o que distingue dois aparelhos iguais |
-| Defeito | O defeito **do cadastro** — a descrição geral do aparelho |
+Escolha o cliente dono do equipamento e informe o tipo (notebook, desktop,
+impressora, servidor, celular ou outro), a marca, o modelo, o número de série e
+o defeito informado. O tipo é usado no relatório que mostra quais aparelhos dão
+mais trabalho.
 
-![Formulário de cadastro de equipamento, com o select de tipo aberto](prints/05-cadastro-equipamento.png)
+![Formulário de cadastro de equipamento](prints/05-cadastro-equipamento.png)
 
-> **O tipo importa.** É por ele que a gerência descobre se a oficina conserta
-> mais notebook ou mais impressora. "Outro" funciona, mas não ajuda ninguém.
+### 5.4 Abertura de ordem de serviço
 
-### 3.3 Abrir a ordem de serviço
+*Atendente e administrador.* Menu **Ordens de Serviço → + Nova OS**.
 
-**Ordens de Serviço → + Nova OS**
-
-Escolha o cliente; a lista de equipamentos se ajusta sozinha aos aparelhos dele.
-
-No **defeito relatado**, escreva o que o cliente falou, com as palavras dele.
-Não confunda com o defeito do cadastro: aqui é o problema **desta visita**.
+Escolha o cliente; a lista de equipamentos mostra só os aparelhos dele. No
+**defeito relatado**, escreva o que o cliente contou sobre esta visita. O sistema
+gera o **número da OS** automaticamente: entregue esse número ao cliente, porque
+é com ele que o cliente acompanha o conserto pela internet.
 
 ![Formulário de abertura de OS](prints/06-abertura-os.png)
 
-O sistema gera o **número da OS** automaticamente. **Anote e entregue ao
-cliente** — é com ele que o cliente acompanha o conserto pela internet, sem
-precisar ligar.
+Se o cliente ou o equipamento ainda não estiverem cadastrados, não é preciso sair
+da tela. Os botões **+ Novo Cliente** e **+ Novo Equipamento**, ao lado dos campos,
+abrem um cadastro rápido; ao salvar, o item já aparece escolhido na OS.
+
+![Cadastro rápido de cliente na abertura da OS](prints/44-os-cadastro-rapido-cliente.png)
+
+No cadastro rápido de equipamento também é possível anotar as condições em que o
+aparelho chegou e os acessórios deixados; essas informações vão para as
+observações da OS.
+
+![Cadastro rápido de equipamento na abertura da OS](prints/45-os-cadastro-rapido-equipamento.png)
+
+### 5.5 Acompanhamento das ordens de serviço
+
+*Atendente, técnico, vendedor e administrador.* Menu **Ordens de Serviço**.
+
+A lista mostra todas as OS com o status em cores. Cada OS passa por seis status:
+
+| Status | O que significa | Quem move para o próximo |
+|---|---|---|
+| Inicial | Equipamento recebido, ainda sem orçamento | Vendedor |
+| Orçamento | Orçamento lançado, aguardando o cliente | Atendente ou vendedor |
+| Autorizado | Cliente aprovou; o conserto pode começar | Técnico |
+| Em andamento | Já há serviço registrado | Administrador |
+| Concluído | Serviço finalizado e faturado | — |
+| Cancelado | Cliente recusou ou desistiu | — |
 
 ![Lista de ordens de serviço, com os status coloridos](prints/07-lista-os.png)
 
-### 3.4 Registrar a resposta do cliente
+### 5.6 Orçamento
 
-Quando o cliente retornar sobre o orçamento, abra a OS e use:
+*Vendedor (lançar) e atendente (resposta do cliente).*
 
-- **✅ Aprovar orçamento** → a OS vai para `AUTORIZADO` e o técnico pode começar;
-- **❌ Rejeitar orçamento** → a OS vai para `CANCELADO`.
-
-![Detalhe da OS em status ORCAMENTO, com os botões de aprovar e rejeitar](prints/08-os-orcamento-aprovar.png)
-
-> Só dá para aprovar uma OS que **tenha orçamento lançado**. Se os botões não
-> aparecem, o vendedor ainda não lançou o valor.
-
-### 3.5 Consultar o histórico do equipamento
-
-Em **Equipamentos**, botão **🕓 Histórico**.
-
-Mostra tudo que já foi feito naquela máquina, em todas as OS, com a situação da
-garantia de cada serviço.
-
-![Tela de histórico do equipamento, com o técnico de cada serviço e a garantia](prints/09-historico-equipamento.png)
-
-A coluna **Técnico** mostra quem executou cada serviço. Serviços registrados
-antes de 15/10/2026 aparecem como **não registrado**: o sistema não sabia quem
-executou, e preencher depois seria inventar.
-
-> **Use isto antes de abrir OS de retorno.** Se o cliente volta com o mesmo
-> problema e o serviço ainda está na garantia, é retrabalho coberto — não se
-> cobra de novo.
-
----
-
-## 4. Manual do Vendedor
-
-Seu menu tem **Ordens de Serviço** e **Produtos** (em consulta).
-
-### 4.1 Lançar o orçamento
-
-Abra a OS e preencha o quadro de orçamento:
-
-| Campo | Observação |
-|---|---|
-| Valor | Obrigatório, maior que zero. Aceita vírgula |
-| Previsão de entrega | Opcional, mas é o que o cliente pergunta |
-| Observações | O que compõe o valor |
+No detalhe da OS, o vendedor informa o **valor** (obrigatório), a **previsão de
+entrega** e as observações. A OS passa para **Orçamento**. O valor combinado já
+inclui as peças.
 
 ![Formulário de orçamento dentro do detalhe da OS](prints/10-formulario-orcamento.png)
 
-A OS passa para `ORCAMENTO` e o atendente pode registrar a resposta do cliente.
+Quando o cliente responder, o atendente abre a OS e clica em **✅ Aprovar
+orçamento** (a OS vai para **Autorizado**) ou **❌ Rejeitar orçamento** (vai para
+**Cancelado**). A data da aprovação é registrada.
 
-> **O valor do orçamento já inclui as peças.** É o valor combinado com o cliente.
-> Ao encerrar, a conta a receber usa esse valor — não soma as peças de novo.
+![Detalhe da OS com os botões de aprovar e rejeitar o orçamento](prints/08-os-orcamento-aprovar.png)
 
-> Depois que a OS sai de `ORCAMENTO`, o formulário some e vira um resumo. Isso é
-> proposital: orçamento aprovado não se altera por baixo do cliente.
+### 5.7 Serviços executados e garantia
 
-### 4.2 Lançar peças na OS
+*Técnico e administrador.*
 
-No detalhe da OS, bloco **📦 Produtos Utilizados**: escolha o produto, a
-quantidade e confirme. Em **Usada no serviço**, opcional, indique em qual serviço
-a peça foi usada; em branco, ela fica como **uso geral da OS**.
-
-![Bloco de produtos utilizados, com a coluna do serviço em que cada peça foi usada](prints/11-produtos-utilizados.png)
-
-O estoque **baixa automaticamente**. Se não houver saldo, o sistema **permite e
-avisa** — o saldo fica negativo e aparece na lista "a regularizar" do setor de
-Compras.
-
-> Isso é decisão de projeto, não falha: travar a saída pararia o atendimento no
-> balcão enquanto alguém procura o cadastro da peça.
-
-O **valor unitário** é copiado do produto no momento do lançamento. Se o preço
-de tabela mudar depois, esta OS continua valendo o que foi cobrado.
-
----
-
-## 5. Manual do Técnico
-
-Seu menu tem **Ordens de Serviço**. Você também alcança o histórico do
-equipamento pelo link dentro da OS.
-
-### 5.1 Antes de mexer: consulte o histórico
-
-No detalhe da OS, bloco do equipamento, clique em
-**🕓 Ver histórico de serviços deste equipamento**.
-
-![Link do histórico dentro do detalhe da OS](prints/12-link-historico-na-os.png)
-
-Se já houve serviço com garantia vigente, você está diante de um retrabalho.
-
-### 5.2 Registrar um serviço executado
-
-No detalhe da OS, bloco **🛠️ Serviços Executados**:
-
-| Campo | Observação |
-|---|---|
-| Tipo de serviço | Escolha do catálogo. É o que permite à gerência saber o que a oficina mais faz |
-| Descrição | Obrigatória, mínimo 5 caracteres. O seu relato do caso |
-| Garantia (dias) | Opcional, de 0 a 3650. Em branco ou 0 = sem garantia |
-| Observações | Opcional |
+No detalhe da OS, bloco **🛠️ Serviços Executados**, escolha o tipo de serviço,
+descreva o que foi feito (mínimo de 5 caracteres) e informe a garantia em dias
+(em branco ou 0, sem garantia). O técnico de cada serviço é quem está logado ao
+registrá-lo. Ao registrar o primeiro serviço numa OS **Autorizado**, ela passa
+sozinha para **Em andamento**.
 
 ![Formulário de registro de serviço executado](prints/13-registrar-servico.png)
 
-> **Ao registrar o primeiro serviço numa OS `AUTORIZADO`, ela vira
-> `EM_ANDAMENTO` sozinha.** Você não precisa mudar o status à mão.
+O sistema calcula até quando vai a garantia de cada serviço e mostra a situação:
+em garantia (com os dias restantes), vencida ou sem garantia.
 
-> Só dá para registrar serviço em OS `AUTORIZADO` ou `EM ANDAMENTO`. Antes da
-> aprovação do cliente, não.
+![Serviços executados, com o técnico e a situação da garantia](prints/14-servicos-garantia.png)
 
-### 5.3 A garantia
+### 5.8 Peças usadas na OS
 
-Você informa **quantos dias**; o sistema calcula o resto e mostra a situação:
+*Vendedor e administrador.*
 
-| Marca | Significado |
-|---|---|
-| ✅ **73 dia(s)** | Em garantia, com os dias restantes |
-| ⌛ **Vencida** | O prazo acabou |
-| **Sem garantia** | Serviço registrado sem prazo |
+No bloco **📦 Produtos Utilizados**, escolha o produto e a quantidade e, se
+quiser, o serviço em que a peça foi usada. O estoque baixa automaticamente. Se
+não houver saldo, o sistema permite e avisa: o saldo fica negativo para o setor
+de compras regularizar, sem travar o atendimento.
 
-![Tabela de serviços executados, com o técnico e os três estados de garantia](prints/14-servicos-garantia.png)
+![Bloco de produtos utilizados na OS](prints/11-produtos-utilizados.png)
 
-O técnico de cada serviço é **quem estava logado ao registrá-lo** — não se escolhe
-num campo. Os serviços antigos da captura, anteriores a esse registro, aparecem
-como "não registrado".
+### 5.9 Histórico do equipamento
 
-> A data-fim **não é digitada nem armazenada**: sai de `data de execução + dias`.
-> Por isso nunca fica desatualizada.
+*Atendente, técnico e administrador.* Botão **🕓 Histórico** na lista de
+equipamentos, ou o link dentro da OS.
 
-### 5.4 Mudar o status
+Mostra todos os serviços já feitos naquele aparelho, em todas as OS, com o
+técnico e a situação da garantia. Antes de abrir uma OS de retorno, confira: se o
+serviço ainda está na garantia, não se cobra de novo.
 
-No detalhe da OS, bloco de status.
+![Histórico de serviços do equipamento](prints/09-historico-equipamento.png)
 
-> **Você não encerra a OS.** Encerrar gera o faturamento e é da gerência. Se
-> tentar, o sistema avisa. Deixe em `EM_ANDAMENTO` e comunique a gerência quando
-> o serviço estiver pronto.
+### 5.10 Faturar e encerrar a OS
 
-### 5.5 Excluir um serviço lançado por engano
+*Somente administrador.*
 
-Botão **🗑️ Excluir** na linha do serviço. Não funciona em OS `FINALIZADO` nem
-`CANCELADO` — nesse ponto o registro é histórico.
+No detalhe da OS em andamento, o botão **Faturar e encerrar** faz três coisas de
+uma vez: muda o status para **Concluído**, grava a data de fechamento e **gera a
+conta a receber** no financeiro. Ou acontece tudo, ou nada. O técnico não
+encerra a OS, porque encerrar é faturar.
 
----
+![Botão de faturar e encerrar no detalhe da OS](prints/23-faturar-encerrar.png)
 
-## 6. Manual do setor de Compras
+### 5.11 Desbloquear uma OS concluída
 
-Seu menu tem **Produtos**.
+*Usuários que alteram o status da OS.*
 
-### 6.1 Cadastrar um produto
+A OS concluída fica bloqueada contra alterações acidentais: o status e os campos
+aparecem desabilitados, com o aviso **"Ordem de Serviço Concluída"**. Se for
+preciso corrigir algo, clique em **🔒 Desbloquear com Senha** e confirme a sua
+própria senha de login.
 
-**Produtos → + Novo Produto**: nome, preço de venda, estoque inicial.
+![Janela de senha para desbloquear a OS concluída](prints/42-os-desbloqueio-senha.png)
+
+Com a senha certa, o aviso muda para **"Edição desbloqueada"** e os campos são
+liberados; com a senha errada, aparece **"Senha incorreta."**. O desbloqueio vale
+até a página ser recarregada. Ao mudar o status, escolha o novo valor com
+atenção: a lista começa em **Inicial**.
+
+![OS concluída desbloqueada para edição](prints/43-os-desbloqueada.png)
+
+### 5.12 Produtos e estoque
+
+*Compras (e administrador).* Menu **Produtos**.
+
+Em **+ Novo Produto**, informe o nome, o preço de venda e o estoque inicial.
 
 ![Formulário de cadastro de produto](prints/15-cadastro-produto.png)
 
-### 6.2 Entrada de estoque
-
-**Produtos → [produto] → Estoque**, formulário **Registrar Movimentação**:
-
-| Tipo | Quando usar |
-|---|---|
-| **ENTRADA** | Compra, devolução ao estoque |
-| **SAÍDA** | Baixa manual, perda, quebra |
-
-Na descrição, registre a nota fiscal e o fornecedor — é o que permite conferir
-depois.
+Na tela **Estoque** de cada produto, registre as **entradas** (compra,
+devolução) e as **saídas** manuais (perda, quebra), anotando a nota fiscal e o
+fornecedor na descrição. As saídas por OS acontecem sozinhas quando a peça é
+lançada na ordem de serviço.
 
 ![Tela de estoque do produto, com o histórico de movimentações](prints/16-estoque-produto.png)
 
-> As saídas por OS **não se lançam aqui**: elas acontecem sozinhas quando o
-> vendedor lança a peça na ordem de serviço.
+### 5.13 Financeiro
 
-### 6.3 Produtos com saldo negativo
+*Financeiro e administrador.* Menu **Financeiro**.
 
-O dashboard traz a lista **"a regularizar"**, com link direto. Saldo negativo
-significa que a peça saiu pela OS antes de a entrada ser registrada. **Regularize
-com uma ENTRADA.**
+O painel mostra as contas a pagar e a receber, com os totais em aberto, os
+vencidos e o saldo previsto. Em **+ Nova conta a pagar** ou **+ Nova conta a
+receber**, informe a descrição, o valor e o vencimento. As contas das OS
+faturadas aparecem sozinhas.
 
-![Bloco de estoque no dashboard, com a lista a regularizar](prints/17-dashboard-estoque.png)
+![Painel financeiro](prints/18-painel-financeiro.png)
 
-### 6.4 Desativar um produto
+**Quitar** registra o pagamento, com a data e quem deu baixa; **Cancelar** tira a
+conta do saldo, mas ela continua visível. Nenhuma conta é apagada.
 
-Botão **Excluir** na lista. O produto **não é apagado**: fica inativo, some das
-listas e para de ser oferecido nas OS. O histórico continua. Para trazer de
-volta, use **Mostrar inativos** e **Reativar**.
+![Conta quitada, com a data e o usuário que deu baixa](prints/20-conta-quitada.png)
 
----
+### 5.14 Relatórios
 
-## 7. Manual do Financeiro
+*Somente administrador.* Menu **Relatórios**.
 
-Seu menu tem **Financeiro**.
-
-### 7.1 O painel
-
-Mostra contas a pagar e a receber, com totais em aberto, vencidos e o saldo
-previsto.
-
-![Painel financeiro, com contas em aberto e vencidas](prints/18-painel-financeiro.png)
-
-### 7.2 Lançar uma conta
-
-**+ Nova conta a pagar** ou **+ Nova conta a receber**: descrição, valor,
-vencimento. Na conta a pagar, o fornecedor; na conta a receber, o cliente.
-
-![Formulário de conta a pagar](prints/19-conta-a-pagar.png)
-
-### 7.3 A conta que aparece sozinha
-
-Quando a gerência encerra uma OS, **o sistema cria a conta a receber
-automaticamente**, na mesma operação. É proposital: encerrar OS sem lançar o
-valor a receber é o furo de caixa mais comum do controle manual.
-
-O valor é:
-
-- o **valor do orçamento**, quando houve orçamento aprovado;
-- a **soma das peças**, quando a OS foi encerrada sem orçamento.
-
-> Não é orçamento + peças. O orçamento combinado com o cliente **já inclui as
-> peças**; somar os dois cobraria a peça duas vezes.
-
-### 7.4 Quitar e cancelar
-
-- **Quitar** — registra o pagamento, com data e quem deu baixa;
-- **Cancelar** — a conta deixa de contar no saldo, mas continua visível.
-
-Nenhuma conta é apagada.
-
-![Conta quitada, mostrando a data e o usuário que deu baixa](prints/20-conta-quitada.png)
-
----
-
-## 8. Manual do Entregador
-
-Você leva as OS finalizadas até o cliente, com o celular na mão. Ao entrar, o
-sistema abre direto a tela **🚚 Entregas** — o caixa, os cadastros e o dashboard
-não são do seu perfil.
-
-> **Use o celular com a internet ligada e a localização permitida.** O
-> navegador só libera o GPS em endereço `https://`; o endereço do sistema em
-> produção já é assim.
-
-### 8.1 Iniciar a saída
-
-A tela lista as OS **finalizadas** (faturadas nos últimos 30 dias) que ainda não
-foram entregues. Marque as que vai levar, **na ordem em que vai passar**, e toque
-em **🚚 Iniciar saída**.
-
-![Tela do entregador no celular, com as OS para escolher](prints/34-entregador-iniciar-saida.png)
-
-- Só existe **uma saída em rota por vez**. Se outra estiver aberta, o sistema
-  avisa.
-- OS **não entregue** numa saída anterior volta para a lista e pode sair de novo.
-
-### 8.2 Durante a saída
-
-Cada parada vira um cartão, na ordem escolhida:
-
-| Botão | O que faz |
-|---|---|
-| **🧭 Navegar** | Abre o app de mapas do celular com o endereço do cliente |
-| **📲 Avisar no WhatsApp** | Abre o WhatsApp com a mensagem pronta e o link para o cliente acompanhar no mapa. Se o cliente só tem telefone fixo, o botão avisa que pode não ter WhatsApp |
-| **✅ Entregue** | Confirma a entrega daquela OS |
-| **Não entregue** | Abre o campo do **motivo** (cliente ausente, endereço errado…), que é obrigatório |
-
-![Saída em rota no celular: GPS enviado, paradas e botões](prints/35-entregador-saida-em-rota.png)
-
-A faixa no topo mostra quando a localização foi enviada pela última vez:
-
-| Faixa | Significado |
-|---|---|
-| Verde — "enviada há X s" | Tudo certo: a posição sai a cada 10 segundos (verde até 20 s) |
-| Amarela | Ainda não enviou, ou a última posição tem de 20 s a 1 minuto — confira o sinal |
-| Vermelha | Mais de 1 minuto sem enviar |
-
-Abaixo da faixa aparece a mensagem quando algo impede o envio: localização não
-permitida (libere nas configurações do celular), página sem HTTPS, sem sinal
-de GPS ou falha ao enviar (o celular tenta de novo no ciclo seguinte). Se a
-saída for encerrada ou a sessão expirar, o envio para e a mensagem explica.
-
-> **Mantenha a tela acesa.** Com a tela bloqueada, o celular para de enviar a
-> localização — e o cliente vê o entregador parado. O sistema pede para a tela
-> não apagar; quando o navegador não aceita, aparece o aviso para você mesmo
-> mantê-la acesa.
-
-### 8.3 Encerrar a saída
-
-Quando todas as paradas estiverem marcadas, toque em **🏁 Encerrar saída**. Com
-alguma parada ainda pendente, o sistema não deixa: marque-a como entregue ou não
-entregue antes.
-
-Se precisar interromper tudo, peça ao administrador: **só ele cancela** a saída.
-
----
-
-## 9. Manual do Administrador
-
-Você vê tudo, mais **Tipos de Serviço**, **Relatórios**, **Auditoria** e
-**Usuários**. Em **Entregas**, você acompanha a saída do entregador (seção 9.8).
-
-### 9.1 Criar usuários
-
-**Usuários → + Novo Usuário**: nome, login, senha e **perfil**.
-
-![Formulário de cadastro de usuário, com o select de perfil aberto](prints/21-cadastro-usuario.png)
-
-> **Troque a senha do `admin` no primeiro acesso.** A senha padrão está escrita
-> na documentação do projeto — é pública.
-
-### 9.2 Catálogo de tipos de serviço
-
-**Tipos de Serviço**. É o que dá consistência ao relatório: sem catálogo, "troca
-de tela", "Troca da tela" e "substituição de tela" viram três serviços
-diferentes.
-
-Tipo desativado some da escolha do técnico, mas **o histórico não muda**.
-
-![Lista de tipos de serviço](prints/22-tipos-servico.png)
-
-### 9.3 Faturar e encerrar a OS
-
-No detalhe da OS, botão **Faturar e encerrar**.
-
-Isso faz três coisas de uma vez, e **ou acontece tudo, ou nada**:
-
-1. muda o status para `FINALIZADO`;
-2. grava a data de fechamento;
-3. **gera a conta a receber**.
-
-![Botão de faturar e encerrar no detalhe da OS](prints/23-faturar-encerrar.png)
-![A conta a receber recém-gerada, no painel financeiro](prints/24-conta-gerada.png)
-
-### 9.4 Relatórios
-
-**Relatórios**. Cinco relatórios, um período compartilhado (padrão: últimos 30
-dias):
-
-| Relatório | Responde |
-|---|---|
-| 👤 Maiores clientes | Quem mais trouxe receita |
-| 📦 Produtos mais vendidos | Quais peças giram |
-| 🛠️ Serviços mais executados | O que a oficina mais faz |
-| 💻 Por tipo de equipamento | Quais aparelhos dão mais trabalho |
-| 🗺️ Demanda por região | De quais cidades vêm os clientes e o faturamento |
+São cinco relatórios para o mesmo período (padrão: últimos 30 dias): maiores
+clientes, produtos mais vendidos, serviços mais executados, serviços e produtos
+por tipo de equipamento e demanda por região. Cada um tem o botão **⭳ CSV**, que
+gera um arquivo para abrir no Excel.
 
 ![Tela de relatórios, com o filtro de período e os cinco blocos](prints/25-relatorios.png)
 
-Botão **⭳ CSV** em cada um, respeitando o período da tela. O arquivo abre no
-Excel em português com acento e valores corretos.
+### 5.15 Tipos de serviço
 
-> **"Não classificado"** nos serviços são os registros feitos antes do catálogo
-> existir, ou sem tipo escolhido. Aparecem de propósito — escondê-los falsearia o
-> relatório.
+*Somente administrador.* Menu **Tipos de Serviço**.
 
-### 9.5 Auditoria
+É o catálogo que o técnico usa ao registrar um serviço. Ele mantém o relatório
+consistente: sem catálogo, "troca de tela" e "substituição de tela" contariam
+como serviços diferentes. Um tipo desativado deixa de ser oferecido, mas o
+histórico não muda.
 
-**Auditoria**. Registra **quem alterou o quê, quando e de qual IP**, em todo o
-sistema.
+![Lista de tipos de serviço](prints/22-tipos-servico.png)
 
-A tela mostra só **o que mudou**, no formato `antes → depois`:
+### 5.16 Usuários
 
-```
-ALTERACAO  Cliente  #26   nome: Cliente da Auditoria → Cliente da Auditoria LTDA
-                          cidade: Dourados → Campo Grande
-```
+*Somente administrador.* Menu **Usuários → + Novo Usuário**.
 
-![Tela de auditoria, com um registro de alteração](prints/26-auditoria.png)
+Informe o nome, o login, a senha e o perfil. O perfil define o menu e o que o
+usuário pode fazer. No primeiro acesso, troque a senha do usuário administrador
+padrão.
 
-Filtros de período, usuário, entidade e ação.
+![Formulário de cadastro de usuário, com a escolha do perfil](prints/21-cadastro-usuario.png)
 
-> **Esta tela é somente leitura.** O sistema não oferece nenhum caminho para
-> editar ou apagar um registro de auditoria — é o que dá valor ao registro.
-> Senhas nunca aparecem no log, nem o hash.
+### 5.17 Auditoria
 
-### 9.6 Dados pessoais — pedido de exclusão (LGPD)
+*Somente administrador.* Menu **Auditoria**.
 
-Se um cliente exigir a exclusão dos dados dele, use **🔒 Anonimizar** na lista de
-clientes.
+Registra automaticamente quem alterou o quê, quando e de qual endereço, em todo o
+sistema, mostrando o valor antes e depois de cada alteração. Há filtros por
+período, usuário, entidade e ação. A tela é somente leitura e as senhas nunca
+aparecem.
 
-![Botão de anonimizar na lista de clientes](prints/27-botao-anonimizar.png)
+![Tela de auditoria](prints/26-auditoria.png)
 
-> A confirmação que aparece ao clicar é a janela nativa do navegador — por isso
-> não está na captura. Ela repete o que será apagado e o que será preservado, e
-> avisa que a operação não pode ser desfeita.
+### 5.18 Anonimização de cliente (LGPD)
 
-O que acontece: nome, CPF/CNPJ, RG, data de nascimento, endereço e contatos são
-**apagados** — do cadastro, da descrição das contas a receber geradas no
-faturamento e do registro de auditoria. Das entregas, saem a **localização da
-casa** do cliente, o nome escrito no motivo de uma não entrega e o trajeto do
-entregador nas saídas que levaram OS dele. As ordens de serviço, equipamentos,
-serviços, contas e entregas são **preservados** — são histórico; só perdem o
-dado pessoal.
+*Somente administrador.* Botão **🔒 Anonimizar** na lista de clientes.
 
-![Cliente anonimizado na lista, com a marca 🔒 e a data](prints/28-cliente-anonimizado.png)
+Atende o pedido do cliente de exclusão dos dados pessoais. Nome, CPF/CNPJ, RG,
+data de nascimento, endereço e contatos são apagados do cadastro, das contas e
+da auditoria, e a localização da casa sai das entregas. As ordens de serviço, os
+serviços e as contas continuam, sem o dado pessoal. A operação não pode ser
+desfeita, e não é feita enquanto houver entrega em andamento para o cliente.
 
-> **A operação não pode ser desfeita.** Confirme o pedido antes.
-> Cidade e estado permanecem: não identificam ninguém sozinhos e sustentam a
-> análise por região.
+![Cliente anonimizado na lista, com a marca e a data](prints/28-cliente-anonimizado.png)
 
-**Cliente com entrega em andamento não é anonimizado.** O entregador perderia o
-endereço no meio da rota. Conclua a entrega — ou cancele a saída — e repita.
+### 5.19 Entregas: tela do entregador
 
-![Mensagem de anonimização recusada por entrega em andamento](prints/40-anonimizar-com-entrega-pendente.png)
+*Entregador, pelo celular, com a localização permitida.*
 
-### 9.7 Desativar equipamento
+A tela lista as OS concluídas que ainda não foram entregues. Marque as que vai
+levar, na ordem em que vai passar, e toque em **🚚 Iniciar saída**. Só existe uma
+saída em rota por vez.
 
-Em **Equipamentos**, botão **Desativar**: o aparelho some da lista e não entra em
-OS nova, mas o histórico fica. **Reativar** traz de volta.
+![Tela do entregador, com as OS para escolher](prints/34-entregador-iniciar-saida.png)
 
-### 9.8 Painel de entregas
+Durante a saída, o celular envia a localização a cada 10 segundos e cada parada
+vira um cartão com os botões **🧭 Navegar** (abre o mapa do celular), **📲 Avisar
+no WhatsApp** (mensagem pronta com o link de acompanhamento), **✅ Entregue** e
+**Não entregue** (com o motivo obrigatório). Mantenha a tela acesa: com ela
+bloqueada, o envio da localização para. Ao final, toque em **🏁 Encerrar saída**.
 
-**Entregas** abre o painel. Com uma saída em rota:
+![Saída em rota no celular](prints/35-entregador-saida-em-rota.png)
 
-- o **mapa** mostra o entregador (ponto azul) e um pino numerado para cada parada,
-  na cor do status — amarelo pendente, verde entregue, vermelho não entregue;
-- a **tabela** lista as paradas, com OS, cliente, bairro, status e, quando há, o
-  horário da entrega ou o motivo. "Sem localização" quer dizer que o endereço não
-  foi encontrado no mapa: a entrega segue normalmente, só sem o pino;
-- o mapa se atualiza sozinho a cada 10 segundos, e a linha abaixo dele diz há
-  quanto tempo veio a última posição;
-- **Cancelar saída** encerra a saída na hora: as paradas pendentes ficam como não
-  entregues, com o motivo "Saída cancelada".
+### 5.20 Painel de entregas
+
+*Somente administrador.* Menu **Entregas**.
+
+Mostra no mapa o entregador e as paradas, com a cor do status de cada uma, a
+tabela das paradas e o histórico das saídas. O mapa se atualiza sozinho a cada
+10 segundos. O administrador também pode cancelar uma saída. Trinta dias depois
+do fim da saída, o trajeto e a localização das casas são apagados.
 
 ![Painel de entregas, com o mapa, as paradas e o histórico](prints/36-painel-entregas.png)
 
-Abaixo, o **histórico** das 50 saídas mais recentes: início, entregador,
-quantidade de OS, entregues, não entregues, status e fim.
+### 5.21 Consulta pública pelo cliente
 
-> **A localização não fica guardada para sempre.** Trinta dias depois do fim da
-> saída, o sistema apaga o trajeto do entregador e a localização das casas; o
-> histórico (quem, quando, o que foi entregue) continua.
+*Cliente, sem login.* Endereço do sistema seguido de **/consulta**.
 
-O link **abrir a tela da saída**, no topo, leva à mesma tela do entregador — útil
-para marcar uma parada no lugar dele.
+O cliente informa o número da OS que está no comprovante e vê a situação do
+conserto, o equipamento, o orçamento, a previsão de entrega, os serviços
+executados e até quando vai a garantia.
 
----
+![Resultado da consulta pública](prints/30-consulta-resultado.png)
 
-## 10. Para o cliente — consulta pública
-
-> Esta seção pode ser impressa e entregue ao cliente junto com o comprovante.
-
-Acompanhe seu conserto pela internet, **sem login e sem precisar ligar**.
-
-1. Acesse o endereço da assistência e clique em **Consultar OS**;
-2. Informe o **número da ordem de serviço** que está no seu comprovante;
-3. Veja a situação.
-
-![Tela de consulta pública, formulário vazio](prints/29-consulta-publica.png)
-
-O que aparece:
-
-| Informação | |
-|---|---|
-| Situação do conserto | Em orçamento, autorizado, em andamento, finalizado |
-| Equipamento | Marca e modelo |
-| Defeito relatado | |
-| Valor do orçamento | Quando já lançado |
-| Previsão de entrega | Quando informada |
-| Serviços executados | O que foi feito |
-| **Garantia** | Até quando cada serviço está coberto |
-
-![Resultado da consulta pública, com serviço em garantia vigente](prints/30-consulta-resultado.png)
-
-> **Guarde o número da OS.** É só com ele que a consulta funciona — e é o que
-> protege seus dados de quem não deveria vê-los.
-
-Se aparecer **"Muitas consultas sem sucesso"**, foram vários números errados
-seguidos a partir da mesma conexão. Aguarde 15 minutos, confira o número no
-comprovante e tente de novo.
-
-### Quando o equipamento sai para entrega
-
-Se a assistência entrega em casa, você recebe pelo WhatsApp uma mensagem do
-entregador com o link da consulta. Na consulta aparece **🚚 Seu equipamento saiu
-para entrega**, pedindo os **4 últimos dígitos do telefone** que está no seu
-cadastro (celular ou fixo).
-
-![Consulta pedindo os 4 últimos dígitos do telefone](prints/37-consulta-saiu-para-entrega.png)
-
-Com os dígitos certos, aparece o **mapa**: o ponto azul é o entregador e o pino é
-o seu endereço. A posição se atualiza sozinha a cada 10 segundos.
+Quando o equipamento sai para entrega, a consulta pede os **4 últimos dígitos do
+telefone** do cadastro e, com eles, mostra o mapa com o entregador a caminho.
+Depois da entrega, aparecem o dia e a hora em que ela aconteceu.
 
 ![Mapa com o entregador a caminho](prints/38-consulta-mapa.png)
 
-Depois que o equipamento é entregue, o mapa some e a consulta mostra o dia e a
-hora da entrega.
+### 5.22 Uso no celular
 
-![Consulta mostrando a data e a hora da entrega](prints/39-consulta-entregue.png)
+*Todos os perfis.*
 
-> **Por que os 4 dígitos.** O número da OS sozinho não basta para ver onde está o
-> entregador: é uma segurança a mais, para só você acompanhar. Se os dígitos não
-> conferirem, a tela avisa; depois de várias tentativas erradas, aparece
-> "Muitas tentativas de verificação" — aguarde ou fale com a loja.
+Em telas pequenas, o menu lateral vira uma barra no topo, recolhida; toque em
+**☰** para abrir e de novo para fechar. As tabelas largas rolam para o lado
+dentro da própria caixa.
 
-Sem telefone no cadastro, a consulta mostra "Para acompanhar a entrega, fale com
-a loja".
+![Dashboard no celular, menu aberto](prints/32-celular-menu-aberto.png)
 
----
+## 6. LOGOUT DO SISTEMA
 
-## 11. Perguntas frequentes
+Para realizar o logout do sistema, basta clicar em **↩ Sair**, no rodapé do menu
+lateral, abaixo do nome e do perfil do usuário. No celular, abra o menu pelo
+**☰** para ver o botão. O sistema volta para a tela de login.
 
-**Não consigo ver um menu que meu colega vê.**
-Os perfis são diferentes. Fale com o administrador se precisar de acesso.
-
-**O sistema diz que não posso registrar serviço nesta OS.**
-O cliente ainda não aprovou o orçamento. A OS precisa estar `AUTORIZADO` ou
-`EM ANDAMENTO`.
-
-**Tentei encerrar a OS e o sistema recusou.**
-Encerrar gera o faturamento e é da gerência. Peça ao administrador.
-
-**O estoque ficou negativo.**
-A peça saiu pela OS antes de a entrada ser registrada. O setor de Compras
-regulariza com uma ENTRADA. O sistema avisa, não trava.
-
-**Sou entregador e a OS que preciso levar não aparece na lista.**
-Só aparecem OS **finalizadas** (faturadas pela gerência) nos últimos 30 dias e
-que ainda não estão em outra saída. Se faltar o faturamento, peça ao
-administrador.
-
-**O cliente diz que o entregador está parado no mapa.**
-A tela do celular do entregador provavelmente apagou: com ela bloqueada, a
-localização para de ser enviada. Basta acender a tela; a posição volta no ciclo
-seguinte.
-
-**O "Encerrar saída" não funciona.**
-Ainda há parada pendente. Marque cada uma como entregue ou não entregue (com o
-motivo) e tente de novo.
-
-**Cadastrei um cliente duas vezes.**
-O CPF/CNPJ é único, então o sistema recusa a duplicata. Se já aconteceu, remova
-um dos dois — a remoção é lógica, o histórico fica.
-
-**Apaguei um cliente por engano.**
-Nada é apagado de verdade. Use **Mostrar inativos** para encontrá-lo.
-*Exceção:* a **anonimização** é irreversível.
-
-**O relatório veio vazio.**
-Confira o período. O padrão são os últimos 30 dias, e OS canceladas não entram no
-relatório de clientes.
-
-**O CSV abriu tudo numa coluna só no Excel.**
-Não deveria — o arquivo usa ponto e vírgula justamente por causa do Excel em
-português. Se acontecer, avise a equipe do sistema.
-
-**Esqueci minha senha.**
-Só o administrador redefine. Não há recuperação automática.
-
-**No celular, o menu sumiu.**
-Ele fica recolhido para dar espaço ao conteúdo. Toque em **☰** no topo da tela.
-
-**O sistema demorou para abrir.**
-No ambiente gratuito, o servidor hiberna após 15 minutos sem uso e leva de 30 a
-60 segundos para voltar. A partir daí fica normal.
+Por segurança, a sessão também se encerra sozinha depois de 8 horas. Se aparecer
+a tela **"Formulário expirado"**, a última ação não foi executada: recarregue a
+página, entre de novo se for preciso e repita a operação.

@@ -12,7 +12,7 @@
 | [DER.md](DER.md) + [der.png](der.png) + [der-visao-geral.png](der-visao-geral.png) | Substitui a Figura 4 | 16 entidades, 6 enumerações, 21 relacionamentos |
 | [MATRIZ-REQUISITOS.md](MATRIZ-REQUISITOS.md) | Rastreabilidade | RF001–RF028 e NF001–NF009 × código × teste (os do Módulo 6 com numeração `[VALIDAR]`) |
 | [APENDICE-A-USABILIDADE.md](APENDICE-A-USABILIDADE.md) | Apêndice A | Instrumento pronto, **ainda não aplicado** |
-| [APENDICE-B-MANUAL.md](APENDICE-B-MANUAL.md) + [prints/](prints/) | Apêndice B | Manual por perfil, inclusive o entregador, com 41 capturas em resolução de impressão. |
+| [APENDICE-B-MANUAL.md](APENDICE-B-MANUAL.md) + [prints/](prints/) | Apêndice B | Versão 3, no modelo de manual da 6ª Etapa: introdução, funcionalidades, benefícios, acesso, cada funcionalidade com a sua tela e logout |
 | [TESTES.md](TESTES.md) | Seção 1.6 | 865 testes passando; Chromium e celular medidos; usabilidade e demais navegadores em branco |
 | [DIVERGENCIAS-DOC.md](DIVERGENCIAS-DOC.md) | Correções no texto | O que o documento afirma e o código não faz |
 
