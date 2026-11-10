@@ -2,7 +2,7 @@
 
 **Versão:** V03 · 04/11/2026 (V02 de 19/10/2026; V01 de 12/10/2026, antes do Módulo 6)
 **Base de enunciados:** monografia, versão 0.0.8 (PDF de 25/08/2026), capítulo 2
-**Suíte de referência:** 443 testes unitários + 413 de integração (856 no total, todos passando)
+**Suíte de referência:** 443 testes unitários + 422 de integração (865 no total, todos passando)
 
 ---
 

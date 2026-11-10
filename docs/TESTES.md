@@ -16,8 +16,8 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
 | Unitários | 443 | 443 | 0 |
-| Integração | 413 | 413 | 0 |
-| **Total** | **856** | **856** | **0** |
+| Integração | 422 | 422 | 0 |
+| **Total** | **865** | **865** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -26,8 +26,8 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 
 ```cmd
 npm run test:unit         :: 443 testes
-npm run test:integration  :: 413 testes
-npm test                  :: suíte completa — 856 testes
+npm run test:integration  :: 422 testes
+npm test                  :: suíte completa — 865 testes
 ```
 
 ### 1.2 Testes unitários — 443 casos
@@ -60,7 +60,7 @@ banco, rodam em cerca de 3 segundos.
 | `authService.test.js` | 3 | Login e geração de token |
 | `formatacaoData.test.js` | 8 | Datas e horas das telas no fuso de Dourados, com o processo em UTC; vazio e inválido viram traço |
 
-### 1.3 Testes de integração — 413 casos
+### 1.3 Testes de integração — 422 casos
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -80,6 +80,7 @@ isolado, recriado a cada suíte.
 | `relatorios.test.js` | 21 | RF016/RF018 — relatórios por período |
 | `dashboard.test.js` | 16 | Blocos por perfil e exportação CSV |
 | `fusoTelas.test.js` | 12 | Fuso de Dourados nas telas antigas (OS, dashboard, consulta pública, histórico, financeiro, estoque, clientes, auditoria e período dos filtros), com o processo em UTC |
+| `desbloqueioOs.test.js` | 9 | Desbloqueio de OS concluída com senha: os elementos que o script usa existem na tela, a resposta do servidor tem o campo que o script lê, senha certa, errada, vazia e sem sessão |
 | `estoque.test.js` | 16 | RF014/RF015 — movimentações, saldo × razão |
 | `financeiro.test.js` | 15 | RF020/RF021 — contas e a gerada no encerramento |
 | `historicoEquipamento.test.js` | 14 | RF012 — histórico por equipamento |
@@ -98,7 +99,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **443 unitários e 413 de integração passando**. Isso importa porque o
+números: **443 unitários e 422 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -492,6 +493,23 @@ Ao gerar as capturas do Módulo 6 para o Apêndice B, conferidas uma a uma:
   nem telefone. Visto na mesma captura. `[VALIDAR: se a OS de cliente
   anonimizado deve ficar fora da lista do entregador]`.
 
+
+### 3.14 Botão "Desbloquear com Senha" sem efeito (09/11/2026)
+
+Achado ao conferir as telas para o manual da 6ª Etapa. Em OS concluída, o botão
+**🔒 Desbloquear com Senha** não abria a janela de senha. No navegador: clique,
+janela continua oculta, status continua travado, nenhum erro na tela.
+
+| Causa | Correção |
+|---|---|
+| O script `public/js/os-desbloqueio.js` foi reescrito em 25/10/2026 (`a19cd77`) procurando elementos com outros ids (`btn-solicitar-desbloqueio`, `modal-desbloqueio`...); a tela tem `btn-abrir-desbloqueio`, `modal-autorizacao-senha`... | O script volta a usar os ids da tela |
+| O script lia `data.valida`; o servidor responde `{ sucesso, mensagem }` | O script lê `data.sucesso` |
+
+Medida: `desbloqueioOs.test.js` falha em 2 casos com o script anterior (ids
+ausentes na página e campo da resposta). No navegador, depois da correção: a
+janela abre, senha errada mostra "Senha incorreta." e a certa libera o status e
+os campos. O bloqueio continua só visual, como foi desenhado: as regras de
+status da OS no servidor não mudaram.
 ---
 
 ## 4. Situação geral
@@ -499,7 +517,7 @@ Ao gerar as capturas do Módulo 6 para o Apêndice B, conferidas uma a uma:
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
 | **Software — unitários** | ✅ Executado | 443 passando, a cada push |
-| **Software — integração** | ✅ Executado | 413 passando em SQLite e em MySQL 8 |
+| **Software — integração** | ✅ Executado | 422 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |
