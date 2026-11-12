@@ -107,6 +107,7 @@ async function buscarOrdemPorNumero(numero) {
     include: {
       equipamento: { include: { cliente: true } },
       servicos:    { include: { tipoServico: true }, orderBy: { executadoEm: 'desc' } }, // M3 p2 + M5
+      itens:       { include: { produto: true } }, // <-- ADICIONADO PARA SOMAR AS PEÇAS NA CONSULTA
     },
   });
   if (!ordem) throw Object.assign(new Error('Ordem de serviço não encontrada.'), { status: 404 });
