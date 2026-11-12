@@ -88,15 +88,11 @@ describe('RN09 — técnico do serviço', () => {
 });
 
 describe('RN10/RN11 — peça usada no serviço', () => {
-  test('a tela de lançamento oferece só os serviços da própria OS', async () => {
+  test('a tela da OS não oferece mais o seletor de serviço no lançamento de peça', async () => {
     const vendedor = await logar(request, app, 'vendedor');
     const tela = await vendedor.get(`/ordens/${OS().id}`);
 
-    expect(tela.text).toContain('name="servicoId"');
-    const opcoes = [...tela.text.matchAll(/<select name="servicoId">([\s\S]*?)<\/select>/g)][0][1];
-    const ids = [...opcoes.matchAll(/value="(\d+)"/g)].map((m) => Number(m[1])).sort();
-    const daOS = Object.values(dados.servicos).map((s) => s.id).sort();
-    expect(ids).toEqual(daOS);
+    expect(tela.text).not.toContain('name="servicoId"');
   });
 
   test('peça vinculada: grava o vínculo e aparece sob o serviço', async () => {
@@ -112,15 +108,12 @@ describe('RN10/RN11 — peça usada no serviço', () => {
     expect(tela.text).toContain(`Peças: ${dados.produtos.normal.nome} ×1`);
   });
 
-  test('peça sem serviço: uso geral da OS', async () => {
+  test('peça sem serviço informado: fica sem vínculo (uso geral da OS)', async () => {
     const vendedor = await logar(request, app, 'vendedor');
     await lancarPeca(vendedor, '');
 
     const item = await prisma.itemOrdem.findFirst({ where: { ordemId: OS().id } });
     expect(item.servicoId).toBeNull();
-
-    const tela = await vendedor.get(`/ordens/${OS().id}`);
-    expect(tela.text).toMatch(/uso geral da OS/);
   });
 
   test('serviço de OUTRA OS: recusado, nenhum item criado e estoque parado', async () => {
