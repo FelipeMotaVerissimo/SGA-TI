@@ -230,9 +230,17 @@ async function cancelarConta(tipo, id) {
 function calcularValorDaOrdem(ordem) {
   const orcamento = Number(ordem.valorOrcamento || 0);
   const pecas     = itemOrdemService.calcularTotalItens(ordem.itens || []);
-  const valor     = orcamento > 0 ? orcamento : pecas;
+  const servicos  = (ordem.servicos || []).reduce((acc, s) => acc + Number(s.valor || 0), 0);
+  const totalReal = servicos + pecas;
 
-  return { valor: Number(valor.toFixed(2)), orcamento, pecas };
+  const valor = totalReal > 0 ? totalReal : orcamento;
+
+  return {
+    valor: Number(valor.toFixed(2)),
+    servicos: Number(servicos.toFixed(2)),
+    pecas: Number(pecas.toFixed(2)),
+    orcamento: Number(orcamento.toFixed(2)),
+  };
 }
 
 /**
@@ -245,7 +253,7 @@ async function gerarContaDaOrdem(tx, ordem) {
   const jaExiste = await tx.contaReceber.findUnique({ where: { ordemId: ordem.id } });
   if (jaExiste) return null;
 
-  const { valor, orcamento, pecas } = calcularValorDaOrdem(ordem);
+  const { valor, servicos, pecas, orcamento } = calcularValorDaOrdem(ordem);
   if (valor <= 0) return null;
 
   const cliente = ordem.equipamento && ordem.equipamento.cliente;
@@ -257,8 +265,9 @@ async function gerarContaDaOrdem(tx, ordem) {
       vencimento:  new Date(),   // à vista, na retirada do equipamento
       observacoes:
         `Gerada automaticamente no encerramento da OS. ` +
-        `Orçamento aprovado: R$ ${orcamento.toFixed(2)} | ` +
-        `Peças lançadas: R$ ${pecas.toFixed(2)}.`,
+        `Serviços: R$ ${servicos.toFixed(2)} | ` +
+        `Peças: R$ ${pecas.toFixed(2)} | ` +
+        `Orçamento inicial: R$ ${orcamento.toFixed(2)}.`,
       ordemId:   ordem.id,
       clienteId: cliente ? cliente.id : null,
     },

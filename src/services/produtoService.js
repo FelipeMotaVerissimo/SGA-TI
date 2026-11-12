@@ -168,6 +168,24 @@ async function atualizarProduto(id, dados) {
 
 async function excluirProduto(id) {
   const produto = await buscarProdutoPorId(id);
+
+  // Verifica se o produto já foi utilizado em alguma OS ou teve saída de estoque
+  const [totalItensOs, totalSaidas] = await Promise.all([
+    prisma.itemOrdem.count({ where: { produtoId: produto.id } }),
+    prisma.movimentoEstoque.count({
+      where: {
+        produtoId: produto.id,
+        tipo: TIPO_SAIDA,
+      },
+    }),
+  ]);
+
+  if (totalItensOs > 0 || totalSaidas > 0) {
+    throw erro(
+      'Não é possível excluir este produto pois ele já foi utilizado em Ordens de Serviço ou possui movimentações de saída registadas.'
+    );
+  }
+
   return prisma.produto.update({ where: { id: produto.id }, data: { ativo: false } });
 }
 
