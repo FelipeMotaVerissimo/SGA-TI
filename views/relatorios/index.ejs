@@ -39,7 +39,7 @@
       </div>
 
       <%
-        const real   = (v) => 'R$ ' + Number(v).toFixed(2);
+        const real = (v) => 'R$ ' + Number(v).toFixed(2);
       %>
 
       <% const qs = `?de=${filtro.de}&ate=${filtro.ate}`; %>
@@ -55,7 +55,7 @@
           <h2>👤 Maiores Clientes no Período</h2>
           <div style="display:flex; gap:12px; align-items:center">
             <span style="font-size:12px; color:#888">
-              Soma dos orçamentos das OS abertas no período, sem as canceladas
+              Soma dos valores totais (serviços + peças) das OS abertas no período, sem as canceladas
             </span>
             <a href="/relatorios/clientes/csv<%= qs %>" class="btn btn-secondary btn-sm">⭳ CSV</a>
           </div>
@@ -66,7 +66,7 @@
               <th>#</th>
               <th>Cliente</th>
               <th>OS</th>
-              <th>Total Orçado</th>
+              <th>Valor Total</th>
               <th>Já Aprovado</th>
               <th>Ticket Médio</th>
             </tr>
@@ -260,7 +260,7 @@
               <th>UF</th>
               <th>Clientes</th>
               <th>Ordens</th>
-              <th>Total Orçado</th>
+              <th>Valor Total</th>
               <th>Já Aprovado</th>
               <th>Ticket Médio</th>
             </tr>
@@ -287,7 +287,7 @@
               <td><span class="badge badge-cinza"><%= r.estado %></span></td>
               <td><%= r.clientes %></td>
               <td><%= r.ordens %></td>
-              <td><%= real(r.total) %></td>
+              <td><strong><%= real(r.total) %></strong></td>
               <td><%= real(r.aprovado) %></td>
               <td><%= real(r.ticketMedio) %></td>
             </tr>
