@@ -150,7 +150,67 @@ async function criarConta(tipo, dados) {
 
   if (tipo === TIPO_PAGAR) {
     extra.fornecedor = String(dados.fornecedor || '').trim() || null;
-  } else if (dados.clienteId && String(dados.clienteId).trim() !== '') {
+
+    // 1. Cálculo por Unidade x Quantidade (se informado)
+    const qtd = Math.max(1, parseInt(dados.quantidade || 1, 10));
+    const vUnit = dados.valorUnitario
+      ? Number(String(dados.valorUnitario).replace(',', '.'))
+      : 0;
+    const valorTotal = vUnit > 0 ? vUnit * qtd : Number(base.valor);
+
+    if (!Number.isFinite(valorTotal) || valorTotal <= 0) {
+      throw erro('O valor total da conta deve ser maior que zero.');
+    }
+    if (valorTotal > MAX_VALOR) {
+      throw erro('O valor total da conta excede o limite permitido.');
+    }
+
+    // 2. Parcelamento (1x até 60x)
+    const totalParcelas = Math.max(1, Math.min(60, parseInt(dados.parcelas || 1, 10)));
+
+    const obsUnidade = vUnit > 0 && qtd > 1
+      ? ` (${qtd} un. × R$ ${vUnit.toFixed(2)})`
+      : '';
+
+    if (totalParcelas === 1) {
+      return tabela(tipo).create({
+        data: {
+          ...base,
+          ...extra,
+          descricao: `${base.descricao}${obsUnidade}`.slice(0, 200),
+          valor: valorTotal.toFixed(2),
+        },
+      });
+    }
+
+    // Divide o valor entre as parcelas ajustando eventual centavo de arredondamento na 1ª
+    const valorParcelaBase = Number((valorTotal / totalParcelas).toFixed(2));
+    const diferencaCentavos = Number((valorTotal - valorParcelaBase * totalParcelas).toFixed(2));
+
+    const registros = [];
+    for (let i = 0; i < totalParcelas; i++) {
+      const vencimentoParcela = new Date(base.vencimento);
+      vencimentoParcela.setMonth(vencimentoParcela.getMonth() + i);
+
+      const valorEstaParcela = i === 0
+        ? (valorParcelaBase + diferencaCentavos).toFixed(2)
+        : valorParcelaBase.toFixed(2);
+
+      registros.push({
+        descricao:   `${base.descricao}${obsUnidade} (${i + 1}/${totalParcelas})`.slice(0, 200),
+        valor:       valorEstaParcela,
+        vencimento:  vencimentoParcela,
+        observacoes: base.observacoes,
+        fornecedor:  extra.fornecedor,
+      });
+    }
+
+    return prisma.$transaction(
+      registros.map((data) => tabela(tipo).create({ data }))
+    );
+  }
+
+  if (dados.clienteId && String(dados.clienteId).trim() !== '') {
     extra.clienteId = Number(dados.clienteId);
   }
 
@@ -185,7 +245,7 @@ async function editarConta(tipo, id, dados) {
   return tabela(tipo).update({ where: { id: conta.id }, data });
 }
 
-async function quitarConta(tipo, id, usuarioId = null) {
+async function quitarConta(tipo, id, usuarioId = null, formaPagamento = null) {
   const conta = await buscarConta(tipo, id);
 
   if (conta.situacao !== ABERTA) {
@@ -194,13 +254,26 @@ async function quitarConta(tipo, id, usuarioId = null) {
     );
   }
 
+  const dadosAtualizacao = {
+    situacao:     PAGA,
+    quitadaEm:    new Date(),
+    quitadaPorId: usuarioId ? Number(usuarioId) : null,
+  };
+
+  if (tipo === TIPO_RECEBER) {
+    const metodo = String(formaPagamento || '').trim();
+    if (!metodo) {
+      throw erro('Selecione o método de pagamento utilizado no recebimento.');
+    }
+    dadosAtualizacao.formaPagamento = metodo;
+    dadosAtualizacao.observacoes = conta.observacoes
+      ? `${conta.observacoes} | Recebido via: ${metodo}`
+      : `Recebido via: ${metodo}`;
+  }
+
   return tabela(tipo).update({
     where: { id: conta.id },
-    data:  {
-      situacao:     PAGA,
-      quitadaEm:    new Date(),
-      quitadaPorId: usuarioId ? Number(usuarioId) : null,
-    },
+    data:  dadosAtualizacao,
   });
 }
 

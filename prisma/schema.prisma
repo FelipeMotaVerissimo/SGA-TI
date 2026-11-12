@@ -278,23 +278,24 @@ model ContaPagar {
 }
 
 model ContaReceber {
-  id           Int           @id @default(autoincrement())
-  descricao    String        @db.VarChar(200)
-  valor        Decimal       @db.Decimal(10, 2)
-  vencimento   DateTime
-  situacao     SituacaoConta @default(ABERTA)
-  quitadaEm    DateTime?
-  observacoes  String?       @db.Text
-  criadoEm     DateTime      @default(now())
+  id             Int           @id @default(autoincrement())
+  descricao      String        @db.VarChar(200)
+  valor          Decimal       @db.Decimal(10, 2)
+  vencimento     DateTime
+  situacao       SituacaoConta @default(ABERTA)
+  quitadaEm      DateTime?
+  formaPagamento String?       @db.VarChar(50)
+  observacoes    String?       @db.Text
+  criadoEm       DateTime      @default(now())
   // Vínculo opcional com a OS: preenchido quando a conta é gerada
   // automaticamente no encerramento. @unique garante uma conta por OS.
-  ordemId      Int?          @unique
-  ordem        OrdemServico? @relation(fields: [ordemId], references: [id])
-  clienteId    Int?
-  cliente      Cliente?      @relation(fields: [clienteId], references: [id])
+  ordemId        Int?          @unique
+  ordem          OrdemServico? @relation(fields: [ordemId], references: [id])
+  clienteId      Int?
+  cliente        Cliente?      @relation(fields: [clienteId], references: [id])
   // Quem registrou o recebimento (RF023 — rastreabilidade)
-  quitadaPorId Int?
-  quitadaPor   Usuario?      @relation(fields: [quitadaPorId], references: [id])
+  quitadaPorId   Int?
+  quitadaPor     Usuario?      @relation(fields: [quitadaPorId], references: [id])
 
   @@map("contas_receber")
 }
