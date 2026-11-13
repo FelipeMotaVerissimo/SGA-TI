@@ -538,6 +538,30 @@ ano mais os **6 últimos dígitos do relógio em milissegundos** — formato man
 Medida: `unit/numeroOS.test.js` (3 casos) e `integration/numeroOS.test.js` (2
 casos, relógio simulado) — **4 falham** com o código anterior e passam com a
 correção. Suítes: **450/450 unitários e 448/448 de integração**.
+
+### 3.19 Bateria de segurança e robustez — o que passou (13/11/2026)
+
+Testes da 6ª Etapa que **não acharam defeito**; ficam na suíte para que uma
+mudança futura não abra a brecha.
+
+| Teste | Como foi feito | Resultado |
+|---|---|---|
+| Script injetado guardado no banco (XSS armazenado) | Script, atributo de evento e trecho de SQL gravados em cliente, equipamento, OS, serviço, produto e contas; 14 telas internas abertas como administrador | Nenhuma tela traz o script cru; o texto aparece escapado (`&lt;script&gt;`) |
+| Script na consulta pública (armazenado e refletido) | Consulta da OS envenenada e consulta com script no lugar do número | Escapado nos dois casos |
+| SQL injetado | Texto com `DROP TABLE` gravado; buscas de clientes, OS, produtos e auditoria com `' OR '1'='1`, `;`, `%` e `_` | Gravado como texto comum, nenhuma tabela afetada, nenhuma mensagem de erro do banco na tela |
+| Faturar a mesma OS duas vezes ao mesmo tempo (clique duplo) | Duas chamadas simultâneas | Uma conta a receber só; OS finalizada |
+| 10 saídas de estoque simultâneas do mesmo produto | Só no MySQL (CI) — o SQLite local aceita um escritor por vez | O saldo cai exatamente 10 e há 10 movimentos |
+
+Prova de que o teste de XSS detecta a falha: trocar `<%= %>` por `<%- %>` no
+nome do cliente em `views/clientes/listar.ejs` faz o teste falhar; desfeito em
+seguida. Arquivos: `integration/injecao.test.js` (8 casos) e
+`integration/concorrencia.test.js` (2 casos). Suítes: **450/450 unitários e 457/457
+de integração** (+1 caso só no MySQL).
+
+**Cobertura** (`jest --coverage`, suíte completa, 13/11/2026): 85,9 % das
+linhas, 79,7 % dos desvios (if/else) e 87,6 % das funções de `src/`. As regras
+de negócio (`services/`) são as mais cobertas; os controllers — que só repassam
+a tela para a regra — são os menos.
 ---
 
 ## 4. Situação geral
