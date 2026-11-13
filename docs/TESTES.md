@@ -15,9 +15,9 @@ Cobre os três tipos de teste previstos: **de software**, **de usabilidade** e
 
 | Suíte | Casos | Passando | Falhando |
 |---|---|---|---|
-| Unitários | 443 | 443 | 0 |
-| Integração | 422 | 422 | 0 |
-| **Total** | **865** | **865** | **0** |
+| Unitários | 450 | 450 | 0 |
+| Integração | 458 | 458 | 0 |
+| **Total** | **908** | **908** | **0** |
 
 **A suíte inteira passa**, inclusive `npm test`. Até 14/10/2026 havia 3 falhas
 permanentes em `tests/integration/auth.test.js` — ver 1.5.
@@ -25,12 +25,12 @@ permanentes em `tests/integration/auth.test.js` — ver 1.5.
 **Comandos:**
 
 ```cmd
-npm run test:unit         :: 443 testes
-npm run test:integration  :: 422 testes
-npm test                  :: suíte completa — 865 testes
+npm run test:unit         :: 450 testes
+npm run test:integration  :: 458 testes
+npm test                  :: suíte completa — 908 testes
 ```
 
-### 1.2 Testes unitários — 443 casos
+### 1.2 Testes unitários — 450 casos
 
 Exercitam a regra de negócio com o Prisma substituído por dublê. Não tocam
 banco, rodam em cerca de 3 segundos.
@@ -60,7 +60,11 @@ banco, rodam em cerca de 3 segundos.
 | `authService.test.js` | 3 | Login e geração de token |
 | `formatacaoData.test.js` | 8 | Datas e horas das telas no fuso de Dourados, com o processo em UTC; vazio e inválido viram traço |
 
-### 1.3 Testes de integração — 422 casos
+### 1.3 Testes de integração — 458 casos
+
+> Desde a versão de 09/11 entraram `parcelamento`, `numeroOS`, `injecao`,
+> `concorrencia` e `entregadorMensagens` (seção 3.15–3.20); a contagem por
+> arquivo abaixo é a de 09/11. O caso de 10 saídas simultâneas só roda no MySQL.
 
 Sobem a aplicação de verdade (rota, sessão, flash, views, JWT) contra um banco
 isolado, recriado a cada suíte.
@@ -99,7 +103,7 @@ isolado, recriado a cada suíte.
 | **Integração contínua** | **MySQL 8** | **A cada push e pull request** |
 
 O CI (`.github/workflows/ci.yml`) roda num MySQL 8 de serviço e produz os mesmos
-números: **443 unitários e 422 de integração passando**. Isso importa porque o
+números: **450 unitários e 458 de integração passando**. Isso importa porque o
 SQLite não valida SQL gerado, migrations, tipos nativos, `ENUM`, constraints nem
 `$transaction` real — tudo isso passou a ser verificado automaticamente.
 
@@ -582,13 +586,15 @@ a tela para a regra — são os menos.
 
 | Tipo de teste | Situação | Evidência |
 |---|---|---|
-| **Software — unitários** | ✅ Executado | 443 passando, a cada push |
-| **Software — integração** | ✅ Executado | 422 passando em SQLite e em MySQL 8 |
+| **Software — unitários** | ✅ Executado | 450 passando, a cada push |
+| **Software — integração** | ✅ Executado | 458 passando em MySQL 8 (no SQLite, 457 + 1 que só roda no MySQL) |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
 | **Usabilidade** | ✅ Executado | 3 participantes, 15 perguntas — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |
 | **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 17 tabelas comparadas, 0 divergências |
-| **Carga e concorrência** | ⬜ Fora de escopo | — |
+| **Concorrência** | ✅ Executado | Faturar duplo, 10 saídas de estoque e 3 OS simultâneas (3.18–3.20) |
+| **Segurança (injeção, permissões)** | ✅ Executado | XSS armazenado e refletido, SQL injetado e matriz rota × perfil (3.16, 3.19) |
+| **Carga** | ⬜ Fora de escopo | — |
 
 As três atividades não executadas dependem de ação fora do código: agenda do
 consultor, acesso a máquinas com outros navegadores, e um servidor MySQL

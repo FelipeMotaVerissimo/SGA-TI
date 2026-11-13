@@ -19,7 +19,7 @@ em sete perfis, e o cliente consulta o próprio conserto sem autenticação.
 
 O desenvolvimento foi dividido em seis módulos entregues em sequência, cada um
 documentado com suas regras de negócio e decisões, e coberto por testes
-automatizados. A suíte final reúne 865 casos, executados a cada alteração por
+automatizados. A suíte final reúne 908 casos, executados a cada alteração por
 integração contínua contra um servidor MySQL. Rastreabilidade das operações e
 política de retenção de dados pessoais foram incorporadas ao final.
 
