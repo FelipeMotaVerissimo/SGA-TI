@@ -566,6 +566,7 @@ MySQL do CI.
 | Defeito | Causa | Correção |
 |---|---|---|
 | Várias gravações ao mesmo tempo (baixa de estoque, faturar, lançar peça) **travavam e caíam por tempo** após 5 s; com o banco limitado a 1 conexão, até uma gravação sozinha travava | Dentro da transação, a auditoria (NF005) lia o valor anterior por **outra conexão** e esperava; com as conexões todas presas em transações, a leitura nunca era atendida | A auditoria lê o valor anterior **pela própria transação**; o log gravado é o mesmo |
+| Corrigido o item acima, o MySQL acusou **deadlock** em 8 das 10 saídas simultâneas | O movimento era gravado antes do saldo: a chave estrangeira travava o produto para leitura e o update seguinte pedia a trava de escrita — cada saída esperava a outra | O saldo do produto é atualizado primeiro e o movimento depois; as saídas entram em fila |
 
 Medida: com o banco em 1 conexão, `estoque.test.js` e `auditoria.test.js`
 falhavam por tempo e passam com a correção (38/38); as 10 saídas simultâneas

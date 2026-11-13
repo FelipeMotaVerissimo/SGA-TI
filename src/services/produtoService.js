@@ -203,16 +203,6 @@ async function reativarProduto(id) {
  * saída deixou o saldo negativo.
  */
 async function aplicarMovimento(tx, produto, { tipo, quantidade, descricao, usuarioId }) {
-  const movimento = await tx.movimentoEstoque.create({
-    data: {
-      tipo,
-      quantidade,
-      descricao: descricao ? String(descricao).trim().slice(0, 200) : null,
-      produtoId: produto.id,
-      usuarioId: usuarioId ? Number(usuarioId) : null,
-    },
-  });
-
   // O saldo é ajustado com increment/decrement, e não com um valor calculado
   // a partir do `produto` lido antes da transação. Se duas saídas do mesmo
   // produto acontecerem ao mesmo tempo, as duas leram o mesmo saldo antigo e
@@ -223,6 +213,20 @@ async function aplicarMovimento(tx, produto, { tipo, quantidade, descricao, usua
     data:  tipo === TIPO_ENTRADA
       ? { estoque: { increment: quantidade } }
       : { estoque: { decrement: quantidade } },
+  });
+
+  // O movimento vem DEPOIS do saldo. Gravado antes, a chave estrangeira punha
+  // uma trava de leitura no produto e o update seguinte pedia a de escrita:
+  // com duas saídas simultâneas, cada uma esperava a outra (deadlock no MySQL).
+  // Atualizando o produto primeiro, as saídas entram em fila e todas passam.
+  const movimento = await tx.movimentoEstoque.create({
+    data: {
+      tipo,
+      quantidade,
+      descricao: descricao ? String(descricao).trim().slice(0, 200) : null,
+      produtoId: produto.id,
+      usuarioId: usuarioId ? Number(usuarioId) : null,
+    },
   });
 
   // O saldo verdadeiro é o que voltou do banco, não o que estava em memória.
