@@ -1,329 +1,168 @@
 # Apêndice A — Avaliação de Usabilidade do SGA TI
 
-**Instrumento de coleta — pronto para aplicar**
-Versão 1 · Outubro de 2026
+Versão 2 · Novembro de 2026 · **aplicada com três participantes**
 
 ---
 
-## Instruções para quem aplica
+## 1. Objetivo e método
 
-Este apêndice tem **cinco partes**. A ordem importa:
+A avaliação mede a usabilidade e a experiência de uso do SGA TI na opinião de quem o usou. Foi aplicado o **Questionário Genérico de Avaliação de Usabilidade e Experiência do Usuário (UX)**, no modelo definido para a 6ª Etapa do TCC: 15 perguntas abertas, respondidas individualmente, depois de o participante usar o sistema.
 
-| Parte | O quê | Quem preenche | Tempo |
-|---|---|---|---|
-| 1 | Identificação do participante | Participante | 2 min |
-| 2 | **Roteiro de tarefas** — observação | **Aplicador** | 20–30 min |
-| 3 | Escala SUS adaptada | Participante | 5 min |
-| 4 | Perguntas por tela | Participante | 10 min |
-| 5 | Questões abertas | Participante | 5 min |
+Seguiu-se o roteiro de aplicação do modelo: apresentar o objetivo, garantir que o participante usou o sistema por tempo suficiente para opinar, explicar que não há resposta certa ou errada e que o foco é a experiência pessoal de uso.
 
-> **A parte 2 vem antes da 3 de propósito.** O participante precisa ter usado o
-> sistema para opinar sobre ele. Questionário respondido sem uso mede impressão,
-> não usabilidade.
-
-### Regras durante as tarefas
-
-1. **Não ensine.** Se o participante travar, anote onde travou e aguarde 60
-   segundos antes de ajudar. O travamento é o dado.
-2. **Peça para pensar em voz alta.** "O que você está procurando agora?"
-3. **Não defenda o sistema.** Quem aplica anota, não explica.
-4. Registre o **tempo** e se a tarefa foi concluída **sem ajuda**, **com ajuda**
-   ou **não concluída**.
-
-### Participantes previstos
-
-| # | Quem | Perfil no sistema | Papel na avaliação |
-|---|---|---|---|
-| P1 | Consultor — proprietário da Lelo Informática | `ADMINISTRADOR` | Avalia aderência ao processo real da assistência |
-| P2 | Usuário de atendimento | `ATENDENTE` | Avalia o balcão: cadastro e abertura de OS |
-| P3 | Usuário técnico | `TECNICO` | Avalia a bancada: serviços e garantia |
-
-`[VALIDAR: confirmar com o orientador se três participantes bastam. A literatura
-de usabilidade (Nielsen) sustenta que 5 usuários encontram cerca de 85% dos
-problemas; com 3 a cobertura é menor, mas é o que a estrutura da empresa
-oferece.]`
-
-### Preparação do ambiente
-
-- [ ] Sistema no ar, com a massa de demonstração carregada
-- [ ] Os seis usuários criados, um por perfil (ver `docs/COMO-RODAR.md`, seção 5)
-- [ ] Navegador em janela maximizada
-- [ ] Cronômetro
-- [ ] Termo de consentimento assinado
-
----
-
-## Parte 1 — Identificação
-
-**Participante nº:** ______  **Data:** ____/____/______  **Início:** ______
-
-| Campo | Resposta |
+| Item | Situação |
 |---|---|
-| Função na empresa | |
-| Perfil usado no teste | ☐ Administrador ☐ Atendente ☐ Técnico ☐ Outro: ______ |
-| Tempo de experiência na função | ☐ menos de 1 ano ☐ 1 a 3 ☐ 3 a 10 ☐ mais de 10 |
-| Com que frequência usa computador no trabalho | ☐ raramente ☐ às vezes ☐ diariamente |
-| Já usou algum sistema de gestão de OS? | ☐ não ☐ sim — qual: __________ |
-| Hoje, como a assistência controla as ordens de serviço? | ☐ papel ☐ planilha ☐ sistema ☐ outro: ______ |
+| Participantes | 3 (o mínimo exigido pelo modelo) |
+| Período | novembro de 2026 |
+| Forma | resposta individual, por escrito |
+| Perguntas | 15, do modelo, sem alteração |
+| Nome e telefone | constam nos formulários originais, entregues em arquivo separado; não são reproduzidos aqui |
 
----
+## 2. Participantes
 
-## Parte 2 — Roteiro de tarefas (preenchido pelo aplicador)
-
-Aplique **apenas o bloco do perfil do participante**. O bloco do administrador
-inclui as tarefas transversais.
-
-### Bloco A — Atendente (telas `/clientes`, `/equipamentos`, `/ordens`)
-
-| # | Tarefa | Tela | Tempo | Resultado | Onde travou |
-|---|---|---|---|---|---|
-| A1 | Cadastre o cliente **Maria Souza**, CPF 111.222.333-44, de Dourados/MS | `/clientes/novo` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| A2 | Cadastre um **notebook Acer Aspire 5** para a Maria, com o defeito "não liga" | `/equipamentos/novo` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| A3 | Abra uma **ordem de serviço** para esse notebook | `/ordens/nova` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| A4 | Descubra o **número da OS** que você acabou de abrir | `/ordens` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| A5 | O cliente ligou: o orçamento foi aprovado. **Registre a aprovação** | `/ordens/:id` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| A6 | Veja **tudo que já foi feito** nesse notebook em atendimentos anteriores | `/equipamentos/:id/historico` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-
-### Bloco B — Técnico (telas `/ordens`, `/equipamentos/:id/historico`)
-
-| # | Tarefa | Tela | Tempo | Resultado | Onde travou |
-|---|---|---|---|---|---|
-| B1 | Encontre as OS que estão **em andamento** | `/ordens` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| B2 | Numa OS autorizada, **registre o serviço** "troca da placa-mãe", com 90 dias de garantia | `/ordens/:id` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| B3 | Diga **até quando** a garantia desse serviço vale | `/ordens/:id` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| B4 | Antes de orçar um conserto, verifique se **esse equipamento já tem serviço em garantia** | `/equipamentos/:id/historico` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| B5 | Mude o **status** de uma OS para finalizada | `/ordens/:id` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| B6 | Veja quantos serviços seus estão **em garantia vigente** | `/dashboard` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-
-### Bloco C — Administrador / gestão (consultor)
-
-| # | Tarefa | Tela | Tempo | Resultado | Onde travou |
-|---|---|---|---|---|---|
-| C1 | Descubra **quanto a empresa tem a receber** e quanto está vencido | `/dashboard` ou `/financeiro` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| C2 | Descubra **quais produtos estão com saldo negativo** | `/dashboard` ou `/produtos` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| C3 | Levante os **cinco maiores clientes** dos últimos 30 dias | `/relatorios` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| C4 | Levante o mesmo relatório **só do mês de agosto** | `/relatorios` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| C5 | **Exporte** esse relatório para abrir no Excel | `/relatorios` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| C6 | Descubra **quem alterou** o cadastro de um cliente e o que mudou | `/auditoria` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| C7 | **Feche uma OS** e verifique se a conta a receber foi gerada | `/ordens/:id` → `/financeiro` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-
-### Bloco D — Cliente (consulta pública, sem login)
-
-Aplicar com **qualquer** participante, inclusive alguém de fora da empresa.
-
-| # | Tarefa | Tela | Tempo | Resultado | Onde travou |
-|---|---|---|---|---|---|
-| D1 | Sem fazer login, descubra **em que pé está** a OS de número ______ | `/consulta` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-| D2 | Diga se o serviço feito **ainda está na garantia** | `/consulta` | ____ | ☐ sozinho ☐ com ajuda ☐ não | |
-
-### Observações do aplicador
-
-> Registre aqui o que o participante **falou**, não o que você concluiu.
-> Frases literais valem mais que interpretações.
-
-```
-_______________________________________________________________________
-
-_______________________________________________________________________
-
-_______________________________________________________________________
-```
-
----
-
-## Parte 3 — Escala SUS adaptada
-
-> **Instrução ao participante:** marque de 1 a 5 conforme sua concordância.
-> Não existe resposta certa. Se ficar em dúvida, marque o que lhe veio primeiro.
->
-> **1 = discordo totalmente · 5 = concordo totalmente**
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 |
-|---|---|:-:|:-:|:-:|:-:|:-:|
-| 1 | Eu usaria o SGA TI com frequência no meu dia a dia | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 2 | O sistema é mais complicado do que precisaria ser | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 3 | O sistema é fácil de usar | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 4 | Eu precisaria de ajuda de alguém de informática para conseguir usar | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 5 | As partes do sistema funcionam bem juntas — cadastro, ordem de serviço, estoque e financeiro conversam entre si | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 6 | O sistema se comporta de maneiras diferentes em situações parecidas | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 7 | Imagino que a maioria das pessoas aprenderia a usar rapidamente | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 8 | O sistema é desajeitado ou travado de usar | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 9 | Me senti seguro usando o sistema — sabia o que ia acontecer a cada ação | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 10 | Precisei aprender muita coisa antes de conseguir usar | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Como calcular o SUS (preenchido pelo aplicador)
-
-1. Itens **ímpares** (1, 3, 5, 7, 9): subtraia 1 da resposta → `resposta − 1`
-2. Itens **pares** (2, 4, 6, 8, 10): subtraia a resposta de 5 → `5 − resposta`
-3. Some os dez valores e **multiplique por 2,5**
-
-O resultado vai de 0 a 100. **Não é porcentagem.**
-
-| Faixa | Leitura |
-|---|---|
-| abaixo de 51 | Inaceitável |
-| 51 a 67 | Ruim |
-| 68 | Média de referência |
-| 68 a 80 | Bom |
-| acima de 80 | Excelente |
-
-**Pontuação deste participante:** ______
-
----
-
-## Parte 4 — Perguntas por tela
-
-> Responda **apenas sobre as telas que você usou** nas tarefas.
-> **1 = discordo totalmente · 5 = concordo totalmente · NA = não usei**
-
-### Entrada e visão geral
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T1 | A tela de **login** é direta: soube o que preencher sem pensar | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T2 | O **menu lateral** mostra só o que eu preciso, sem opções que não uso | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T3 | O **dashboard** responde "como está a oficina hoje?" logo na abertura | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T4 | Os números do dashboard **são os que me interessam** | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Cadastros
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T5 | O formulário de **cliente** pede os dados na ordem em que eu os recebo no balcão | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T6 | Quando erro um campo, a mensagem **diz o que fazer**, não só que está errado | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T7 | Cadastrar um **equipamento** e vinculá-lo ao cliente foi natural | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T8 | A escolha do **tipo de equipamento** (notebook, impressora...) cobre o que entra aqui | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Ordem de serviço
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T9 | A **lista de OS** deixa claro o que está esperando ação minha | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T10 | Os **status** (inicial, orçamento, autorizado, em andamento, finalizado) correspondem ao que acontece de verdade na oficina | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T11 | Na tela de **detalhe da OS** encontro tudo sobre aquele atendimento sem precisar sair dela | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T12 | Registrar o **orçamento** e a resposta do cliente é rápido | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T13 | O sistema **impede** o que não pode ser feito (lançar serviço antes da aprovação, por exemplo) de um jeito que faz sentido | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Serviços e garantia
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T14 | Registrar um **serviço executado** leva o tempo que deveria levar | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T15 | A **situação da garantia** (em garantia, vencida, sem garantia) é visível sem eu ter que calcular nada | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T16 | O **histórico do equipamento** me pouparia tempo num atendimento de retorno | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T17 | Classificar o serviço por **tipo** faz sentido para mim | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Produtos e estoque
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T18 | Lançar uma **peça na OS** é simples | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T19 | Entendi por que o sistema **permite** o saldo ficar negativo e me avisa em vez de bloquear | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T20 | A lista **"a regularizar"** me diz o que comprar | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Financeiro
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T21 | O painel financeiro mostra a situação do caixa de forma confiável | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T22 | A **conta a receber gerada automaticamente** ao fechar a OS é o comportamento que eu esperava | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T23 | Dar **baixa** numa conta é claro o bastante para não gerar erro | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Relatórios e auditoria
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T24 | Escolher o **período** do relatório é intuitivo | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T25 | Os quatro relatórios respondem perguntas que eu realmente faço | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T26 | O arquivo **CSV** abriu certo no Excel, com acento e valores corretos | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T27 | A tela de **auditoria** me daria segurança para delegar tarefas a outras pessoas | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
-### Consulta pública (cliente)
-
-| # | Afirmação | 1 | 2 | 3 | 4 | 5 | NA |
-|---|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| T28 | Um cliente conseguiria consultar a OS sozinho, sem ligar para a loja | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| T29 | A consulta mostra o que o cliente quer saber, sem expor o que não deveria | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-
----
-
-## Parte 5 — Questões abertas
-
-**1. Qual foi a parte mais difícil de usar? Por quê?**
-```
-_______________________________________________________________________
-_______________________________________________________________________
-```
-
-**2. O que no sistema não corresponde ao jeito que a assistência trabalha hoje?**
-```
-_______________________________________________________________________
-_______________________________________________________________________
-```
-
-**3. O que faltou? Cite algo que você precisaria e não encontrou.**
-```
-_______________________________________________________________________
-_______________________________________________________________________
-```
-
-**4. O que o sistema resolveria do problema que você tem hoje?**
-```
-_______________________________________________________________________
-_______________________________________________________________________
-```
-
-**5. Se pudesse mudar uma única coisa, qual seria?**
-```
-_______________________________________________________________________
-_______________________________________________________________________
-```
-
-**6. Você usaria este sistema na sua rotina? Por quê?**
-```
-☐ Sim    ☐ Sim, com ressalvas    ☐ Não
-
-_______________________________________________________________________
-```
-
----
-
-**Encerramento:** ______    **Duração total:** ______ min
-
-Assinatura do participante: _______________________________
-
----
-
-## Consolidação dos resultados (uso da dupla)
-
-Preencher após aplicar com todos os participantes. **Não preencher antes** — os
-espaços em branco são a honestidade do instrumento.
-
-### Pontuação SUS
-
-| Participante | Perfil | SUS | Leitura |
+| Participante | Idade | Conhecimento em informática | Observação |
 |---|---|---|---|
-| P1 | Administrador | | |
-| P2 | Atendente | | |
-| P3 | Técnico | | |
-| **Média** | | | |
+| P1 | 53 anos | Avançado | Consultor do sistema (seção 1.7 do trabalho) |
+| P2 | 50 anos | 26 anos de atuação na área | — |
+| P3 | 49 anos | Intermediário | — |
 
-### Taxa de conclusão das tarefas
+## 3. Respostas
 
-| Bloco | Tarefas | Sem ajuda | Com ajuda | Não concluídas |
-|---|---|---|---|---|
-| A — Atendente | 6 | | | |
-| B — Técnico | 6 | | | |
-| C — Administrador | 7 | | | |
-| D — Cliente | 2 | | | |
+As respostas abaixo foram transcritas como foram dadas.
 
-### Problemas encontrados
+**1. O sistema é fácil de aprender a usar?**
 
-| # | Problema | Tela | Gravidade | Quantos participantes | Ação |
-|---|---|---|---|---|---|
-| 1 | | | ☐ baixa ☐ média ☐ alta | | |
-| 2 | | | ☐ baixa ☐ média ☐ alta | | |
-| 3 | | | ☐ baixa ☐ média ☐ alta | | |
+- **P1:** Está bem intuitivo
+- **P2:** Sim. Achei bem intuitivo.
+- **P3:** Sim, depois de mexer um pouco já entendi o básico. No começo fiquei meio perdida.
 
-> **Critério de gravidade:** alta = impede concluir a tarefa; média = conclui mas
-> com esforço ou erro; baixa = incômodo que não impede nada.
+**2. Você consegue realizar suas tarefas sem precisar de ajuda externa?**
+
+- **P1:** Sim consegui
+- **P2:** Sim. Após a primeira explicação o sistema se torna bem fácil de manusear.
+- **P3:** A maioria sim. Só precisei perguntar uma vez como abrir uma ordem de serviço e para que serviam algumas funcionalidades.
+
+**3. As informações apresentadas na interface são claras e compreensíveis?**
+
+- **P1:** Sim
+- **P2:** Sim.
+- **P3:** No geral sim. Algumas palavras mais técnicas eu não sabia o que significavam.
+
+**4. O tempo de resposta do sistema é adequado às suas expectativas?**
+
+- **P1:** Não, acredito por esta com banco de dados gratuito ele esta lento
+- **P2:** É um pouco mais lento do que o esperado, mas nada que atrapalhe o funcionamento, até porque se trata de um site gratuito.
+- **P3:** Sim, é rápido. Não fiquei esperando carregar.
+
+**5. A navegação é intuitiva e coerente entre as diferentes telas?**
+
+- **P1:** Sim
+- **P2:** Sim, é bem intuitiva.
+- **P3:** Sim
+
+**6. Você se sente satisfeito com o design visual do sistema?**
+
+- **P1:** Sim
+- **P2:** Gostei bastante do visual, não ficou um aspecto muito carregado de informações.
+- **P3:** Sim, é bonito e organizado. Não é poluído.
+
+**7. O sistema oferece feedback adequado após cada ação executada?**
+
+- **P1:** Sim
+- **P2:** Sim.
+- **P3:** Sim, aparece uma mensagem quando salvo alguma coisa
+
+**8. Quando ocorre um erro, o sistema apresenta mensagens úteis para corrigi-lo?**
+
+- **P1:** Sim. Mensagens simples e objetivas!
+- **P2:** Para mim não apresentou nenhum erro. Apresentou somente as mensagens de ações concluídas.
+- **P3:** Quando esqueci um campo, ele avisou. Mas uma mensagem não deixou claro o que estava errado.
+
+**9. O layout e os elementos da interface são consistentes em toda a aplicação?**
+
+- **P1:** Sim
+- **P2:** Sim.
+- **P3:** Sim, parece bem fácil de reconhecer
+
+**10. O sistema facilita a realização de tarefas repetitivas ou frequentes?**
+
+- **P1:** Sim
+- **P2:** Bastante.
+- **P3:** Acho que sim. Depois que o cliente está cadastrado, fica mais rápido abrir outro serviço.
+
+**11. O sistema atende às suas necessidades no contexto em que é utilizado?**
+
+- **P1:** Sim
+- **P2:** No meu contexto financeiro apresentou a necessidade de algumas alterações que já foram passadas para o desenvolvedor.
+- **P3:** Sim, para controlar os consertos e os clientes ele resolve.
+
+**12. Você se sente confiante ao utilizar o sistema?**
+
+- **P1:** Ainda precisaria fazer mais teste!
+- **P2:** Totalmente.
+- **P3:** Até que sim. Tenho um pouco de medo de apagar algo sem querer, mas no geral sim
+
+**13. O sistema funciona bem em diferentes dispositivos (desktop, tablet, smartphone)?**
+
+- **P1:** Feito teste em desktop, tablet e smartphone e funcionou em todos
+- **P2:** Acredito que sim, testei somente em desktop e celular.
+- **P3:** Usei no computador e no celular. No celular funcionou bem
+
+**14. Você recomendaria este sistema para outras pessoas?**
+
+- **P1:** Sim, está bem intuitivo e com telas bem agradáveis
+- **P2:** Sim.
+- **P3:** Sim, recomendaria para quem tem uma assistência técnica pequena ou média parece muito bom
+
+**15. Quais aspectos você mais aprecia ou considera que devem ser transformados no sistema?**
+
+- **P1:** Como já mencionado achei bem pratico e com telas bonitas, preci9saria testar com banco de dados pago para ver a questão de desempenho
+- **P2:** Em relação ao financeiro, acredito que poderia ser melhorado.
+- **P3:** Gostei que ele é simples e organizado.
+
+## 4. Resultados
+
+### 4.1 Visão geral
+
+| Aspecto avaliado (perguntas) | Resultado nas três respostas |
+|---|---|
+| Facilidade de aprender (1) | Os três consideraram fácil; P3 relatou ter ficado "meio perdida" no começo |
+| Autonomia (2) | P1 sem ajuda; P2 após a primeira explicação; P3 precisou de ajuda uma vez |
+| Clareza das informações (3) | Positiva nos três; P3 não conhecia algumas palavras técnicas |
+| Tempo de resposta (4) | **Dividido:** P3 achou rápido; P2 achou um pouco lento; P1 achou lento |
+| Navegação (5) | Positiva nos três |
+| Design visual (6) | Positiva nos três |
+| Retorno após cada ação (7) | Positiva nos três |
+| Mensagens de erro (8) | P1 positiva; P2 não viu erro; P3 achou que uma mensagem não foi clara |
+| Consistência do layout (9) | Positiva nos três |
+| Tarefas repetitivas (10) | Positiva nos três |
+| Atende à necessidade (11) | P1 e P3 sim; P2 apontou ajustes no financeiro |
+| Confiança (12) | P2 total; P3 "até que sim", com receio de apagar algo; P1 quer testar mais |
+| Dispositivos (13) | Funcionou nos aparelhos testados: P1 em desktop, tablet e celular; P2 e P3 em desktop e celular |
+| Recomendação (14) | Os três recomendam |
+
+### 4.2 Pontos fortes
+
+- Interface considerada intuitiva, organizada e sem excesso de informação (P1, P2 e P3).
+- Navegação, layout e retorno após cada ação avaliados de forma positiva pelos três.
+- Bom funcionamento no celular, relatado pelos três; P1 também testou no tablet.
+- Os três recomendariam o sistema.
+
+### 4.3 Pontos de atenção
+
+| # | Ponto apontado | Quem | Encaminhamento |
+|---|---|---|---|
+| 1 | Tempo de resposta considerado lento. Dois participantes atribuíram a lentidão à hospedagem e ao banco de dados gratuitos | P1, P2 | Não foi medido neste trabalho. P1 sugere repetir o teste com banco de dados pago; fica como trabalho futuro |
+| 2 | Algumas palavras técnicas não foram entendidas | P3 | Revisar os rótulos e as explicações das telas |
+| 3 | Uma mensagem de validação de campo não deixou claro o que estava errado | P3 | Revisar as mensagens de validação para dizer qual campo e o que corrigir |
+| 4 | Receio de apagar algo sem querer | P3 | Reforçar os avisos de confirmação antes de exclusões |
+| 5 | O financeiro precisa de ajustes e melhorias | P2 | P2 informa que já repassou os ajustes ao desenvolvedor; fica como trabalho futuro |
+
+Estes encaminhamentos são propostas. Nenhum deles foi implementado até a data deste apêndice.
+
+## 5. Limitações
+
+- **Amostra pequena.** Três participantes é o mínimo exigido pelo modelo. A literatura de usabilidade (Nielsen) indica que cerca de cinco usuários revelam a maior parte dos problemas; com três, a cobertura é menor.
+- **Medida de opinião.** O questionário registra a percepção dos participantes. Não houve cronometragem de tarefas nem observação de onde cada um travou. O roteiro de tarefas observadas e a escala SUS, previstos no início, não foram aplicados.
+- **Aparelhos.** Apenas P1 testou no tablet; P2 e P3 usaram desktop e celular.
+- **Desempenho.** A opinião sobre o tempo de resposta não equivale a uma medição. Os participantes não informaram o equipamento nem a conexão que usaram.

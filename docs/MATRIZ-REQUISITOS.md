@@ -133,7 +133,7 @@ monografia. Entram no texto na versão seguinte. Detalhes em
 
 | ID | Enunciado | Onde está | Teste que cobre | Status |
 |---|---|---|---|---|
-| **NF001** | Usabilidade: interface simples e intuitiva para os funcionários | Layout das telas, responsivo; `docs/APENDICE-A-USABILIDADE.md` | Não é testável por máquina. A avaliação foi aplicada com o consultor; `[VALIDAR: registrar os resultados no Apêndice A]` | 🔶 parcial |
+| **NF001** | Usabilidade: interface simples e intuitiva para os funcionários | Layout das telas, responsivo; `docs/APENDICE-A-USABILIDADE.md` | Não é testável por máquina. Avaliação aplicada com 3 participantes (Apêndice A): navegação, design e layout positivos; pontos de atenção registrados | 🔶 parcial |
 | **NF002** | Segurança: autenticação de usuários para acesso seguro às informações | `authService`, `sessaoMiddleware`, `perfilMiddleware`, bcrypt, trava de tentativas de login | `perfis.test.js`, `seguranca.test.js`, `unit/authService.test.js`, `csrf.test.js` | ✅ completo |
 | **NF003** | Portabilidade: acessível por navegadores web **em computadores desktop** | Aplicação web renderizada no servidor | Chromium (desktop e celular) medido, ver `TESTES.md` 1.6. **Firefox e Safari ainda não foram testados.** O texto fala só em desktop, mas o Módulo 6 roda no celular do entregador: Enunciado reescrito na monografia 0.0.9 para "desktop e celulares". | 🔶 parcial |
 | **NF004** | Expansibilidade: permitir futuras expansões para integração com análise geográfica dos clientes (hoje implementada) | `relatorioService.porRegiao`, bloco 🗺️ em `/relatorios` e exportação CSV | `unit/relatorioService.test.js` (8 casos), `relatorios.test.js` (4 casos) | ✅ completo |

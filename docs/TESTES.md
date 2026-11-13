@@ -153,63 +153,19 @@ Honestidade vale mais que número bonito. Não há cobertura automatizada de:
 
 ## 2. Testes de usabilidade
 
-### 2.1 Instrumento
+Aplicados em novembro de 2026 com **3 participantes**, com o questionário de
+15 perguntas do modelo da 6ª Etapa. O instrumento, as respostas transcritas, a
+análise e as limitações estão no **Apêndice A** (`docs/APENDICE-A-USABILIDADE.md`).
 
-O questionário e o roteiro de tarefas estão no **Apêndice A**
-(`docs/APENDICE-A-USABILIDADE.md`), pronto para aplicar. Baseia-se na escala
-**SUS** adaptada, com perguntas específicas das telas reais do sistema.
-
-### 2.2 Como será aplicado
-
-| Etapa | Descrição | Tempo |
-|---|---|---|
-| 1 | Preparar o ambiente: sistema no ar, massa de demonstração, seis usuários criados | — |
-| 2 | Identificação do participante (Parte 1) | 2 min |
-| 3 | **Roteiro de tarefas observadas** (Parte 2), só o bloco do perfil dele | 20–30 min |
-| 4 | Escala SUS (Parte 3) | 5 min |
-| 5 | Perguntas por tela (Parte 4) | 10 min |
-| 6 | Questões abertas (Parte 5) | 5 min |
-
-**A ordem importa:** as tarefas vêm antes do questionário. Questionário
-respondido sem uso mede impressão, não usabilidade.
-
-### 2.3 Participantes
-
-| # | Quem | Perfil | Bloco de tarefas |
-|---|---|---|---|
-| P1 | Consultor — proprietário da Lelo Informática | `ADMINISTRADOR` | C (7 tarefas) + D |
-| P2 | Usuário de atendimento | `ATENDENTE` | A (6 tarefas) |
-| P3 | Usuário técnico | `TECNICO` | B (6 tarefas) |
-
-### 2.4 O que será medido
-
-| Métrica | Como |
+| Aspecto | Resultado |
 |---|---|
-| **Pontuação SUS** | 0 a 100, pela fórmula padrão. Referência de média: 68 |
-| **Taxa de conclusão** | Tarefas concluídas sem ajuda ÷ total |
-| **Tempo por tarefa** | Cronometrado pelo aplicador |
-| **Problemas por gravidade** | Alta (impede), média (atrapalha), baixa (incomoda) |
+| Navegação, design, layout, retorno após ação | Positivo nos 3 participantes |
+| Recomendariam o sistema | 3 de 3 |
+| Tempo de resposta | Dividido: 1 achou rápido, 1 um pouco lento, 1 lento (atribuído à hospedagem gratuita) |
+| Pontos de atenção | Termos técnicos, uma mensagem de validação pouco clara, receio de apagar dados, ajustes no financeiro |
 
-### 2.5 Resultados
-
-> **Ainda não aplicado.** Preencher após as sessões.
-
-| Participante | Perfil | SUS | Conclusão sem ajuda | Data |
-|---|---|---|---|---|
-| P1 | Administrador | | | |
-| P2 | Atendente | | | |
-| P3 | Técnico | | | |
-| **Média** | | | | |
-
-**Principais problemas encontrados:**
-
-| # | Problema | Tela | Gravidade | Ação tomada |
-|---|---|---|---|---|
-| | | | | |
-| | | | | |
-
-`[VALIDAR: agendar as sessões com o consultor. É a atividade com maior
-dependência externa de todo o fechamento — depende da agenda de terceiros.]`
+Medida de opinião, sem cronometragem de tarefas. Os nomes e telefones dos
+participantes ficam nos formulários originais, fora do repositório.
 
 ---
 
@@ -519,7 +475,7 @@ status da OS no servidor não mudaram.
 | **Software — unitários** | ✅ Executado | 443 passando, a cada push |
 | **Software — integração** | ✅ Executado | 422 passando em SQLite e em MySQL 8 |
 | **Software — migrations** | ✅ Executado | CI aplica as 8 e confere contra o schema |
-| **Usabilidade** | ⬜ Não executado | Instrumento pronto — Apêndice A |
+| **Usabilidade** | ✅ Executado | 3 participantes, 15 perguntas — Apêndice A |
 | **Navegadores** | 🔶 Parcial | Chromium executado (20 telas, 0 falhas) e celular emulado (10 telas a 100 %); tela do entregador em aparelho real (3.9); painel de entregas (3.10); Firefox, Safari e o restante em aparelho real pendentes |
 | **Backup e restauração** | ✅ Executado | Ciclo completo roda no CI a cada push: 17 tabelas comparadas, 0 divergências |
 | **Carga e concorrência** | ⬜ Fora de escopo | — |

@@ -59,5 +59,7 @@ automaticamente; a anonimização do cliente ainda depende de pedido. A sessão,
 controle de tentativas e a fila de posições vivem na memória do processo, o que
 basta para uma assistência, mas não para mais de uma instância. Com a tela do
 celular bloqueada o navegador interrompe o envio da localização, e rastrear em
-segundo plano exigiria um aplicativo nativo. Por fim, a avaliação de usabilidade
-e os testes em outros navegadores e aparelhos ainda precisam ser aplicados.
+segundo plano exigiria um aplicativo nativo. Por fim, a avaliação de usabilidade, feita com três participantes, foi positiva quanto à
+navegação, ao visual e ao retorno após cada ação, mas apontou lentidão na hospedagem
+gratuita, termos técnicos e ajustes no financeiro; os testes em outros navegadores e
+aparelhos ainda precisam ser aplicados.
