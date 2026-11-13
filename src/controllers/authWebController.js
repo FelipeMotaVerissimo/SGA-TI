@@ -42,6 +42,12 @@ async function dashboard(req, res) {
   // Módulo 6: o entregador não tem o que fazer no dashboard — e ele mostraria
   // as OS recentes, com nome de cliente, a quem só leva o equipamento.
   if (req.session.usuario && req.session.usuario.perfil === 'ENTREGADOR') {
+    // As mensagens desta requisição (ex.: "Acesso negado") já foram lidas
+    // para res.locals pelo middleware do app.js; sem devolvê-las à sessão,
+    // somem no redirect e o entregador volta à tela sem explicação.
+    for (const tipo of ['sucesso', 'erro', 'aviso']) {
+      for (const msg of res.locals[tipo] || []) req.flash(tipo, msg);
+    }
     return res.redirect('/entregas/saida');
   }
   try {

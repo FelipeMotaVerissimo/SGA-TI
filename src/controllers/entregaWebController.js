@@ -59,8 +59,17 @@ async function exibirSaida(req, res) {
       diasElegivel: entregaService.DIAS_ELEGIVEL,
     });
   } catch (err) {
-    req.flash('erro', err.message);
-    res.redirect('/dashboard');
+    // Não redireciona para /dashboard: para o ENTREGADOR o dashboard manda de
+    // volta para esta tela, e um erro persistente (banco fora do ar) virava
+    // um redirect sem fim. Mostra a própria tela, vazia, com a mensagem.
+    console.error('[entregas] falha ao abrir a saída:', err);
+    res.status(500).render('entregas/saida', {
+      titulo: 'Saída de entrega',
+      ativa: null,
+      elegiveis: [],
+      diasElegivel: entregaService.DIAS_ELEGIVEL,
+      erro: ['Não foi possível carregar a saída de entrega. Tente novamente em instantes.'],
+    });
   }
 }
 

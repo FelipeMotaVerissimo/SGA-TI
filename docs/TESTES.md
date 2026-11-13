@@ -490,6 +490,23 @@ integração** (SQLite, 12/11/2026).
 opcional. Numa OS com orçamento de R$ 890 em que só se lança uma peça de R$ 49,
 sem valor no serviço, a conta sai com R$ 49. O atendente precisa preencher o
 valor dos serviços para o total bater com o orçamento.
+
+### 3.16 Entregador barrado sem explicação (13/11/2026)
+
+Achado na verificação de permissões rota × perfil da bateria da 6ª Etapa. O
+entregador não tem painel: ao abrir `/dashboard` ele é mandado para a tela de
+entregas.
+
+| Defeito | Causa | Correção |
+|---|---|---|
+| Entregador que abria uma tela de outro perfil (ex.: `/clientes`) era barrado, mas voltava à tela de entregas **sem a mensagem "Acesso negado"** | A mensagem era lida no `/dashboard` (middleware do `app.js`) e se perdia no redirect seguinte | O `/dashboard` devolve as mensagens à sessão antes de mandar o entregador adiante |
+| Se a tela de entregas falhasse (banco fora do ar), ela mandava para `/dashboard`, que mandava de volta para ela: **redirect sem fim** | Erro redirecionava para o dashboard | A tela se mostra vazia, com status 500 e mensagem amigável, sem o detalhe interno do erro |
+
+Medida: `integration/entregadorMensagens.test.js` (6 casos) — **4 falham** com o
+código anterior e passam com a correção. No navegador (servidor local, perfil
+entregador, 13/11): abrir `/clientes` leva à tela de entregas com "Acesso
+negado: seu perfil (ENTREGADOR) não pode executar esta ação". Suítes:
+**447/447 unitários e 428/428 de integração**.
 ---
 
 ## 4. Situação geral
