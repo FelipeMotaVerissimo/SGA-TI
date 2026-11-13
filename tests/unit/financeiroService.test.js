@@ -150,10 +150,28 @@ describe('financeiroService', () => {
   describe('calcularValorDaOrdem', () => {
     const itens = [{ quantidade: 2, valorUnit: '100.00' }];
 
-    test('o orçamento aprovado prevalece sobre a soma das peças', () => {
-      const r = financeiro.calcularValorDaOrdem({ valorOrcamento: '890.00', itens });
-      expect(r.valor).toBe(890);
+    // Regra desde 3e859a0 (12/11/2026): cobra-se o total real da OS
+    // (serviços + peças); o orçamento só vale quando os dois somam zero.
+    test('com serviços e peças lançados, cobra serviços + peças', () => {
+      const r = financeiro.calcularValorDaOrdem({
+        valorOrcamento: '890.00', itens, servicos: [{ valor: '150.00' }, { valor: null }],
+      });
+      expect(r.valor).toBe(350);
+      expect(r.servicos).toBe(150);
       expect(r.pecas).toBe(200);
+      expect(r.orcamento).toBe(890);
+    });
+
+    test('com peças lançadas, o orçamento não é somado (nada cobrado duas vezes)', () => {
+      const r = financeiro.calcularValorDaOrdem({ valorOrcamento: '890.00', itens });
+      expect(r.valor).toBe(200);
+    });
+
+    test('sem serviços com valor e sem peças, cobra o orçamento', () => {
+      const r = financeiro.calcularValorDaOrdem({
+        valorOrcamento: '890.00', itens: [], servicos: [{ valor: null }],
+      });
+      expect(r.valor).toBe(890);
     });
 
     test('sem orçamento, cobra a soma das peças', () => {
@@ -172,6 +190,7 @@ describe('financeiroService', () => {
       numero: 'OS-2026-000104',
       valorOrcamento: '890.00',
       itens: [{ quantidade: 2, valorUnit: '24.50' }],
+      servicos: [{ valor: '300.00' }],
       equipamento: { cliente: { id: 7, nome: 'Marcos Almeida' } },
     };
 
@@ -189,17 +208,18 @@ describe('financeiroService', () => {
 
       const conta = await financeiro.gerarContaDaOrdem(tx, ordem);
 
-      expect(conta).toMatchObject({ ordemId: 4, clienteId: 7, valor: '890.00' });
+      expect(conta).toMatchObject({ ordemId: 4, clienteId: 7, valor: '349.00' }); // 300 + 49
       expect(conta.descricao).toBe('OS OS-2026-000104 — Marcos Almeida');
     });
 
-    test('as observações registram orçamento e peças, para conferência', async () => {
+    test('as observações registram serviços, peças e orçamento, para conferência', async () => {
       const tx = txFake();
 
       const conta = await financeiro.gerarContaDaOrdem(tx, ordem);
 
-      expect(conta.observacoes).toMatch(/Orçamento aprovado: R\$ 890\.00/);
-      expect(conta.observacoes).toMatch(/Peças lançadas: R\$ 49\.00/);
+      expect(conta.observacoes).toMatch(/Serviços: R\$ 300\.00/);
+      expect(conta.observacoes).toMatch(/Peças: R\$ 49\.00/);
+      expect(conta.observacoes).toMatch(/Orçamento inicial: R\$ 890\.00/);
     });
 
     test('não duplica a conta se a OS já tiver uma', async () => {
@@ -213,7 +233,7 @@ describe('financeiroService', () => {
       const tx = txFake();
 
       const conta = await financeiro.gerarContaDaOrdem(tx, {
-        ...ordem, valorOrcamento: null, itens: [],
+        ...ordem, valorOrcamento: null, itens: [], servicos: [],
       });
 
       expect(conta).toBeNull();

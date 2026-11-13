@@ -510,6 +510,30 @@ ausentes na página e campo da resposta). No navegador, depois da correção: a
 janela abre, senha errada mostra "Senha incorreta." e a certa libera o status e
 os campos. O bloqueio continua só visual, como foi desenhado: as regras de
 status da OS no servidor não mudaram.
+
+### 3.15 Regras novas do financeiro e do cadastro (12/11/2026)
+
+Os commits `3e859a0`…`80470ff` (Felipe, 12/11) mudaram duas regras **por
+decisão da dupla** e acrescentaram a coluna `formaPagamento` em
+`contas_receber` sem migration — o CI ficou vermelho. O código do Felipe foi
+mantido como está; mudaram a migration e os testes.
+
+| Regra | Antes | Agora | Testes |
+|---|---|---|---|
+| Valor da conta a receber gerada ao faturar a OS | O orçamento aprovado prevalecia; as peças só entravam sem orçamento | **Serviços + peças**; o orçamento só vale quando os dois somam zero e fica nas observações como "Orçamento inicial" | `unit/financeiroService.test.js` (3 casos de `calcularValorDaOrdem`, observações da conta), `integration/financeiro.test.js` (peças lançadas → cobra R$ 200, não R$ 890 nem R$ 1.090) |
+| Excluir cliente | Sempre permitido (exclusão lógica) | **Recusado** se o cliente tem equipamento/OS ou conta a receber | `unit/clienteService.test.js` (2 casos novos) |
+
+Migration nova: `20261112210000_conta_receber_forma_pagamento` (coluna
+opcional; recebimentos anteriores ficam sem forma).
+
+Medida: com a regra antiga do valor de volta, 3 testes falham; sem a trava da
+exclusão, 2 falham. Com o código atual: **447/447 unitários e 422/422 de
+integração** (SQLite, 12/11/2026).
+
+**Ponto de atenção** (registrado, não alterado): o valor do serviço é
+opcional. Numa OS com orçamento de R$ 890 em que só se lança uma peça de R$ 49,
+sem valor no serviço, a conta sai com R$ 49. O atendente precisa preencher o
+valor dos serviços para o total bater com o orçamento.
 ---
 
 ## 4. Situação geral
