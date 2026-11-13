@@ -5,6 +5,8 @@ jest.mock('../../src/config/database', () => ({
     create:     jest.fn(),
     update:     jest.fn(),
   },
+  equipamento:  { count: jest.fn() },
+  contaReceber: { count: jest.fn() },
 }));
 
 const prisma         = require('../../src/config/database');
@@ -46,11 +48,27 @@ describe('clienteService', () => {
 
   test('excluirCliente realiza soft delete', async () => {
     prisma.cliente.findUnique.mockResolvedValue({ id: 1, ativo: true });
+    prisma.equipamento.count.mockResolvedValue(0);
+    prisma.contaReceber.count.mockResolvedValue(0);
     prisma.cliente.update.mockResolvedValue({ id: 1, ativo: false });
     await clienteService.excluirCliente(1);
     expect(prisma.cliente.update).toHaveBeenCalledWith({
       where: { id: 1 },
       data:  { ativo: false },
     });
+  });
+
+  // Regra desde 3e859a0 (12/11/2026): cliente com equipamento/OS ou conta a
+  // receber não pode ser excluído.
+  test.each([
+    ['equipamento', 1, 0],
+    ['conta a receber', 0, 1],
+  ])('excluirCliente recusa cliente com %s vinculado', async (_, equip, contas) => {
+    prisma.cliente.findUnique.mockResolvedValue({ id: 1, ativo: true });
+    prisma.equipamento.count.mockResolvedValue(equip);
+    prisma.contaReceber.count.mockResolvedValue(contas);
+    await expect(clienteService.excluirCliente(1))
+      .rejects.toMatchObject({ status: 400, message: expect.stringMatching(/Não é possível excluir/) });
+    expect(prisma.cliente.update).not.toHaveBeenCalled();
   });
 });

@@ -75,7 +75,9 @@ describe('conta a receber gerada no faturamento da OS', () => {
     expect(atualizada.dataFechamento).toBeInstanceOf(Date);
   });
 
-  test('o orçamento prevalece sobre a soma das peças — nada é cobrado duas vezes', async () => {
+  // Regra desde 3e859a0 (12/11/2026): cobra serviços + peças; o orçamento
+  // fica só como referência e não é somado às peças.
+  test('com peças lançadas, cobra as peças — o orçamento não é somado', async () => {
     const vendedor = await logar(request, app, 'vendedor');
     await vendedor.post(`/ordens/${dados.ordens.andamento.id}/itens`).type('form')
       .send({ produtoId: String(dados.produtos.normal.id), quantidade: '2' }); // R$ 200 em peças
@@ -86,8 +88,8 @@ describe('conta a receber gerada no faturamento da OS', () => {
       where: { ordemId: dados.ordens.andamento.id },
     });
 
-    expect(Number(conta.valor)).toBe(890);            // e não 890 + 200
-    expect(conta.observacoes).toContain('Peças lançadas');
+    expect(Number(conta.valor)).toBe(200);            // e não 890 + 200
+    expect(conta.observacoes).toContain('Orçamento inicial: R$ 890.00');
   });
 
   test('faturar duas vezes não duplica a conta', async () => {
