@@ -507,6 +507,22 @@ código anterior e passam com a correção. No navegador (servidor local, perfil
 entregador, 13/11): abrir `/clientes` leva à tela de entregas com "Acesso
 negado: seu perfil (ENTREGADOR) não pode executar esta ação". Suítes:
 **447/447 unitários e 428/428 de integração**.
+
+### 3.17 Parcelamento de conta a pagar com valores no limite (13/11/2026)
+
+Achado nos testes de valores-limite da bateria da 6ª Etapa, no parcelamento
+novo de contas a pagar. A correção mantém a regra do Felipe (1x a 60x, sobra de
+centavos na 1ª parcela); só muda o arredondamento e o tratamento do valor inválido.
+
+| Defeito | Causa | Correção |
+|---|---|---|
+| Valor pequeno em muitas parcelas gerava **parcela negativa ou zerada** (R$ 0,20 em 24x → 1ª de -R$ 0,03; R$ 0,01 em 2x → 1ª de R$ 0,00) — alcançável pela tela normal | A parcela base era arredondada para o centavo mais próximo; quando subia, a "sobra" ficava negativa e era descontada da 1ª | Conta em centavos, parcela base arredondada para baixo (a sobra é sempre positiva); valor que não dá R$ 0,01 por parcela é recusado com mensagem |
+| `parcelas` com texto (formulário adulterado) **não gravava nada, mas a tela dizia "sucesso"** | O texto virava `NaN` e o laço de parcelas não rodava | Valor não numérico vale 1x, como o 0 já valia |
+
+Medida: `integration/parcelamento.test.js` (18 casos: soma exata, parcelas ≥
+R$ 0,01, sobra só na 1ª, divisão de R$ 100,00 em 3x inalterada, recusa, valores
+inválidos e limite de 60x) — **4 falham** com o código anterior e passam com a
+correção. Suítes: **447/447 unitários e 446/446 de integração**.
 ---
 
 ## 4. Situação geral

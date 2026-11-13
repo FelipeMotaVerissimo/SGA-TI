@@ -166,7 +166,9 @@ async function criarConta(tipo, dados) {
     }
 
     // 2. Parcelamento (1x até 60x)
-    const totalParcelas = Math.max(1, Math.min(60, parseInt(dados.parcelas || 1, 10)));
+    // Valor que não é número (formulário adulterado) vale 1x, como o 0 já valia;
+    // sem isso o cálculo virava NaN, nada era gravado e a tela dizia "sucesso".
+    const totalParcelas = Math.max(1, Math.min(60, parseInt(dados.parcelas || 1, 10) || 1));
 
     const obsUnidade = vUnit > 0 && qtd > 1
       ? ` (${qtd} un. × R$ ${vUnit.toFixed(2)})`
@@ -183,9 +185,18 @@ async function criarConta(tipo, dados) {
       });
     }
 
-    // Divide o valor entre as parcelas ajustando eventual centavo de arredondamento na 1ª
-    const valorParcelaBase = Number((valorTotal / totalParcelas).toFixed(2));
-    const diferencaCentavos = Number((valorTotal - valorParcelaBase * totalParcelas).toFixed(2));
+    // Divide o valor entre as parcelas ajustando eventual centavo de arredondamento na 1ª.
+    // A conta é feita em centavos e a parcela base é arredondada para baixo: assim a
+    // sobra é sempre positiva e vai para a 1ª. Arredondar para cima podia deixar a
+    // 1ª parcela zerada ou negativa (ex.: R$ 0,20 em 24x dava -R$ 0,03).
+    const totalCentavos = Math.round(valorTotal * 100);
+    if (totalCentavos < totalParcelas) {
+      throw erro(
+        `O valor total não comporta ${totalParcelas} parcelas: cada parcela precisa ser de pelo menos R$ 0,01.`
+      );
+    }
+    const valorParcelaBase = Math.floor(totalCentavos / totalParcelas) / 100;
+    const diferencaCentavos = (totalCentavos - Math.floor(totalCentavos / totalParcelas) * totalParcelas) / 100;
 
     const registros = [];
     for (let i = 0; i < totalParcelas; i++) {
