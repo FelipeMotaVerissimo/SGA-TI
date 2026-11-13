@@ -523,6 +523,21 @@ Medida: `integration/parcelamento.test.js` (18 casos: soma exata, parcelas ≥
 R$ 0,01, sobra só na 1ª, divisão de R$ 100,00 em 3x inalterada, recusa, valores
 inválidos e limite de 60x) — **4 falham** com o código anterior e passam com a
 correção. Suítes: **447/447 unitários e 446/446 de integração**.
+
+### 3.18 Número da OS repetido (13/11/2026)
+
+Achado nos testes de concorrência da bateria da 6ª Etapa. O número da OS é o
+ano mais os **6 últimos dígitos do relógio em milissegundos** — formato mantido.
+
+| Defeito | Causa | Correção |
+|---|---|---|
+| Duas OS abertas no mesmo milissegundo recebiam o mesmo número; a 2ª **falhava** (3 simultâneas → 1 aberta, 2 recusadas) | Mesmo relógio, mesmo número; o índice único recusa | Quando o banco recusa o número repetido, a abertura tenta outro (6 dígitos sorteados), até 5 vezes |
+| O número **se repete a cada 16 min 40 s**: uma OS nova podia cair no número de uma antiga e não abrir (com 1.000 OS no ano, chance acima de 35 % de acontecer ao menos uma vez) | Os 6 dígitos do relógio "dão a volta" a cada 1.000.000 ms | A mesma nova tentativa |
+| Na falha, o atendente via a mensagem técnica do banco, com caminho interno do servidor | O erro do Prisma ia direto para a tela | Esgotadas as tentativas, mensagem amigável; outros erros seguem como antes |
+
+Medida: `unit/numeroOS.test.js` (3 casos) e `integration/numeroOS.test.js` (2
+casos, relógio simulado) — **4 falham** com o código anterior e passam com a
+correção. Suítes: **450/450 unitários e 448/448 de integração**.
 ---
 
 ## 4. Situação geral

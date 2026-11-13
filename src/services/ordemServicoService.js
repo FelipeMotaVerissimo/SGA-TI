@@ -47,10 +47,25 @@ function validarValorOrcamento(bruto) {
   return valor.toFixed(2);
 }
 
-function gerarNumeroOS() {
+// A 1ª tentativa usa o relógio, como sempre; as seguintes, 6 dígitos sorteados.
+// Os 6 últimos dígitos do relógio se repetem a cada 16 min 40 s e são iguais
+// para duas OS abertas no mesmo milissegundo — sem nova tentativa, o número
+// repetido batia no índice único e a abertura falhava.
+const TENTATIVAS_NUMERO_OS = 5;
+
+function gerarNumeroOS(tentativa = 0) {
   const ano = new Date().getFullYear();
-  const seq = Date.now().toString().slice(-6);
+  const seq = tentativa === 0
+    ? Date.now().toString().slice(-6)
+    : String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
   return `OS-${ano}-${seq}`;
+}
+
+/** Erro do Prisma de valor repetido no campo `numero` (índice único). */
+function numeroRepetido(err) {
+  if (!err || err.code !== 'P2002') return false;
+  const alvo = err.meta && err.meta.target;
+  return !alvo || String(alvo).includes('numero');
 }
 
 async function listarOrdens(filtros = {}) {
@@ -115,15 +130,24 @@ async function buscarOrdemPorNumero(numero) {
 }
 
 async function abrirOrdem(dados, usuarioId) {
-  return prisma.ordemServico.create({
-    data: {
-      numero:          gerarNumeroOS(),
-      defeitoRelatado: dados.defeitoRelatado,
-      observacoes:     dados.observacoes || null,
-      equipamentoId:   Number(dados.equipamentoId),
-      usuarioId:       Number(usuarioId),
-    },
-  });
+  for (let tentativa = 0; ; tentativa++) {
+    try {
+      return await prisma.ordemServico.create({
+        data: {
+          numero:          gerarNumeroOS(tentativa),
+          defeitoRelatado: dados.defeitoRelatado,
+          observacoes:     dados.observacoes || null,
+          equipamentoId:   Number(dados.equipamentoId),
+          usuarioId:       Number(usuarioId),
+        },
+      });
+    } catch (err) {
+      if (!numeroRepetido(err)) throw err;
+      if (tentativa + 1 >= TENTATIVAS_NUMERO_OS) {
+        throw erro('Não foi possível gerar um número livre para a OS. Tente novamente.', 503);
+      }
+    }
+  }
 }
 
 /**
