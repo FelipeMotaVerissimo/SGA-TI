@@ -1,3 +1,4 @@
+const { AsyncLocalStorage } = require('async_hooks');
 const contexto = require('../config/contextoRequisicao');
 
 /**
@@ -27,6 +28,14 @@ const contexto = require('../config/contextoRequisicao');
  *
  *  - **Falha ao gravar o log nunca propaga.** O `catch` é silencioso de
  *    propósito: auditoria não pode derrubar atendimento no balcão.
+ *
+ *  - **O valor anterior é lido pela própria transação, quando houver uma.**
+ *    Lido pelo cliente base, a leitura pede uma 2ª conexão enquanto a
+ *    transação segura a 1ª. Com várias transações ao mesmo tempo, todas as
+ *    conexões do pool ficavam presas esperando outra que nunca vagava, e as
+ *    operações caíam por tempo (10 saídas de estoque simultâneas no MySQL do
+ *    CI; com o pool em 1 conexão, até uma única). `database.js` guarda o
+ *    cliente da transação em curso em `transacaoAtual` para esta leitura.
  *
  *  - **`senha` nunca entra no log.** O registro diz que a senha mudou, jamais
  *    qual é — nem o hash.
@@ -92,6 +101,9 @@ function extrairRegistroId(args) {
  */
 const pendentes = new Set();
 
+/** Cliente da `$transaction` interativa em curso (ver `database.js`), ou vazio. */
+const transacaoAtual = new AsyncLocalStorage();
+
 /**
  * Espera as gravações de log em voo.
  *
@@ -134,7 +146,8 @@ function criarExtensao(clienteBase) {
           let valorAnterior = null;
           if (OPERACOES_REGISTRO_UNICO.has(operation) && args && args.where) {
             try {
-              const antes = await clienteBase[model[0].toLowerCase() + model.slice(1)]
+              const leitor = transacaoAtual.getStore() || clienteBase;
+              const antes = await leitor[model[0].toLowerCase() + model.slice(1)]
                 .findUnique({ where: args.where });
               valorAnterior = serializar(antes);
             } catch {
@@ -171,6 +184,7 @@ function criarExtensao(clienteBase) {
 
 module.exports = {
   criarExtensao,
+  transacaoAtual,
   aguardarGravacoes,
   // exportados para teste
   serializar,

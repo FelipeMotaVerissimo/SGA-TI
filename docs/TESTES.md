@@ -538,6 +538,43 @@ ano mais os **6 últimos dígitos do relógio em milissegundos** — formato man
 Medida: `unit/numeroOS.test.js` (3 casos) e `integration/numeroOS.test.js` (2
 casos, relógio simulado) — **4 falham** com o código anterior e passam com a
 correção. Suítes: **450/450 unitários e 448/448 de integração**.
+
+### 3.19 Bateria de segurança e robustez — o que passou (13/11/2026)
+
+Testes da 6ª Etapa que **não acharam defeito**; ficam na suíte para que uma
+mudança futura não abra a brecha.
+
+| Teste | Como foi feito | Resultado |
+|---|---|---|
+| Script injetado guardado no banco (XSS armazenado) | Script, atributo de evento e trecho de SQL gravados em cliente, equipamento, OS, serviço, produto e contas; 14 telas internas abertas como administrador | Nenhuma tela traz o script cru; o texto aparece escapado (`&lt;script&gt;`) |
+| Script na consulta pública (armazenado e refletido) | Consulta da OS envenenada e consulta com script no lugar do número | Escapado nos dois casos |
+| SQL injetado | Texto com `DROP TABLE` gravado; buscas de clientes, OS, produtos e auditoria com `' OR '1'='1`, `;`, `%` e `_` | Gravado como texto comum, nenhuma tabela afetada, nenhuma mensagem de erro do banco na tela |
+| Faturar a mesma OS duas vezes ao mesmo tempo (clique duplo) | Duas chamadas simultâneas | Uma conta a receber só; OS finalizada |
+| 10 saídas de estoque simultâneas do mesmo produto | Só no MySQL (CI) — o SQLite local aceita um escritor por vez | O saldo cai exatamente 10 e há 10 movimentos |
+
+Prova de que o teste de XSS detecta a falha: trocar `<%= %>` por `<%- %>` no
+nome do cliente em `views/clientes/listar.ejs` faz o teste falhar; desfeito em
+seguida. Arquivos: `integration/injecao.test.js` (8 casos) e
+`integration/concorrencia.test.js` (2 casos). Suítes: **450/450 unitários e 457/457
+de integração** (+1 caso só no MySQL).
+
+### 3.20 Gravações simultâneas travavam na auditoria (13/11/2026)
+
+Achado pelo teste de 10 saídas de estoque simultâneas (3.19), que falhou no
+MySQL do CI.
+
+| Defeito | Causa | Correção |
+|---|---|---|
+| Várias gravações ao mesmo tempo (baixa de estoque, faturar, lançar peça) **travavam e caíam por tempo** após 5 s; com o banco limitado a 1 conexão, até uma gravação sozinha travava | Dentro da transação, a auditoria (NF005) lia o valor anterior por **outra conexão** e esperava; com as conexões todas presas em transações, a leitura nunca era atendida | A auditoria lê o valor anterior **pela própria transação**; o log gravado é o mesmo |
+
+Medida: com o banco em 1 conexão, `estoque.test.js` e `auditoria.test.js`
+falhavam por tempo e passam com a correção (38/38); as 10 saídas simultâneas
+passam no MySQL do CI.
+
+**Cobertura** (`jest --coverage`, suíte completa, 13/11/2026): 85,9 % das
+linhas, 79,7 % dos desvios (if/else) e 87,6 % das funções de `src/`. As regras
+de negócio (`services/`) são as mais cobertas; os controllers — que só repassam
+a tela para a regra — são os menos.
 ---
 
 ## 4. Situação geral
