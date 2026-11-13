@@ -74,8 +74,22 @@ async function atualizarCliente(id, dados) {
 }
 
 async function excluirCliente(id) {
-  await buscarClientePorId(id);
-  return prisma.cliente.update({ where: { id: Number(id) }, data: { ativo: false } });
+  const cliente = await buscarClientePorId(id);
+
+  // Verifica se o cliente possui equipamentos/OS ou contas a receber vinculadas
+  const [totalEquipamentos, totalContas] = await Promise.all([
+    prisma.equipamento.count({ where: { clienteId: cliente.id } }),
+    prisma.contaReceber.count({ where: { clienteId: cliente.id } }),
+  ]);
+
+  if (totalEquipamentos > 0 || totalContas > 0) {
+    throw Object.assign(
+      new Error('Não é possível excluir este cliente pois ele já possui equipamentos, Ordens de Serviço ou registros financeiros vinculados.'),
+      { status: 400 }
+    );
+  }
+
+  return prisma.cliente.update({ where: { id: cliente.id }, data: { ativo: false } });
 }
 
 module.exports = { listarClientes, buscarClientePorId, criarCliente, atualizarCliente, excluirCliente };

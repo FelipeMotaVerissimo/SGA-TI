@@ -69,16 +69,18 @@ async function criar(req, res) {
   const rota = req.params.tipo;
   try {
     const tipo = tipoDaRota(rota);
-    await financeiroService.criarConta(tipo, req.body);
+    const resultado = await financeiroService.criarConta(tipo, req.body);
 
-    req.flash('sucesso',
-      tipo === financeiroService.TIPO_PAGAR
-        ? 'Conta a pagar registrada com sucesso!'
-        : 'Conta a receber registrada com sucesso!');
+    const qtdParcelas = Array.isArray(resultado) ? resultado.length : 1;
+    const msgSucesso = tipo === financeiroService.TIPO_PAGAR
+      ? (qtdParcelas > 1
+          ? `Conta a pagar parcelada em ${qtdParcelas}x registrada com sucesso!`
+          : 'Conta a pagar registrada com sucesso!')
+      : 'Conta a receber registrada com sucesso!';
+
+    req.flash('sucesso', msgSucesso);
     res.redirect('/financeiro');
   } catch (err) {
-    // Igual ao cadastro de produtos: o erro vai direto para a view, porque
-    // res.locals.erro já foi resolvido no início desta requisição.
     const tipo = rota === 'pagar' ? financeiroService.TIPO_PAGAR : financeiroService.TIPO_RECEBER;
     const clientes = tipo === financeiroService.TIPO_RECEBER
       ? await clienteService.listarClientes()
@@ -130,7 +132,11 @@ async function atualizar(req, res) {
 async function quitar(req, res) {
   try {
     await financeiroService.quitarConta(
-      tipoDaRota(req.params.tipo), req.params.id, req.session.usuario.id
+      tipoDaRota(req.params.tipo),
+      req.params.id,
+      req.session.usuario.id,
+      req.body.formaPagamento,
+      req.body.parcelasCredito
     );
     req.flash('sucesso', 'Conta quitada com sucesso!');
   } catch (err) {

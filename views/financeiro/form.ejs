@@ -37,18 +37,50 @@
             </div>
           </div>
 
+          <% if (tipo === 'PAGAR' && (!conta || !conta.id)) { %>
           <div class="form-row">
             <div class="form-group">
-              <label>Valor (R$) *</label>
-              <input type="text" name="valor" placeholder="0,00" required
-                value="<%= conta ? (conta.valor || '') : '' %>">
+              <label>Valor por Unidade (R$) <span style="font-weight:normal; color:#888">(opcional)</span></label>
+              <input type="text" id="pagar-valor-unitario" name="valorUnitario" placeholder="0,00"
+                value="<%= conta ? (conta.valorUnitario || '') : '' %>">
             </div>
             <div class="form-group">
-              <label>Vencimento *</label>
+              <label>Quantidade de Unidades</label>
+              <input type="number" id="pagar-quantidade" name="quantidade" min="1" max="99999" step="1"
+                value="<%= conta && conta.quantidade ? conta.quantidade : '1' %>">
+            </div>
+          </div>
+          <% } %>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valor Total (R$) *</label>
+              <input type="text" id="pagar-valor-total" name="valor" placeholder="0,00" required
+                value="<%= conta ? (conta.valor || '') : '' %>">
+              <small id="pagar-resumo-parcela" style="color:#185FA5; display:block; margin-top:4px"></small>
+            </div>
+            <div class="form-group">
+              <label><%= tipo === 'PAGAR' && (!conta || !conta.id) ? '1º Vencimento *' : 'Vencimento *' %></label>
               <input type="date" name="vencimento" required
                 value="<%= conta ? (conta.vencimento || '') : '' %>">
             </div>
           </div>
+
+          <% if (tipo === 'PAGAR' && (!conta || !conta.id)) { %>
+          <div class="form-row full">
+            <div class="form-group">
+              <label>Parcelamento</label>
+              <select id="pagar-parcelas" name="parcelas">
+                <option value="1" selected>À vista (1x)</option>
+                <% for (let p = 2; p <= 24; p++) { %>
+                <option value="<%= p %>" <%= conta && String(conta.parcelas) === String(p) ? 'selected' : '' %>>
+                  <%= p %>x mensais
+                </option>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          <% } %>
 
           <div class="form-row full">
             <% if (tipo === 'PAGAR') { %>
@@ -89,5 +121,6 @@
       </div>
     </div>
   </div>
+  <script src="/js/financeiro.js" defer></script>
 </body>
 </html>

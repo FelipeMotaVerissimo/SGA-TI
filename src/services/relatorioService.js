@@ -102,7 +102,11 @@ async function maioresClientes(filtros = {}) {
       dataAbertura: { gte: de, lte: ate },
       status:       { notIn: STATUS_FORA_DO_FATURAMENTO },
     },
-    include: { equipamento: { include: { cliente: true } } },
+    include: {
+      equipamento: { include: { cliente: true } },
+      servicos:    true,
+      itens:       true,
+    },
   });
 
   const porCliente = new Map();
@@ -118,7 +122,7 @@ async function maioresClientes(filtros = {}) {
       aprovado:  0,
     };
 
-    const valor = Number(os.valorOrcamento || 0);
+    const valor = calcularValorTotalOS(os);
     atual.ordens += 1;
     atual.total  += valor;
     if (STATUS_APROVADOS.includes(os.status)) atual.aprovado += valor;
@@ -332,7 +336,11 @@ async function porRegiao(filtros = {}) {
       dataAbertura: { gte: de, lte: ate },
       status:       { notIn: STATUS_FORA_DO_FATURAMENTO },
     },
-    include: { equipamento: { include: { cliente: true } } },
+    include: {
+      equipamento: { include: { cliente: true } },
+      servicos:    true,
+      itens:       true,
+    },
   });
 
   const porLugar = new Map();
@@ -355,7 +363,7 @@ async function porRegiao(filtros = {}) {
       aprovado: 0,
     };
 
-    const valor = Number(os.valorOrcamento || 0);
+    const valor = calcularValorTotalOS(os);
     atual.ordens += 1;
     atual.clientes.add(cliente.id);
     atual.total += valor;
@@ -407,6 +415,20 @@ async function indicadoresGarantia() {
   });
 
   return { vigentes: vigentes.length, vencendoEm15Dias: vencendo.length };
+}
+
+/**
+ * Calcula o valor consolidado da OS (Serviços Executados + Peças Utilizadas),
+ * utilizando o valor do orçamento como fallback caso não haja lançamentos.
+ */
+function calcularValorTotalOS(os) {
+  const totalServicos = (os.servicos || []).reduce((acc, s) => acc + Number(s.valor || 0), 0);
+  const totalPecas    = (os.itens || []).reduce(
+    (acc, i) => acc + Number(i.valorUnit || 0) * Number(i.quantidade || 1),
+    0
+  );
+  const totalReal = totalServicos + totalPecas;
+  return totalReal > 0 ? totalReal : Number(os.valorOrcamento || 0);
 }
 
 module.exports = {

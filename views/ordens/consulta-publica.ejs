@@ -3,6 +3,31 @@
   // hospedagem roda em UTC e mostraria a hora adiantada.
   const FUSO = { timeZone: 'America/Campo_Grande' };
   const entrega = locals.entrega || null;
+
+  // Cálculo financeiro para exibição ao cliente
+  let valorExibido = 0;
+  let rotuloValor  = 'Valor Total';
+
+  if (ordem) {
+    const totalServicosPublico = (servicos || ordem.servicos || []).reduce(
+      (acc, s) => acc + Number(s.valor || 0),
+      0
+    );
+    const totalPecasPublico = (ordem.itens || []).reduce(
+      (acc, i) => acc + Number(i.valorUnit || 0) * Number(i.quantidade || 1),
+      0
+    );
+    const totalConsolidado = totalServicosPublico + totalPecasPublico;
+    const orcamentoInicial = Number(ordem.valorOrcamento || 0);
+
+    if (ordem.status === 'CANCELADO') {
+      rotuloValor  = 'Valor do Orçamento (Taxa de Diagnóstico)';
+      valorExibido = orcamentoInicial;
+    } else {
+      rotuloValor  = 'Valor Total';
+      valorExibido = totalConsolidado > 0 ? totalConsolidado : orcamentoInicial;
+    }
+  }
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -48,7 +73,9 @@
           </div>
           <div>
             <span style="font-size:12px; color:#888; display:block">Status Atual</span>
-            <span class="badge badge-azul" style="font-size:13px"><%= ordem.status.replace('_',' ') %></span>
+            <span class="badge badge-azul" style="font-size:13px">
+              <%= ordem.status === 'FINALIZADO' ? 'CONCLUÍDO' : ordem.status.replace('_',' ') %>
+            </span>
           </div>
           <div>
             <span style="font-size:12px; color:#888; display:block">Equipamento</span>
@@ -64,10 +91,10 @@
             <strong><%= dataBR(ordem.previsaoEntrega) %></strong>
           </div>
           <% } %>
-          <% if (ordem.valorOrcamento) { %>
+          <% if (valorExibido > 0) { %>
           <div>
-            <span style="font-size:12px; color:#888; display:block">Valor do Orçamento</span>
-            <strong>R$ <%= Number(ordem.valorOrcamento).toFixed(2) %></strong>
+            <span style="font-size:12px; color:#888; display:block"><%= rotuloValor %></span>
+            <strong style="font-size:16px; color:#185FA5">R$ <%= valorExibido.toFixed(2) %></strong>
           </div>
           <% } %>
           <% if (ordem.dataAbertura) { %>

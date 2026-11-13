@@ -84,7 +84,21 @@ async function buscarOrdemPorId(id) {
     },
   });
   if (!ordem) throw Object.assign(new Error('Ordem de serviço não encontrada.'), { status: 404 });
-  return ordem;
+
+  // Calcula os totais financeiros da OS
+  const totalServicos = (ordem.servicos || []).reduce((acc, s) => acc + Number(s.valor || 0), 0);
+  const totalProdutos = (ordem.itens || []).reduce(
+    (acc, i) => acc + Number(i.valorUnit || 0) * Number(i.quantidade || 1),
+    0
+  );
+  const totalGeral = totalServicos + totalProdutos;
+
+  return {
+    ...ordem,
+    totalServicos,
+    totalProdutos,
+    totalGeral,
+  };
 }
 
 async function buscarOrdemPorNumero(numero) {
@@ -93,6 +107,7 @@ async function buscarOrdemPorNumero(numero) {
     include: {
       equipamento: { include: { cliente: true } },
       servicos:    { include: { tipoServico: true }, orderBy: { executadoEm: 'desc' } }, // M3 p2 + M5
+      itens:       { include: { produto: true } }, // <-- ADICIONADO PARA SOMAR AS PEÇAS NA CONSULTA
     },
   });
   if (!ordem) throw Object.assign(new Error('Ordem de serviço não encontrada.'), { status: 404 });
@@ -151,8 +166,6 @@ async function atualizarStatus(id, status, opcoes = {}) {
 async function registrarOrcamento(id, dados) {
   const ordem = await buscarOrdemPorId(id);
 
-  // Sem esta trava, salvar o orçamento de novo jogava a OS de volta para
-  // ORCAMENTO e apagava a data de aprovação, mesmo com serviços já registrados.
   if (!STATUS_PERMITE_ORCAMENTO.includes(ordem.status)) {
     throw erro(
       `Não é possível alterar o orçamento de uma OS com status ${ordem.status.replace('_', ' ')}. ` +
@@ -166,8 +179,11 @@ async function registrarOrcamento(id, dados) {
     status:          'ORCAMENTO',
   };
 
-  // A data de aprovação é definida por aprovarOrcamento. Só é tocada aqui
-  // se o formulário enviar o campo explicitamente.
+  // Permite salvar ou atualizar o que será feito no serviço/orçamento
+  if (dados.descricaoOrcamento !== undefined || dados.observacoes !== undefined) {
+    data.observacoes = String(dados.descricaoOrcamento || dados.observacoes || '').trim() || null;
+  }
+
   if (dados.dataAprovacao !== undefined) {
     data.dataAprovacao = parseDataLocal(dados.dataAprovacao);
   }
