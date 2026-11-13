@@ -245,7 +245,7 @@ async function editarConta(tipo, id, dados) {
   return tabela(tipo).update({ where: { id: conta.id }, data });
 }
 
-async function quitarConta(tipo, id, usuarioId = null, formaPagamento = null) {
+async function quitarConta(tipo, id, usuarioId = null, formaPagamento = null, parcelasCredito = 1) {
   const conta = await buscarConta(tipo, id);
 
   if (conta.situacao !== ABERTA) {
@@ -261,10 +261,18 @@ async function quitarConta(tipo, id, usuarioId = null, formaPagamento = null) {
   };
 
   if (tipo === TIPO_RECEBER) {
-    const metodo = String(formaPagamento || '').trim();
+    let metodo = String(formaPagamento || '').trim();
     if (!metodo) {
       throw erro('Selecione o método de pagamento utilizado no recebimento.');
     }
+
+    if (metodo === 'Cartão de Crédito') {
+      const parc = Math.max(1, Math.min(12, parseInt(parcelasCredito || 1, 10)));
+      metodo = parc > 1
+        ? `Cartão de Crédito (${parc}x)`
+        : 'Cartão de Crédito (À vista)';
+    }
+
     dadosAtualizacao.formaPagamento = metodo;
     dadosAtualizacao.observacoes = conta.observacoes
       ? `${conta.observacoes} | Recebido via: ${metodo}`

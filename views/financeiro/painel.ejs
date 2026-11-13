@@ -203,7 +203,7 @@
     </div>
   </div>
 
-  <!-- Modal de seleção do Método de Pagamento (Contas a Receber) -->
+<!-- Modal de seleção do Método de Pagamento (Contas a Receber) -->
   <div id="modal-forma-pagamento" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center">
     <div style="background:#fff; padding:24px; border-radius:8px; width:100%; max-width:400px; box-shadow:0 4px 20px rgba(0,0,0,0.2)">
       <h3 style="margin-top:0; margin-bottom:8px; font-size:16px">Confirmar Recebimento</h3>
@@ -213,7 +213,7 @@
         <%- include('../partials/csrf') %>
         <div class="form-group" style="margin-bottom:16px">
           <label>Método de Pagamento *</label>
-          <select name="formaPagamento" required>
+          <select id="select-forma-pagamento" name="formaPagamento" required>
             <option value="">Selecione...</option>
             <option value="PIX">PIX</option>
             <option value="Dinheiro">Dinheiro</option>
@@ -221,6 +221,16 @@
             <option value="Cartão de Débito">Cartão de Débito</option>
             <option value="Transferência Bancária">Transferência Bancária</option>
             <option value="Boleto">Boleto</option>
+          </select>
+        </div>
+
+        <div id="grupo-parcelas-credito" class="form-group" style="display:none; margin-bottom:16px">
+          <label>Condição no Cartão de Crédito *</label>
+          <select id="select-parcelas-credito" name="parcelasCredito">
+            <option value="1">À vista (1x)</option>
+            <% for (let p = 2; p <= 12; p++) { %>
+            <option value="<%= p %>">Parcelado em <%= p %>x</option>
+            <% } %>
           </select>
         </div>
 

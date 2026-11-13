@@ -135,7 +135,8 @@ async function quitar(req, res) {
       tipoDaRota(req.params.tipo),
       req.params.id,
       req.session.usuario.id,
-      req.body.formaPagamento
+      req.body.formaPagamento,
+      req.body.parcelasCredito
     );
     req.flash('sucesso', 'Conta quitada com sucesso!');
   } catch (err) {

@@ -33,10 +33,27 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // 2. Modal de Método de Pagamento ao Receber (Contas a Receber)
-  const modal        = document.getElementById('modal-forma-pagamento');
-  const formModal    = document.getElementById('form-quitar-receber');
-  const descModal    = document.getElementById('modal-conta-descricao');
-  const btnFechar    = document.getElementById('btn-fechar-modal-pagamento');
+  const modal          = document.getElementById('modal-forma-pagamento');
+  const formModal      = document.getElementById('form-quitar-receber');
+  const descModal      = document.getElementById('modal-conta-descricao');
+  const btnFechar      = document.getElementById('btn-fechar-modal-pagamento');
+  const selectForma    = document.getElementById('select-forma-pagamento');
+  const grupoParcelas  = document.getElementById('grupo-parcelas-credito');
+  const selectParcelas = document.getElementById('select-parcelas-credito');
+
+  function atualizarVisibilidadeParcelas() {
+    if (!selectForma || !grupoParcelas) return;
+    if (selectForma.value === 'Cartão de Crédito') {
+      grupoParcelas.style.display = 'block';
+    } else {
+      grupoParcelas.style.display = 'none';
+      if (selectParcelas) selectParcelas.value = '1';
+    }
+  }
+
+  if (selectForma) {
+    selectForma.addEventListener('change', atualizarVisibilidadeParcelas);
+  }
 
   document.querySelectorAll('.btn-abrir-receber').forEach((btn) => {
     btn.addEventListener('click', function () {
@@ -45,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (descModal) {
         descModal.textContent = this.getAttribute('data-descricao') || '';
       }
+      if (selectForma) selectForma.value = '';
+      atualizarVisibilidadeParcelas();
       modal.style.display = 'flex';
     });
   });
